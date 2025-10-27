@@ -1,0 +1,1 @@
+enum NetworkStatusEnum { initial, loading, loaded, failed }

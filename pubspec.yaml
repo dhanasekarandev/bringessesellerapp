@@ -1,0 +1,103 @@
+name: bringessesellerapp
+description: "A new Flutter project."
+
+# Prevent publishing to pub.dev (private package)
+publish_to: 'none'
+
+# Versioning
+version: 1.0.6+20
+
+environment:
+  sdk: '>=3.6.3 <4.0.0'
+
+# Dependencies
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # iOS style icons
+  cupertino_icons: ^1.0.6
+
+  # State management
+  flutter_bloc: ^9.1.1
+
+  # Routing
+  go_router: ^15.1.2
+
+  # Networking
+  dio: ^5.9.0
+
+  # Logging
+  logger: ^2.6.2
+
+  # Storage
+  shared_preferences: ^2.3.3
+
+  # UI & Screens
+  flutter_screenutil: ^5.9.3
+  cached_network_image: ^3.4.1
+  fl_chart: ^1.1.0
+
+  # File & Image handling
+  file_picker: ^10.3.3
+  open_file: ^3.5.10
+  image_picker: ^1.2.0
+
+  # Splash screen and launcher icons
+  flutter_native_splash: ^2.4.6
+  flutter_launcher_icons: ^0.14.4
+  fluttertoast: ^8.0.7
+  google_maps_flutter: ^2.13.1
+  geolocator: ^14.0.2
+  permission_handler: ^12.0.1
+  location: ^8.0.1
+  geocoding: ^4.0.0
+  google_places_flutter: ^2.1.1
+  razorpay_flutter: ^1.4.0
+  firebase_remote_config: ^6.1.0
+  package_info_plus: ^8.3.1
+  firebase_analytics: ^12.0.3
+  url_launcher: ^6.3.2
+  firebase_core: ^4.2.0
+  firebase_messaging: ^16.0.3
+  flutter_local_notifications: ^19.5.0
+  device_info_plus: ^11.5.0
+ 
+
+# Development dependencies
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+# Flutter native splash configuration
+flutter_native_splash:
+  android: true
+  ios: true
+  web: false
+  color: "#fef2e2"
+  image: "assets/images/splash_screen.png"
+
+# Flutter launcher icons configuration
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/applogo.jpg"
+
+# Flutter settings
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    # Add more folders if needed:
+    # - assets/icons/
+    # - assets/data/
+
+  # Fonts (example)
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: fonts/Roboto-Regular.ttf
+  #       - asset: fonts/Roboto-Bold.ttf
+  #         weight: 700
