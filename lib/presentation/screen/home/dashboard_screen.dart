@@ -59,7 +59,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _startPaymentStatusCheck() {
-    // periodic payment check but without triggering full rebuilds
     _paymentStatusTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (mounted) {
         context.read<ViewProfileCubit>().login();
@@ -123,6 +122,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         /// 🔹 Main Body
         body: BlocBuilder<ViewProfileCubit, ViewProfileState>(
           builder: (context, viewProfileState) {
+            if (NetworkStatusEnum.failed ==
+                viewProfileState.networkStatusEnum) {
+              print("sfjbs");
+            }
+            print("sdkfhbsk${viewProfileState}");
             final isPaymentDone = viewProfileState
                     .viewProfile.result?.paymentStatus
                     ?.toString()
@@ -188,7 +192,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                       ),
 
-                      // Orders
                       CustomCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,6 +219,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             const SubTitleText(title: "Total Revenue"),
                             TitleText(title: "${model.totalRevenue ?? '0'}"),
+                            SalesGraph(),
                           ],
                         ),
                       ),
@@ -225,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             SubTitleText(title: "Revenue Graph"),
-                            TitleText(title: "\$ 0.0"),
+                            TitleText(title: " 0.0"),
                             SalesGraph(),
                           ],
                         ),
