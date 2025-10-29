@@ -36,6 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   bool _storeSwitch = true;
   Timer? _paymentStatusTimer;
   late SharedPreferenceHelper sharedPreferenceHelper;
+
   @override
   void initState() {
     super.initState();
@@ -53,67 +54,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   void _loadDashboard() {
     context.read<GetStoreCubit>().login();
-
     context.read<DashboardCubit>().login();
-
     context.read<ViewProfileCubit>().login();
   }
 
   void _startPaymentStatusCheck() {
-    _paymentStatusTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    // periodic payment check but without triggering full rebuilds
+    _paymentStatusTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
       if (mounted) {
         context.read<ViewProfileCubit>().login();
       }
     });
   }
 
-  int? totalOrder;
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
+        // ✅ GetStoreCubit Listener
         BlocListener<GetStoreCubit, GetStoreState>(
           listener: (context, state) {
-            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
-              if (state.getStoreModel.status == 'true') {
-                final data = state.getStoreModel.result;
-                sharedPreferenceHelper
-                    .saveStoreId(state.getStoreModel.result?.storeId);
-                sharedPreferenceHelper
-                    .saveCategoryId(state.getStoreModel.result?.categoryId);
-                sharedPreferenceHelper
-                    .saveCategoryName(state.getStoreModel.result?.categoryName);
-              }
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.getStoreModel.status == 'true') {
+              final data = state.getStoreModel.result;
+              sharedPreferenceHelper.saveStoreId(data?.storeId);
+              sharedPreferenceHelper.saveCategoryId(data?.categoryId);
+              sharedPreferenceHelper.saveCategoryName(data?.categoryName);
             }
           },
         ),
+
+        // ✅ DashboardCubit Listener
         BlocListener<DashboardCubit, DashboardState>(
           listener: (context, state) {
-            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
-              if (state.dashboardModel.status == 'true') {
-                totalOrder = state.dashboardModel.totalOrders;
-
-                // ToastWidget(
-                //   message: "Data Retrieved",
-                //   color: Colors.green,
-                // ).build(context);
-              } else {
-                ToastWidget(
-                  message: "Something went wrong",
-                  color: Colors.red,
-                ).build(context);
-              }
+            if (state.networkStatusEnum == NetworkStatusEnum.failed) {
+              ToastWidget(
+                message: "Failed to load dashboard",
+                color: Colors.red,
+              ).build(context);
             }
-            // else if (state.networkStatusEnum == NetworkStatusEnum.failed) {
-            //   ToastWidget(
-            //     message: "Network error",
-            //     color: Colors.red,
-            //   ).build(context);
-            // }
           },
-        ),
-        BlocListener<ViewProfileCubit, ViewProfileState>(
-          listener: (context, state) {},
         ),
       ],
       child: Scaffold(
@@ -139,204 +119,171 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
+
+        /// 🔹 Main Body
         body: BlocBuilder<ViewProfileCubit, ViewProfileState>(
           builder: (context, viewProfileState) {
-            bool shouldShowPaymentCard = false;
+            final isPaymentDone = viewProfileState
+                    .viewProfile.result?.paymentStatus
+                    ?.toString()
+                    .toLowerCase() ==
+                'true';
 
+            // 🔸 Only show loader for very first time
             if (viewProfileState.networkStatusEnum ==
-                NetworkStatusEnum.loading) {
-              // Optional: show loader instead of card while refreshing
+                    NetworkStatusEnum.loading &&
+                viewProfileState.viewProfile.result == null) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            if (viewProfileState.networkStatusEnum ==
-                    NetworkStatusEnum.loaded &&
-                viewProfileState.viewProfile.status == 'true' &&
-                viewProfileState.viewProfile.result != null) {
-              final paymentStatus = viewProfileState
-                      .viewProfile.result!.paymentStatus
-                      ?.toString()
-                      .toLowerCase() ??
-                  'false';
-
-              // ✅ Show card only if paymentStatus is not true
-              shouldShowPaymentCard = paymentStatus != 'true';
-            } else if (viewProfileState.networkStatusEnum ==
-                NetworkStatusEnum.failed) {
-              shouldShowPaymentCard = true; // show card on error
+            if (!isPaymentDone) {
+              return const Center(child: PaymentDetailsCard());
             }
 
-            if (shouldShowPaymentCard) {
-              return const Center(
-                child: PaymentDetailsCard(),
-              );
-            }
-
+            // 🔸 Build dashboard only after payment verified
             return BlocBuilder<DashboardCubit, DashboardState>(
-              builder: (context, state) {
-                if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
-                    state.dashboardModel.status == 'true') {
-                  return SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomCard(
-                          margin: EdgeInsets.all(5.w),
-                          child: Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SubTitleText(title: "Shop Status"),
-                                  TitleText(
-                                    title: _storeSwitch ? "Open" : "Closed",
-                                  ),
-                                ],
-                              ),
-                              const Spacer(),
-                              Switch(
-                                value: _storeSwitch,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _storeSwitch = value;
-                                  });
+              builder: (context, dashboardState) {
+                if (dashboardState.networkStatusEnum ==
+                        NetworkStatusEnum.loading &&
+                    dashboardState.dashboardModel.status == "false") {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                                  context.read<ViewProfileCubit>().login();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                if (dashboardState.networkStatusEnum ==
+                    NetworkStatusEnum.failed) {
+                  return const Center(child: Text("Failed to load dashboard"));
+                }
 
-                        /// Orders card
-                        CustomCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Total orders"),
-                              TitleText(
-                                  title:
-                                      "${state.dashboardModel.totalOrders ?? "0"}"),
-                              CustomListTile(
-                                leadingIcon: Icons.bookmark_border_outlined,
-                                title:
-                                    "${state.dashboardModel.successfulOrders ?? '0'}",
-                                subtitle: "Successful orders",
-                              ),
-                              CustomListTile(
-                                leadingIcon: Icons.bookmark_border_outlined,
-                                title:
-                                    "${state.dashboardModel.unSuccessfulOrders ?? '0'}",
-                                subtitle: "Pending orders",
-                              ),
-                            ],
-                          ),
-                        ),
+                final model = dashboardState.dashboardModel;
+                if (model.status != 'true') {
+                  return const Center(child: Text("No data found"));
+                }
 
-                        SizedBox(
-                          width: double.infinity,
-                          child: CustomCard(
-                            child: Column(
+                return SingleChildScrollView(
+                  padding: EdgeInsets.all(8.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Shop Status
+                      CustomCard(
+                        margin: EdgeInsets.all(5.w),
+                        child: Row(
+                          children: [
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SubTitleText(title: "Total Revenue"),
+                                const SubTitleText(title: "Shop Status"),
                                 TitleText(
-                                    title:
-                                        "${state.dashboardModel.totalRevenue ?? ''}"),
+                                    title: _storeSwitch ? "Open" : "Closed"),
                               ],
                             ),
-                          ),
+                            const Spacer(),
+                            Switch(
+                              value: _storeSwitch,
+                              onChanged: (value) {
+                                setState(() => _storeSwitch = value);
+                              },
+                            ),
+                          ],
                         ),
+                      ),
 
-                        const CustomCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Revenue graph"),
-                              TitleText(title: "\$ 0.0"),
-                              SalesGraph(),
-                            ],
-                          ),
+                      // Orders
+                      CustomCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SubTitleText(title: "Total orders"),
+                            TitleText(title: "${model.totalOrders ?? '0'}"),
+                            CustomListTile(
+                              leadingIcon: Icons.check_circle_outline,
+                              title: "${model.successfulOrders ?? '0'}",
+                              subtitle: "Successful orders",
+                            ),
+                            CustomListTile(
+                              leadingIcon: Icons.pending_actions_outlined,
+                              title: "${model.unSuccessfulOrders ?? '0'}",
+                              subtitle: "Pending orders",
+                            ),
+                          ],
                         ),
+                      ),
 
-                        const CustomCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Total graph"),
-                              TitleText(title: "\$ 0.0"),
-                              SalesGraph(),
-                            ],
-                          ),
+                      // Revenue
+                      CustomCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SubTitleText(title: "Total Revenue"),
+                            TitleText(title: "${model.totalRevenue ?? '0'}"),
+                          ],
                         ),
+                      ),
 
-                        CustomCard(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const MenuScreen()),
-                            );
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Menu section"),
-                              CustomListTile(
-                                leadingIcon: Icons.bookmark_border_outlined,
-                                title: "Menu",
-                                subtitle: "${state.dashboardModel.totalMenus}",
-                              ),
-                            ],
-                          ),
+                      const CustomCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SubTitleText(title: "Revenue Graph"),
+                            TitleText(title: "\$ 0.0"),
+                            SalesGraph(),
+                          ],
                         ),
+                      ),
 
-                        CustomCard(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const ProductScreen()),
-                            );
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Product section"),
-                              CustomListTile(
-                                leadingIcon: Icons.bookmark_border_outlined,
-                                title: "Product",
-                                subtitle: "${state.dashboardModel.totalItems}",
-                              ),
-                            ],
-                          ),
+                      CustomCard(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MenuScreen()),
                         ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SubTitleText(title: "Menu Section"),
+                            CustomListTile(
+                              leadingIcon: Icons.restaurant_menu,
+                              title: "Menu",
+                              subtitle: "${model.totalMenus ?? '0'}",
+                            ),
+                          ],
+                        ),
+                      ),
 
-                        CustomCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SubTitleText(title: "Review section"),
-                              CustomListTile(
-                                leadingIcon: Icons.bookmark_border_outlined,
-                                title: "Review",
-                                subtitle:
-                                    "${state.dashboardModel.totalReviews}",
-                              ),
-                            ],
-                          ),
+                      CustomCard(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ProductScreen()),
                         ),
-                      ],
-                    ),
-                  );
-                } else {
-                  CircularProgressIndicator();
-                }
-                if (state.dashboardModel.paymentStatus != "false") {
-                  return PaymentDetailsCard();
-                }
-                return CircularProgressIndicator();
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SubTitleText(title: "Product Section"),
+                            CustomListTile(
+                              leadingIcon: Icons.shopping_bag_outlined,
+                              title: "Product",
+                              subtitle: "${model.totalItems ?? '0'}",
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      CustomCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SubTitleText(title: "Review Section"),
+                            CustomListTile(
+                              leadingIcon: Icons.reviews_outlined,
+                              title: "Review",
+                              subtitle: "${model.totalReviews ?? '0'}",
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
               },
             );
           },

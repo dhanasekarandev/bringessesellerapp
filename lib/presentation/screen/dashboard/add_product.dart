@@ -14,11 +14,12 @@ import 'package:bringessesellerapp/presentation/widget/dotted_container.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
-import 'package:dio/dio.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddProductScreen extends StatefulWidget {
@@ -79,6 +80,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  bool load = false;
   void addVariant() {
     variantList.add({
       'count': TextEditingController(),
@@ -96,6 +98,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void _save() {
+    setState(() {
+      load = true;
+    });
     final List<Variant> variants = [];
 
     for (var variant in variantList) {
@@ -160,6 +165,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
       listener: (context, state) {
         if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
           final data = state.menuCreateResModel.message;
+          setState(() {
+            load = false;
+          });
+          context.pop(true);
           Fluttertoast.showToast(
               msg: data! ?? "Product has been created successfully");
         }
@@ -182,13 +191,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       InkWell(
                         onTap: _pickImage,
                         child: Container(
-                          height: 100.h,
+                          height: 150.h,
                           padding: EdgeInsets.all(10.w),
                           child: DottedContainer(
                             child: _productImage != null
                                 ? Image.file(
                                     _productImage!,
                                     fit: BoxFit.cover,
+                                    height: 200.h,
+                                    width: 1.sw,
                                   )
                                 : const Center(
                                     child: Text("Upload Image"),
@@ -428,7 +439,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           bottomNavigationBar: Container(
             margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
             child: CustomButton(
-              title: "Save",
+              title: load == 'true' ? "Please wait.." : "Save",
               onPressed: _save,
             ),
           ),

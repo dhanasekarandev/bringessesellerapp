@@ -38,18 +38,21 @@ class Result {
   String? paymentStatus;
   // StoreDetails? storeDetails;
   int? subscriptionStatus;
+  bool? emailVerified;
+  bool? phoneVerified;
   String? subscriptionExpiryAt;
 
-  Result({
-    this.sellerId,
-    this.name,
-    this.email,
-    this.contactNo,
-    this.paymentStatus,
-    //  this.storeDetails,
-    this.subscriptionStatus,
-    this.subscriptionExpiryAt,
-  });
+  Result(
+      {this.sellerId,
+      this.name,
+      this.email,
+      this.contactNo,
+      this.paymentStatus,
+      //  this.storeDetails,
+      this.subscriptionStatus,
+      this.subscriptionExpiryAt,
+      this.emailVerified,
+      this.phoneVerified});
 
   Result.fromJson(Map<String, dynamic> json) {
     sellerId = json['sellerId'];
@@ -59,6 +62,8 @@ class Result {
     paymentStatus = json['paymentStatus'];
     subscriptionStatus = json['subscriptionStatus'];
     subscriptionExpiryAt = json['subscriptionExpiryAt'];
+    phoneVerified = json['phoneVerified'];
+    emailVerified = json['emailVerified'];
     //  storeDetails = json['storeDetails'] != null
     //     ? StoreDetails.fromJson(json['storeDetails'])
     //     : null;
@@ -76,6 +81,8 @@ class Result {
     // }
     data['subscriptionStatus'] = subscriptionStatus;
     data['subscriptionExpiryAt'] = subscriptionExpiryAt;
+    data['emailVerified'] = emailVerified;
+    data['phoneVerified'] = phoneVerified;
     return data;
   }
 }

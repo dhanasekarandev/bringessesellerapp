@@ -20,10 +20,9 @@ import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/location_permission_helper.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,6 +31,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -60,7 +61,8 @@ class _ShopScreenState extends State<ShopScreen> {
   TextEditingController _packingtime = TextEditingController();
 
   String? selectedOption;
-
+  double? selectedLat;
+  double? selectedLng;
   List<Map<String, String>> documents = [];
   Future<void> _pickPdf() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -129,25 +131,43 @@ class _ShopScreenState extends State<ShopScreen> {
     return TimeOfDay.fromDateTime(dt).format(context);
   }
 
+  double? _existingLat;
+  double? _existingLng;
   String? storeName;
-  Future<String?> getCityFromLatLng(
-      {double? latitude, double? longitude}) async {
+  Future<String?> getFullAddressFromLatLng({
+    required double latitude,
+    required double longitude,
+  }) async {
     try {
+      // 🔹 Get placemarks from coordinates
       List<Placemark> placemarks =
-          await placemarkFromCoordinates(latitude!, longitude!);
+          await placemarkFromCoordinates(latitude, longitude);
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
-        storeName = place.locality ??
-            place.subAdministrativeArea ??
-            place.administrativeArea;
 
-        print("Store city name: $storeName");
+        // 🔹 Combine all non-empty address parts
+        String fullAddress = [
+          place.name,
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.subAdministrativeArea,
+          place.administrativeArea,
+          place.postalCode,
+          place.country
+        ].where((e) => e != null && e.trim().isNotEmpty).join(", ");
+
+        print("📍 Full Address: $fullAddress");
+        return fullAddress;
+      } else {
+        print("⚠️ No address found for given coordinates.");
+        return null;
       }
     } catch (e) {
-      print('Error: $e');
+      print("❌ Error getting address: $e");
+      return null;
     }
-    return null;
   }
 
   List<Category> _cat = [];
@@ -180,7 +200,6 @@ class _ShopScreenState extends State<ShopScreen> {
       }
     }
 
-    // Determine image to send: new selected image or keep existing
     File? newImageFile;
     String? existingImageName;
 
@@ -191,7 +210,6 @@ class _ShopScreenState extends State<ShopScreen> {
           _storeImg!.split('/').last; // send as existing image name
     }
 
-    // Prepare list of existing document names
     List<String> existingDocs = [];
     for (var doc in documents) {
       if (doc.containsKey('name') && !doc.containsKey('file')) {
@@ -199,7 +217,6 @@ class _ShopScreenState extends State<ShopScreen> {
       }
     }
 
-    // Create StoreReqModel for update or new
     final storeReq = StoreReqModel(
       sellerId: sharedPreferenceHelper.getSellerId,
       storeId: _storeId,
@@ -211,12 +228,16 @@ class _ShopScreenState extends State<ShopScreen> {
       packingtime: _packingtime.text.trim(),
       opentime: _formatTime(_openTime),
       closetime: _formatTime(_closeTime),
-      image: newImageFile, // new image file if selected
-
-      documents: newDocuments, // new documents to upload
-
-      lat: '31.9876', // replace with real coordinates
-      lon: '75.1234', // replace with real coordinates
+      image: newImageFile,
+      documents: newDocuments,
+      lat: (selectedLat ??
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
     );
     final storeUpdate = StoreUpdateReq(
       sellerId: sharedPreferenceHelper.getSellerId,
@@ -233,14 +254,20 @@ class _ShopScreenState extends State<ShopScreen> {
       storeImage: existingImageName,
       documents: newDocuments,
       storeDocuments: existingDocs,
-      lat: '31.9876',
-      lon: '75.1234',
+      lat: (selectedLat ??
+              _existingLat ?? // ✅ fallback to old API lat
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              _existingLng ?? // ✅ fallback to old API lon
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
     );
     if (_isDataLoaded) {
-      // Edit shop
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
-      // Create new shop
       context.read<StoreUploadCubit>().login(storeReq);
     }
   }
@@ -319,6 +346,17 @@ class _ShopScreenState extends State<ShopScreen> {
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.getStoreModel.status == 'true') {
                     final data = state.getStoreModel.result;
+                    if (data!.lat != null && data.lon != null) {
+                      String? address = await getFullAddressFromLatLng(
+                        latitude: data.lat!,
+                        longitude: data.lon!,
+                      );
+                      setState(() {
+                        storeName = address;
+                        _existingLat = data.lat;
+                        _existingLng = data.lon;
+                      });
+                    }
                     sharedPreferenceHelper
                         .saveStoreId(state.getStoreModel.result?.storeId);
                     sharedPreferenceHelper
@@ -344,6 +382,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         _des.text = data.description ?? "";
                         _packingtime.text = data.packingTime.toString();
                         _packingchrg.text = data.packingCharge.toString();
+
                         if (data.openingTime != null &&
                             data.openingTime!.isNotEmpty) {
                           final openParts = data.openingTime!.split(':');
@@ -368,9 +407,13 @@ class _ShopScreenState extends State<ShopScreen> {
                         if (data.documents != null &&
                             data.documents!.isNotEmpty) {
                           documents.clear();
-                          for (var _ in data.documents!) {
+                          for (var fileName in data.documents!) {
+                            final fileUrl =
+                                "https://www.bringesse.com/public/media/stores/$fileName";
                             documents.add({
-                              "name": "Document",
+                              "name": fileName, // actual file name from API
+                              "url":
+                                  fileUrl, // full URL for downloading/opening
                               "size": "Unknown",
                               "date": DateTime.now().toString().split(' ')[0],
                             });
@@ -392,11 +435,13 @@ class _ShopScreenState extends State<ShopScreen> {
                         // They would need to be added to the API or stored separately
                       });
                     }
-                    // await getCityFromLatLng(
+                    print(
+                        "sd;kbf${sharedPreferenceHelper.getSearchLng}.${sharedPreferenceHelper.getSearchLat}");
+                    // await getFullAddressFromLatLng(
                     //     latitude:
-                    //         double.parse(sharedPreferenceHelper.getcurrentLat),
+                    //         double.parse(sharedPreferenceHelper.getSearchLat),
                     //     longitude:
-                    //         double.parse(sharedPreferenceHelper.getcurrentLng));
+                    //         double.parse(sharedPreferenceHelper.getSearchLng));
                   } else {
                     Fluttertoast.showToast(
                       msg: "Failed to load store data",
@@ -539,14 +584,37 @@ class _ShopScreenState extends State<ShopScreen> {
                           vericalSpaceMedium,
                           const SubTitleText(title: "Store location"),
                           CustomTextField(
-                            onTap: () {
-                              context.push('/map');
+                            maxLines: 2,
+                            onTap: () async {
+                              final result = await context.push('/map');
+
+                              if (result != null && result is Map) {
+                                double lat = double.parse(result['lat']);
+                                double lng = double.parse(result['lng']);
+
+                                String? address =
+                                    await getFullAddressFromLatLng(
+                                  latitude: lat,
+                                  longitude: lng,
+                                );
+
+                                // Save coordinates + address
+                                await sharedPreferenceHelper
+                                    .saveSearchLat(lat.toString());
+                                await sharedPreferenceHelper
+                                    .saveSearchLng(lng.toString());
+
+                                setState(() {
+                                  selectedLat = lat;
+                                  selectedLng = lng;
+                                  storeName = address;
+                                });
+                              }
                             },
                             readOnly: true,
                             controller:
                                 TextEditingController(text: storeName ?? ''),
-                            onChanged: (value) {},
-                            hintText: "location",
+                            hintText: "Location",
                           ),
                           vericalSpaceMedium,
                           const SubTitleText(title: "Store description"),
@@ -640,6 +708,7 @@ class _ShopScreenState extends State<ShopScreen> {
                               itemCount: documents.length,
                               itemBuilder: (context, index) {
                                 final doc = documents[index];
+                                print("skdjfbsh${doc["name"]}");
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 8.0),
                                   child: CustomCard(
@@ -659,7 +728,9 @@ class _ShopScreenState extends State<ShopScreen> {
                                         onPressed: () => _removeDocument(index),
                                       ),
                                       onTap: () {
-                                        // Optional: Open PDF file
+                                        _openDocument(
+                                          doc["name"] ?? "",
+                                        );
                                       },
                                     ),
                                   ),
@@ -695,6 +766,38 @@ class _ShopScreenState extends State<ShopScreen> {
             },
           ),
         ));
+  }
+
+  Future<void> _openDocument(String fileName) async {
+    try {
+      // ✅ Construct full URL using your server path
+      final url = "https://www.bringesse.com/public/media/stores/$fileName";
+
+      Fluttertoast.showToast(msg: "Opening $fileName...");
+
+      // ✅ Create temp file path
+      final dir = await getTemporaryDirectory();
+      final filePath = "${dir.path}/$fileName";
+
+      // ✅ Check if file already downloaded
+      final file = File(filePath);
+      if (file.existsSync()) {
+        await OpenFilex.open(file.path);
+        return;
+      }
+
+      // ✅ Download from URL
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        await file.writeAsBytes(response.bodyBytes);
+        await OpenFilex.open(file.path);
+        Fluttertoast.showToast(msg: "Opened $fileName");
+      } else {
+        Fluttertoast.showToast(msg: "Failed to download file");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Error opening file: $e");
+    }
   }
 
   Future<void> _pickImage() async {

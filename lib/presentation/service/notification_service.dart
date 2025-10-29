@@ -29,13 +29,13 @@ class NotificationService {
 
   Future<void> init() async {
     await Firebase.initializeApp(
-       options: const FirebaseOptions(
-      apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
-      appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
-      messagingSenderId: "989733009995",
-      projectId: "bringessedeliverypartner",
-      storageBucket: "bringessedeliverypartner.firebasestorage.app",
-    ),
+      options: const FirebaseOptions(
+        apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
+        appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
+        messagingSenderId: "989733009995",
+        projectId: "bringessedeliverypartner",
+        storageBucket: "bringessedeliverypartner.firebasestorage.app",
+      ),
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -107,7 +107,8 @@ class NotificationService {
   void _setupMessageHandlers() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print('💥 Foreground message: ${message.notification?.title}');
+        print(
+            '💥 Foreground message: ${message.notification!.body} ,${message.notification!.title}');
       }
       _showLocalNotification(message);
     });

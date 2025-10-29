@@ -16,11 +16,13 @@ import 'package:bringessesellerapp/model/request/product_req_model.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
+import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/transaction_request_model.dart';
+import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
 import 'package:bringessesellerapp/model/response/change_password_model.dart';
 import 'package:bringessesellerapp/model/response/dashboard_model.dart';
@@ -37,24 +39,24 @@ import 'package:bringessesellerapp/model/response/product_list_response_model.da
 import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
+import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
 import 'package:bringessesellerapp/model/response/store_upload_model.dart';
 import 'package:bringessesellerapp/model/response/subcription_checkout_response.dart';
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
 import 'package:bringessesellerapp/model/response/transaction_response_model.dart';
+import 'package:bringessesellerapp/model/response/verify_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/view_profile_model.dart';
 import 'package:bringessesellerapp/model/response/view_transaction_response_model.dart';
 
 import 'package:bringessesellerapp/presentation/service/api_service.dart';
 import 'package:dio/dio.dart';
 
-
 class AuthRepository {
   final Dio _dio = Dio();
   final ApiService apiService;
   SharedPreferenceHelper sharedPreferenceHelper = SharedPreferenceHelper();
   AuthRepository(this.apiService);
- 
 
   // Future<dynamic> registerUser(SignupRequestModel? signupreqModel) async {
   //   try {
@@ -235,6 +237,50 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, ChangePasswordModel());
+    }
+  }
+
+  Future<dynamic> verifyOTP(VerifyOtpReqModel verifyOtpModel) async {
+    try {
+      var response =
+          await apiService.post(ApiConstant.verifyOtp, verifyOtpModel, false);
+      if (response.statusCode == 200) {
+        var responseData = response.data;
+        return (true, VerifyOtpResponseModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, VerifyOtpResponseModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, VerifyOtpResponseModel());
+    }
+  }
+
+  Future<dynamic> sendOTP(SendOtpReqModel verifyOtpModel) async {
+    try {
+      var response =
+          await apiService.post(ApiConstant.sendOtp, verifyOtpModel, false);
+      if (response.statusCode == 200) {
+        var responseData = response.data;
+        return (true, SendOtpResModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (
+          false,
+          SendOtpResModel(
+            message: response.data['message'],
+            status: false,
+          )
+        );
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, SendOtpResModel());
     }
   }
 

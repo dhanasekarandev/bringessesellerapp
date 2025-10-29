@@ -24,22 +24,26 @@ class Result {
   String? storeId;
   String? name;
   int? contactNo;
+  String? address;
   String? image;
   int? status;
   String? categoryId;
   String? categoryName;
   List<dynamic>? documents;
   String? createdAt;
-  String? openingTime; // new
-  String? closingTime; // new
-  int? packingTime; // new
-  int? packingCharge; // new
-  String? description; // new
+  String? openingTime;
+  String? closingTime;
+  int? packingTime;
+  int? packingCharge;
+  String? description;
+  double? lat;
+  double? lon;
 
   Result({
     this.storeId,
     this.name,
     this.contactNo,
+    this.address,
     this.image,
     this.status,
     this.categoryId,
@@ -51,12 +55,15 @@ class Result {
     this.packingTime,
     this.packingCharge,
     this.description,
+    this.lat,
+    this.lon,
   });
 
   Result.fromJson(Map<String, dynamic> json) {
     storeId = json['storeId'];
     name = json['name'];
     contactNo = json['contactNo'];
+    address = json['address'];
     image = json['image'];
     status = json['status'];
     categoryId = json['categoryId'];
@@ -68,6 +75,8 @@ class Result {
     packingTime = json['packingTime'];
     packingCharge = json['packingCharge'];
     description = json['description'];
+    lat = (json['lat'] != null) ? json['lat'].toDouble() : null;
+    lon = (json['lon'] != null) ? json['lon'].toDouble() : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -75,6 +84,7 @@ class Result {
     data['storeId'] = storeId;
     data['name'] = name;
     data['contactNo'] = contactNo;
+    data['address'] = address;
     data['image'] = image;
     data['status'] = status;
     data['categoryId'] = categoryId;
@@ -86,6 +96,8 @@ class Result {
     data['packingTime'] = packingTime;
     data['packingCharge'] = packingCharge;
     data['description'] = description;
+    data['lat'] = lat;
+    data['lon'] = lon;
     return data;
   }
 }

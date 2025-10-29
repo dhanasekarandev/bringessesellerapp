@@ -196,6 +196,15 @@ class _ProductScreenState extends State<ProductScreen>
                     "units": units,
                     "storeId": sharedPreferenceHelper.getStoreId,
                     "sellerId": sharedPreferenceHelper.getSellerId
+                  }).then((_) {
+                    context.read<ProductListCubit>().login(
+                          ProductListReqModel(
+                            storeId: sharedPreferenceHelper.getStoreId,
+                            status: "0",
+                            pageId: "0",
+                            searchKey: "",
+                          ),
+                        ); // ✅ reload list
                   });
                 },
               ),

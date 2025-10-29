@@ -1,13 +1,13 @@
 import 'dart:developer';
-
-import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
-import 'package:bringessesellerapp/config/themes.dart';
+import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
+import '../../../../config/constant/sharedpreference_helper.dart';
 
 class FullMapScreen extends StatefulWidget {
   const FullMapScreen({super.key});
@@ -17,316 +17,226 @@ class FullMapScreen extends StatefulWidget {
 }
 
 class _FullMapScreenState extends State<FullMapScreen> {
+  late SharedPreferenceHelper sharedPreferenceHelper;
+  final TextEditingController _searchController = TextEditingController();
   GoogleMapController? _mapController;
   LatLng? _currentPosition;
-  final Set<Marker> _markers = {};
-  bool _isLoading = true;
+  LatLng? _selectedPosition;
 
-  final TextEditingController _searchController = TextEditingController();
-  late SharedPreferenceHelper sharedPreferenceHelper;
+  String _mainPlaceName = "Tap on the map to select a location";
+  String _fullAddress = "";
+  Set<Marker> _markers = {};
+
   @override
   void initState() {
-    sharedPreferenceHelper = SharedPreferenceHelper();
-    sharedPreferenceHelper.init();
     super.initState();
-    _checkPermissionAndLocate();
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    _getUserCurrentLocation();
   }
 
-  Future<void> _checkPermissionAndLocate() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enable location services.")),
-      );
-      setState(() => _isLoading = false);
-      return;
+  /// 📍 Get current user location
+  Future<void> _getUserCurrentLocation() async {
+    final permissionStatus = await Permission.location.request();
+    if (permissionStatus.isGranted) {
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+        _selectedPosition = _currentPosition;
+      });
+      await _updateAddressFromLatLng(_selectedPosition!);
+      _addMarker(_selectedPosition!);
+    } else {
+      Fluttertoast.showToast(msg: "Location permission denied");
     }
+  }
 
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Location permission permanently denied. Please enable it in settings.",
-          ),
-        ),
-      );
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    if (permission == LocationPermission.denied) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location permission denied.")),
-      );
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
+  /// 🧭 Add marker at selected location
+  void _addMarker(LatLng position) {
     setState(() {
-      _currentPosition = LatLng(position.latitude, position.longitude);
-      _markers.add(
+      _markers = {
         Marker(
-          markerId: const MarkerId('current_location'),
-          position: _currentPosition!,
-          infoWindow: const InfoWindow(title: "You are here"),
+          markerId: const MarkerId("selected_location"),
+          position: position,
+          infoWindow: InfoWindow(title: _mainPlaceName),
         ),
-      );
-      _isLoading = false;
-    });
-
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLng(_currentPosition!),
-    );
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-  }
-
-  void _onTap(LatLng position) {
-    setState(() {
-      _markers.add(Marker(
-        markerId: MarkerId(position.toString()),
-        position: position,
-        infoWindow: const InfoWindow(title: "Selected Location"),
-      ));
+      };
     });
   }
 
-  LatLng? _searchedPosition;
-  void _onSearch(String? location) async {
+  /// 🔄 Convert coordinates to full formatted address
+  Future<void> _updateAddressFromLatLng(LatLng position) async {
+    try {
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+
+      if (placemarks.isNotEmpty) {
+        final Placemark place = placemarks.first;
+
+        // 🧭 Full readable address
+        final fullAddress = [
+          place.name,
+          place.street,
+          place.subLocality,
+          place.locality,
+          place.subAdministrativeArea,
+          place.administrativeArea,
+          place.postalCode,
+          place.country
+        ].where((e) => e != null && e!.trim().isNotEmpty).join(", ");
+
+        setState(() {
+          _mainPlaceName = place.name ?? "Selected Location";
+          _fullAddress = fullAddress;
+        });
+
+        log("Full Address: $_fullAddress");
+      } else {
+        setState(() {
+          _mainPlaceName = "Address not found";
+          _fullAddress = "";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _mainPlaceName = "Error getting address";
+        _fullAddress = e.toString();
+      });
+    }
+  }
+
+  /// 🔍 Search location by name
+  Future<void> _onSearch(String? location) async {
     if (location == null || location.trim().isEmpty) return;
 
     try {
-      // Get coordinates for entered location
       List<Location> locations = await locationFromAddress(location);
-
       if (locations.isNotEmpty) {
-        final firstLocation = locations.first;
-        final searchedLatLng =
-            LatLng(firstLocation.latitude, firstLocation.longitude);
-        log("Searched Location: $searchedLatLng");
-
+        final first = locations.first;
+        final latLng = LatLng(first.latitude, first.longitude);
         setState(() {
-          _searchedPosition = searchedLatLng;
-
-          // Add marker to map
-          _markers.add(
-            Marker(
-              markerId: MarkerId(location),
-              position: searchedLatLng,
-              infoWindow: InfoWindow(title: location),
-            ),
-          );
+          _selectedPosition = latLng;
         });
-
-        // Move map camera to searched location
-        _mapController?.animateCamera(
-          CameraUpdate.newLatLngZoom(searchedLatLng, 14),
-        );
-
-        // Show confirmation dialog
-        _showSaveLocationDialog(location, searchedLatLng);
+        _mapController?.animateCamera(CameraUpdate.newLatLngZoom(latLng, 16));
+        await _updateAddressFromLatLng(latLng);
+        _addMarker(latLng);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Location not found")),
-        );
+        Fluttertoast.showToast(msg: "Location not found");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
+      Fluttertoast.showToast(msg: "Error: $e");
     }
   }
 
-  void _showSaveLocationDialog(String locationName, LatLng latLng) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Save Store Location"),
-        content: Text(
-            "Do you want to save \"$locationName\" as your store location?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _saveStoreLocation(latLng, locationName);
-            },
-            child: const Text("Yes, Save"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _saveStoreLocation(LatLng latLng, String locationName) {
-    log("Store location saved: $locationName (${latLng.latitude}, ${latLng.longitude})");
-
-    Fluttertoast.showToast(msg: "Store location saved successfully!");
+  void _saveStoreLocation(LatLng latLng, String address) async {
+    await sharedPreferenceHelper.saveSearchLat(latLng.latitude.toString());
+    await sharedPreferenceHelper.saveSearchLng(latLng.longitude.toString());
+    context.pop({
+      'lat': latLng.latitude.toString(),
+      'lng': latLng.longitude.toString(),
+      'address': address,
+    });
+    Fluttertoast.showToast(
+        msg: "Saved: ${latLng.longitude},${latLng.latitude}");
   }
 
   @override
   Widget build(BuildContext context) {
-    print('sdfsj${_currentPosition}');
-    return SafeArea(
-      child: Scaffold(
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : (_currentPosition == null)
-                ? const Center(child: Text("Unable to get location"))
-                : Stack(
-                    children: [
-                      GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: _currentPosition!,
-                          zoom: 14,
-                        ),
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        zoomControlsEnabled: true,
-                        onMapCreated: _onMapCreated,
-                        markers: _markers,
-                        onTap: _onTap,
-                      ),
-                      Positioned(
-                        top: 20.h,
-                        left: 60.w,
-                        right: 10.w,
-                        child: Row(
-                          children: [
-                            Container(
-                              height: 50.h,
-                              width: 260.w,
-                              padding: EdgeInsets.symmetric(horizontal: 12.w),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8.r),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _searchController,
-                                      textInputAction: TextInputAction.search,
-                                      onSubmitted: (_) =>
-                                          _onSearch(_searchController.text),
-                                      decoration: InputDecoration(
-                                        hintText: "Search location...",
-                                        border: InputBorder.none,
-                                        suffixIcon: IconButton(
-                                          icon: const Icon(Icons.search,
-                                              color: Colors.grey),
-                                          onPressed: () =>
-                                              _onSearch(_searchController.text),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        top: 25.h,
-                        left: 10.w,
-                        child: GestureDetector(
-                          onTap: () => Navigator.of(context).maybePop(),
-                          child: Container(
-                            height: 40.h,
-                            width: 40.h,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.arrow_back_ios_new_outlined,
-                              color: AppTheme.textColor,
-                              size: 22.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-        floatingActionButton: (_currentPosition != null)
-            ? FloatingActionButton(
-                child: const Icon(Icons.my_location),
-                onPressed: () async {
-                  if (_currentPosition == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Current location not available")),
+    return Scaffold(
+      appBar: CustomAppBar(title: ""),
+      body: Stack(
+        children: [
+          _currentPosition == null
+              ? const Center(child: CircularProgressIndicator())
+              : GoogleMap(
+                  initialCameraPosition:
+                      CameraPosition(target: _currentPosition!, zoom: 15),
+                  onMapCreated: (controller) => _mapController = controller,
+                  myLocationEnabled: true,
+                  markers: _markers,
+                  onTap: (pos) async {
+                    _selectedPosition = pos;
+                    await _updateAddressFromLatLng(pos);
+                    _addMarker(pos);
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLng(pos),
                     );
-                    return;
-                  }
+                  },
+                ),
 
-                  // Ask confirmation before saving
-                  final bool? confirm = await showDialog<bool>(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text("Save Current Location"),
-                      content: const Text(
-                        "Do you want to use your current location as the store location?",
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text("Cancel"),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text("Yes, Save"),
-                        ),
-                      ],
+          // 🧭 Address Display Card (bottom)
+          Positioned(
+            bottom: 100,
+            left: 20,
+            right: 20,
+            child: Card(
+              elevation: 10,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _mainPlaceName,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
-                  );
+                    const SizedBox(height: 6),
+                    Text(
+                      _fullAddress,
+                      style: const TextStyle(
+                          fontSize: 14, color: Colors.black54, height: 1.4),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        if (_selectedPosition != null) {
+                          _saveStoreLocation(
+                              _selectedPosition!,
+                              _fullAddress.isNotEmpty
+                                  ? _fullAddress
+                                  : _mainPlaceName);
+                        }
+                      },
+                      icon: const Icon(Icons.save),
+                      label: const Text("Save this Location"),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
 
-                  if (confirm != true) return; // user cancelled
-
-                  // Animate map to current location
-                  _mapController?.animateCamera(
-                    CameraUpdate.newLatLng(_currentPosition!),
-                  );
-
-                  // Save location
-                  final currentLat = _currentPosition!.latitude;
-                  final currentLng = _currentPosition!.longitude;
-
-                  await sharedPreferenceHelper
-                      .saveCurrentLat(currentLat.toString());
-                  await sharedPreferenceHelper
-                      .saveCurrentLng(currentLng.toString());
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Store location saved successfully")),
-                  );
-                },
-              )
-            : null,
+          // 🔍 Search Bar (top)
+          Positioned(
+            top: 20,
+            left: 20,
+            right: 20,
+            child: Material(
+              elevation: 5,
+              borderRadius: BorderRadius.circular(10),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: "Search location",
+                  prefixIcon: const Icon(Icons.search),
+                  border: InputBorder.none,
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () => _searchController.clear(),
+                  ),
+                ),
+                onSubmitted: _onSearch,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

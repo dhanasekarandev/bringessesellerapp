@@ -88,4 +88,6 @@ class ApiConstant {
   static const String subscriptionPlan = 'subscriptionplans/defaults';
   static String deleteBanner(String bannerId) => 'promotions/delete/$bannerId';
   static const String subscriptionCheckout = 'subscriptions/checkout';
+  static const String verifyOtp = 'accounts/verifyotp';
+  static const String sendOtp = 'accounts/sendotp';
 }

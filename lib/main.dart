@@ -23,8 +23,10 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/logout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/payout_account_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/verify_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/get_store_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
@@ -186,6 +188,12 @@ class MyApp extends StatelessWidget {
           BlocProvider<SubscriptionCheckoutCubit>(
               create: (repoContext) => SubscriptionCheckoutCubit(
                   authRepository: AuthRepository(apiService))),
+          BlocProvider<SendOtpCubit>(
+              create: (repoContext) =>
+                  SendOtpCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<VerifyOtpCubit>(
+              create: (repoContext) =>
+                  VerifyOtpCubit(authRepository: AuthRepository(apiService))),
         ],
         child: ScreenUtilInit(
           designSize: const Size(360, 690),
