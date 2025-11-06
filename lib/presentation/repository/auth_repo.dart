@@ -815,7 +815,7 @@ class AuthRepository {
       print("Editreq:${notificationReqModel}");
       var response = await apiService.post(
           ApiConstant.promotionCheckout, notificationReqModel, false);
-      log(" asda${response}");
+      log(" dfdfadfads${response}");
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, PromotionCheckoutResponseModel.fromJson(responseData));
@@ -847,6 +847,25 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, ChangePasswordModel());
+    }
+  }
+
+  Future<dynamic> deleteMenu(String menuId) async {
+    try {
+      var response =
+          await apiService.delete(ApiConstant.deleteMenu(menuId), false);
+
+      if (response.data['status'] == 'true') {
+        var responseData = response.data;
+        return (true, CommonSuccessResModel.fromJson(responseData));
+      } else {
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, CommonSuccessResModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, CommonSuccessResModel());
     }
   }
 

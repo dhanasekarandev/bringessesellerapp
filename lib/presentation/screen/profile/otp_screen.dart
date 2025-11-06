@@ -7,7 +7,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/verify_otp_c
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/verify_otp_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
-import 'package:bringessesellerapp/presentation/widget/toast_widget.dart';
+
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';

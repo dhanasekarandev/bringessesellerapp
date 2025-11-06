@@ -1,14 +1,18 @@
 import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/category_id_req_model.dart';
+import 'package:bringessesellerapp/model/request/product_delete_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/delete_banner_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/add_menu.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_menu_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_product_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_category_state.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_list_state.dart';
+import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_image_listtile.dart';
@@ -87,33 +91,96 @@ class _MenuScreenState extends State<MenuScreen> {
                 itemCount: menus.length,
                 itemBuilder: (context, index) {
                   final menu = menus[index];
-                  return InkWell(
-                    onTap: () async {
-                      var res = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddMenuScreen(
-                            storeId: sharedPreferenceHelper.getStoreId,
-                            catogery: categories,
-                            menu: menu,
-                            from: "edit",
-                          ),
+                  return Card(
+                    margin: EdgeInsets.only(bottom: 10.h),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r)),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(10.w),
+                      leading: CircleAvatar(
+                        radius: 25.r,
+                        backgroundImage: NetworkImage(
+                          menu.image?.isNotEmpty == true
+                              ? '${ApiConstant.imageUrl}/public/media/menus/${menu.image!}'
+                              : "https://www.olivepower.in/wp-content/uploads/2018/10/exidestarcombo.webp",
                         ),
-                      );
-                      if (res == true) {
-                        context.read<MenuListCubit>().login(
-                              StoreIdReqmodel(
-                                  storeId: sharedPreferenceHelper.getStoreId),
-                            );
-                      }
-                    },
-                    child: CustomImageListTile(
-                      imageUrl: menu.image?.isNotEmpty == true
-                          ? '${ApiConstant.imageUrl}/public/media/menus/${menu.image!}'
-                          : "https://www.olivepower.in/wp-content/uploads/2018/10/exidestarcombo.webp",
-                      status: menu.status == 1 ? "Active" : "Inactive",
-                      title: menu.name ?? "",
-                      subtitle: menu.subCategoryName ?? "",
+                      ),
+                      title: Text(menu.name ?? ""),
+                      subtitle: Text(menu.subCategoryName ?? ""),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // ✏️ Edit button
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              var res = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddMenuScreen(
+                                    storeId: sharedPreferenceHelper.getStoreId,
+                                    catogery: categories,
+                                    menu: menu,
+                                    from: "edit",
+                                  ),
+                                ),
+                              );
+                              if (res == true) {
+                                context.read<MenuListCubit>().login(
+                                      StoreIdReqmodel(
+                                          storeId: sharedPreferenceHelper
+                                              .getStoreId),
+                                    );
+                              }
+                            },
+                          ),
+
+                          // 🗑️ Delete button
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              showCustomConfirmationDialog(
+                                context: context,
+                                content:
+                                    "This action will permanently delete the menu. Continue?",
+                                confirmText: "Yes",
+                                title: "Delete Menu",
+                                cancelText: "Cancel",
+                                onConfirm: () {
+                                  context
+                                      .read<DeleteMenuCubit>()
+                                      .login(menu.id);
+                                  Fluttertoast.showToast(
+                                    msg: "Menu deleted successfully",
+                                  );
+                                },
+                              );
+
+                              // if (confirm == true) {
+                              //   // Call your delete cubit here
+                              //   context
+                              //       .read<DeleteBannerCubit>()
+                              //       .deleteBanner(menu.id.toString())
+                              //       .then((value) {
+                              //     Fluttertoast.showToast(
+                              //       msg: "Menu deleted successfully",
+                              //       backgroundColor: Colors.green,
+                              //     );
+                              //     context.read<MenuListCubit>().login(
+                              //           StoreIdReqmodel(
+                              //               storeId: sharedPreferenceHelper.getStoreId),
+                              //         );
+                              //   }).catchError((error) {
+                              //     Fluttertoast.showToast(
+                              //       msg: "Failed to delete menu",
+                              //       backgroundColor: Colors.red,
+                              //     );
+                              //   });
+                              // }
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 },
@@ -143,8 +210,8 @@ class _MenuScreenState extends State<MenuScreen> {
                               if (res == true) {
                                 context.read<MenuListCubit>().login(
                                       StoreIdReqmodel(
-                                          storeId:
-                                              sharedPreferenceHelper.getStoreId),
+                                          storeId: sharedPreferenceHelper
+                                              .getStoreId),
                                     );
                               }
                             });

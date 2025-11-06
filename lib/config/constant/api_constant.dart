@@ -88,6 +88,7 @@ class ApiConstant {
   static const String menuUpdate = 'menus/update';
   static const String subscriptionPlan = 'subscriptionplans/defaults';
   static String deleteBanner(String bannerId) => 'promotions/delete/$bannerId';
+  static String deleteMenu(String menuId) => 'menus/delete/$menuId';
   static String productbyId(String productId) => 'items/list/$productId';
   static const String subscriptionCheckout = 'subscriptions/checkout';
   static const String verifyOtp = 'accounts/verifyotp';

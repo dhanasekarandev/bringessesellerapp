@@ -1,7 +1,7 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/change_password_req_model.dart';
-import 'package:bringessesellerapp/presentation/repository/auth_repo.dart';
+
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';

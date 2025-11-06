@@ -19,7 +19,7 @@ class PromotionCheckoutResponseModel {
 
   PromotionCheckoutResponseModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
-    status = json['status_code'];
+    statuscode = json['status_code'];
     orderId = json['orderId'];
     currency = json['currency'];
     amount = json['amount'];
@@ -30,6 +30,7 @@ class PromotionCheckoutResponseModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['status'] = status;
+    data['status_code'] = statuscode;
     data['orderId'] = orderId;
     data['currency'] = currency;
     data['amount'] = amount;

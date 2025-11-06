@@ -82,7 +82,7 @@ class _FullMapScreenState extends State<FullMapScreen> {
           place.administrativeArea,
           place.postalCode,
           place.country
-        ].where((e) => e != null && e!.trim().isNotEmpty).join(", ");
+        ].where((e) => e != null && e.trim().isNotEmpty).join(", ");
 
         setState(() {
           _mainPlaceName = place.name ?? "Selected Location";

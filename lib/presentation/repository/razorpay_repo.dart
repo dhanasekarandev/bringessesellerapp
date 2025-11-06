@@ -28,21 +28,21 @@ class PaymentRepository {
     required String name,
     required String description,
     String? contact,
+    String? orderId,
     String? email,
   }) {
     var options = {
       'key': key,
       'amount': amount, // Amount in paise (₹1 = 100)
       'name': name,
+      if (orderId != null) 'order_id': orderId,
       'description': description,
       'prefill': {
-        'contact': contact ?? '',
+        'contact': '+919000000000',
         'email': email ?? '',
       },
       'external': {
-        
         'wallets': ['paytm', 'phonepe', 'amazonpay']
-       
       }
     };
 

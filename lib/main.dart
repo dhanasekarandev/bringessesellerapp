@@ -9,6 +9,7 @@ import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_cre
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_transction_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/view_promotion_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_menu_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_product_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_create_cubit.dart';
@@ -227,6 +228,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<DeleteProductCubit>(
               create: (repoContext) => DeleteProductCubit(
                   authRepository: AuthRepository(apiService))),
+          BlocProvider<DeleteMenuCubit>(
+              create: (repoContext) =>
+                  DeleteMenuCubit(authRepository: AuthRepository(apiService))),
         ],
         child: ScreenUtilInit(
           designSize: const Size(360, 690),

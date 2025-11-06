@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:bringessesellerapp/config/constant/contsant.dart';
+import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
@@ -7,6 +8,7 @@ import 'package:bringessesellerapp/model/request/transaction_request_model.dart'
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
 import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_checkout_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_checkout_state.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_create_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_create_state.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_transction_cubit.dart';
@@ -18,6 +20,7 @@ import 'package:bringessesellerapp/presentation/widget/dotted_container.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -50,6 +53,13 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _url = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
+  late SharedPreferenceHelper sharedPreferenceHelper;
+  @override
+  void initState() {
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    sharedPreferenceHelper.init();
+    super.initState();
+  }
 
   Future<void> _selectDate(TextEditingController controller) async {
     DateTime initialDate = DateTime.now();
@@ -137,257 +147,283 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
   }
 
   double? totalAmount;
+  String? promotionId;
   double? selectedPrice;
   final List<Section> selectedSections = [];
   final List<String> selectedNames = [];
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PromotionCreateCubit, PromotionCreateState>(
-      listener: (context, state) {
-        if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
-            state.promotionResponseModel.status == "true") {
-          final paymentRepo = PaymentRepository();
-          paymentRepo.init(
-            onSuccess: (response) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text(
-                      "Payment successful: ${response.paymentId} ${response.signature}")));
-              context.read<PromotionTransctionCubit>().login(
-                  TransactionRequestModel(
-                      orderId: response.orderId,
-                      paymentId: response.paymentId,
-                      signature: response.signature,
-                      promotionId: state.promotionResponseModel.promotionId));
-            },
-            onError: (response) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("Payment failed: ${response.message}")));
-            },
-            onExternalWallet: (response) {
-              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text("External wallet: ${response.walletName}")));
-            },
-          );
-          context.read<PromotionCheckoutCubit>().login(
-              PromotionCheckoutReqModel(
-                  bannerPrice: selectedPrice.toString(),
-                  promotionId: state.promotionResponseModel.promotionId));
+    return BlocListener<PromotionCheckoutCubit, PromotionCheckoutState>(
+        listener: (context, checkoutState) {
+          print("csdklkkl${checkoutState.promotionResponseModel.statuscode}");
+          if (checkoutState.networkStatusEnum == NetworkStatusEnum.loaded &&
+              checkoutState.promotionResponseModel.statuscode == 200) {
+            final orderId = checkoutState.promotionResponseModel.orderId ?? "";
+            double totalAmount = calculateTotalPrice();
+            int amountInPaise = (totalAmount * 100).toInt();
 
-          double totalAmount = calculateTotalPrice();
-          int amountInPaise = (totalAmount * 100).toInt();
-          paymentRepo.openCheckout(
-            key: widget.appData!.razorKey ?? "",
-            amount: amountInPaise,
-            name: "Bringesse Promotions",
-            description: "Promotion Payment",
-            contact: "",
-            email: "seller@example.com",
-          );
-        }
-      },
-      builder: (context, state) {
-        return Scaffold(
-          appBar: const CustomAppBar(title: "Add Banner"),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(6.w),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomCard(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const TitleText(title: "Create banner display place"),
-                        vericalSpaceMedium,
-                        Container(
-                          height: 300.h,
-                          child: ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: widget.sections!.length,
-                            itemBuilder: (context, index) {
-                              final item = widget.sections![index];
-                              final isSelected = selectedSections
-                                  .any((element) => element.id == item.id);
-                              selectedPrice = selectedSections.fold<double>(
-                                  0,
-                                  (sum, section) =>
-                                      sum +
-                                      (double.parse(section.price.toString())));
-                              return customListTile(
-                                title: item.type ?? 'No Name',
-                                trailing1:
-                                    "${widget.currency}${item.price?.toString()}",
-                                trailing2: 'Day',
-                                value: isSelected,
-                                onChanged: (checked) {
-                                  setState(() {
-                                    if (checked == true) {
-                                      selectedSections.add(item);
-                                      selectedNames.add(item.type ?? "");
-                                    } else {
-                                      selectedSections.removeWhere(
-                                          (element) => element.id == item.id);
-                                      selectedNames.remove(item.type);
-                                    }
+            final paymentRepo = PaymentRepository();
+            paymentRepo.init(
+              onSuccess: (response) {
+                showAppToast(message: 'Payment successful');
+                context.read<PromotionTransctionCubit>().login(
+                      TransactionRequestModel(
+                        orderId: response.orderId,
+                        paymentId: response.paymentId,
+                        signature: response.signature,
+                        promotionId: promotionId,
+                      ),
+                    );
+              },
+              onError: (response) {
+                showAppToast(message: 'Payment failed ${response.message}');
+              },
+              onExternalWallet: (response) {
+                // ScaffoldMessenger.of(context).showSnackBar(
+                //   SnackBar(
+                //       content: Text("External wallet: ${response.walletName}")),
+                // );
+              },
+            );
 
-                                    selectedPrice =
-                                        selectedSections.fold<double>(
+            // ✅ Open Razorpay checkout
+            paymentRepo.openCheckout(
+              key: widget.appData!.razorKey ?? "",
+              amount: amountInPaise,
+              name: "Bringesse Promotions",
+              description: "Promotion Payment",
+              orderId: orderId, // Required for signature
+              email: "seller@example.com",
+            );
+          }
+        },
+        child: BlocConsumer<PromotionCreateCubit, PromotionCreateState>(
+          listener: (context, state) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.promotionResponseModel.status == "true") {
+              setState(() {
+                promotionId = state.promotionResponseModel.promotionId;
+              });
+              // sharedPreferenceHelper
+              //     .savePromotionId(state.promotionResponseModel.promotionId);
+
+              /// ✅ Trigger Checkout API
+              context.read<PromotionCheckoutCubit>().login(
+                    PromotionCheckoutReqModel(
+                      bannerPrice: selectedPrice.toString(),
+                      promotionId: state.promotionResponseModel.promotionId,
+                    ),
+                  );
+            }
+          },
+          builder: (context, state) {
+            return Scaffold(
+              appBar: const CustomAppBar(title: "Add Banner"),
+              body: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(6.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomCard(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const TitleText(
+                                title: "Create banner display place"),
+                            vericalSpaceMedium,
+                            Container(
+                              height: 300.h,
+                              child: ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: widget.sections!.length,
+                                itemBuilder: (context, index) {
+                                  final item = widget.sections![index];
+                                  final isSelected = selectedSections
+                                      .any((element) => element.id == item.id);
+                                  selectedPrice = selectedSections.fold<double>(
                                       0,
                                       (sum, section) =>
                                           sum +
-                                          (double.tryParse(
-                                                  section.price.toString()) ??
-                                              0),
-                                    );
-                                  });
+                                          (double.parse(
+                                              section.price.toString())));
+                                  return customListTile(
+                                    title: item.type ?? 'No Name',
+                                    trailing1:
+                                        "${widget.currency}${item.price?.toString()}",
+                                    trailing2: 'Day',
+                                    value: isSelected,
+                                    onChanged: (checked) {
+                                      setState(() {
+                                        if (checked == true) {
+                                          selectedSections.add(item);
+                                          selectedNames.add(item.type ?? "");
+                                        } else {
+                                          selectedSections.removeWhere(
+                                              (element) =>
+                                                  element.id == item.id);
+                                          selectedNames.remove(item.type);
+                                        }
+
+                                        selectedPrice =
+                                            selectedSections.fold<double>(
+                                          0,
+                                          (sum, section) =>
+                                              sum +
+                                              (double.tryParse(section.price
+                                                      .toString()) ??
+                                                  0),
+                                        );
+                                      });
+                                    },
+                                  );
                                 },
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                      CustomCard(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const TitleText(title: "Upload banner image"),
+                          const SubTitleText(title: "Upload banner image"),
+                          vericalSpaceMedium,
+                          InkWell(
+                            onTap: _pickBannerImage,
+                            child: Container(
+                              height: 150.h,
+                              width: double.infinity,
+                              padding: EdgeInsets.all(10.w),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: DottedContainer(
+                                child: _bannerImage == null
+                                    ? const Text("Upload Image")
+                                    : ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(12.r),
+                                        child: Image.file(
+                                          _bannerImage!,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SubTitleText(
+                              title:
+                                  "Minimum dimension is 1029x474 and maximum file size is : 5MB"),
+                        ],
+                      )),
+                      CustomCard(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SubTitleText(title: "Promotion"),
+                          vericalSpaceMedium,
+                          DropdownButtonFormField<String>(
+                            value: selectedOption,
+                            hint: const Text("Select option"),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                            ),
+                            items: options.map((option) {
+                              return DropdownMenuItem(
+                                value: option,
+                                child: Text(option),
                               );
+                            }).toList(),
+                            onChanged: (value) {
+                              setState(() {
+                                selectedOption = value;
+                              });
                             },
                           ),
-                        )
-                      ],
-                    ),
+                          if (selectedOption == 'Link') ...[
+                            SizedBox(height: 16.h),
+                            const SubTitleText(title: "URL"),
+                            CustomTextField(
+                              hintText: "Enter URL",
+                              controller: _url,
+                            ),
+                          ]
+                        ],
+                      )),
+                      CustomCard(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TitleText(title: "Select banner date"),
+                          vericalSpaceMedium,
+                          TextFormField(
+                            controller: _startDateController,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: "Start Date",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              suffixIcon: const Icon(Icons.calendar_today),
+                            ),
+                            onTap: () => _selectDate(_startDateController),
+                          ),
+                          vericalSpaceMedium,
+                          TextFormField(
+                            controller: _endDateController,
+                            readOnly: true,
+                            decoration: InputDecoration(
+                              labelText: "End Date",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              suffixIcon: const Icon(Icons.calendar_today),
+                            ),
+                            onTap: () => _selectDate(_endDateController),
+                          ),
+                          vericalSpaceSmall,
+                        ],
+                      ))
+                    ],
                   ),
-                  CustomCard(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const TitleText(title: "Upload banner image"),
-                      const SubTitleText(title: "Upload banner image"),
-                      vericalSpaceMedium,
-                      InkWell(
-                        onTap: _pickBannerImage,
-                        child: Container(
-                          height: 150.h,
-                          width: double.infinity,
-                          padding: EdgeInsets.all(10.w),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: DottedContainer(
-                            child: _bannerImage == null
-                                ? const Text("Upload Image")
-                                : ClipRRect(
-                                    borderRadius: BorderRadius.circular(12.r),
-                                    child: Image.file(
-                                      _bannerImage!,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                      const SubTitleText(
-                          title:
-                              "Minimum dimension is 1029x474 and maximum file size is : 5MB"),
-                    ],
-                  )),
-                  CustomCard(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SubTitleText(title: "Promotion"),
-                      vericalSpaceMedium,
-                      DropdownButtonFormField<String>(
-                        value: selectedOption,
-                        hint: const Text("Select option"),
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                        ),
-                        items: options.map((option) {
-                          return DropdownMenuItem(
-                            value: option,
-                            child: Text(option),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedOption = value;
-                          });
-                        },
-                      ),
-                      if (selectedOption == 'Link') ...[
-                        SizedBox(height: 16.h),
-                        const SubTitleText(title: "URL"),
-                        CustomTextField(
-                          hintText: "Enter URL",
-                          controller: _url,
-                        ),
-                      ]
-                    ],
-                  )),
-                  CustomCard(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TitleText(title: "Select banner date"),
-                      vericalSpaceMedium,
-                      TextFormField(
-                        controller: _startDateController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: "Start Date",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          suffixIcon: const Icon(Icons.calendar_today),
-                        ),
-                        onTap: () => _selectDate(_startDateController),
-                      ),
-                      vericalSpaceMedium,
-                      TextFormField(
-                        controller: _endDateController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: "End Date",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          suffixIcon: const Icon(Icons.calendar_today),
-                        ),
-                        onTap: () => _selectDate(_endDateController),
-                      ),
-                      vericalSpaceSmall,
-                    ],
-                  ))
-                ],
+                ),
               ),
-            ),
-          ),
-          bottomNavigationBar: SafeArea(
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-              child: CustomButton(
-                title: calculateTotalPrice() > 0
-                    ? "Pay ₹${calculateTotalPrice().round()}"
-                    : "Pay",
-                onPressed: () {
-                  var totalAmount = calculateTotalPrice();
-                  if (totalAmount <= 0) {
-                    Fluttertoast.showToast(
-                        msg: "Please select valid start and end date");
-                    return;
-                  }
-                  _save();
-                },
-                icon: Icons.arrow_forward_ios_rounded,
+              bottomNavigationBar: SafeArea(
+                child: Container(
+                  margin:
+                      EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+                  child: CustomButton(
+                    title: calculateTotalPrice() > 0
+                        ? "Pay ₹${calculateTotalPrice().round()}"
+                        : "Pay",
+                    onPressed: () {
+                      var totalAmount = calculateTotalPrice();
+                      if (totalAmount <= 0) {
+                        Fluttertoast.showToast(
+                            msg: "Please select valid start and end date");
+                        return;
+                      }
+                      _save();
+                    },
+                    icon: Icons.arrow_forward_ios_rounded,
+                  ),
+                ),
               ),
-            ),
-          ),
-        );
-      },
-    );
+            );
+          },
+        ));
   }
 
   Widget customListTile({

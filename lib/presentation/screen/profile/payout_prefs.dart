@@ -152,7 +152,7 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                 //   toastLength: Toast.LENGTH_SHORT,
                 // );
                 _accountNameController.text = data!.accountName!;
-                _accountController.text = data!.accountNumber.toString();
+                _accountController.text = data.accountNumber.toString();
                 _panCardController.text = data.pancard.toString();
                 _ifscController.text = data.ifsc!;
                 _street1Controller.text = data.street1 ?? "";

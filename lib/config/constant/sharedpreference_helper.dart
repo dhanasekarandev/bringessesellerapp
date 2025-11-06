@@ -30,6 +30,11 @@ class SharedPreferenceHelper {
     await _sharedPreferences?.setString(PrefKeys.siturl, siturl ?? "");
   }
 
+  Future<void> savePromotionId(String? promotionId) async {
+    await _sharedPreferences?.setString(
+        PrefKeys.promotionId, promotionId ?? "");
+  }
+
   Future<void> saveLogo(String? logo) async {
     await _sharedPreferences?.setString(PrefKeys.logo, logo ?? "");
   }
@@ -45,9 +50,11 @@ class SharedPreferenceHelper {
   Future<void> saveToken(String? version) async {
     await _sharedPreferences?.setString(PrefKeys.token, version ?? "");
   }
+
   Future<void> saveRefreshToken(String? version) async {
     await _sharedPreferences?.setString(PrefKeys.refreshToken, version ?? "");
   }
+
   Future<void> saveTemp(String? tempId) async {
     await _sharedPreferences?.setString(PrefKeys.token, tempId ?? "");
   }
@@ -114,6 +121,10 @@ class SharedPreferenceHelper {
 
   String get getLogo {
     return _sharedPreferences?.getString(PrefKeys.logo) ?? '';
+  }
+
+  String get getpromotionId {
+    return _sharedPreferences?.getString(PrefKeys.promotionId) ?? '';
   }
 
   String get getTempId {
@@ -205,4 +216,5 @@ mixin PrefKeys {
   static const String searchLat = 'searchLat';
   static const String searchLng = 'searchLng';
   static const String searchLocation = 'searchLocation';
+  static const String promotionId = 'promotionId';
 }

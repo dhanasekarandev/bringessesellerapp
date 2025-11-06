@@ -30,14 +30,17 @@ class _ProductScreenState extends State<ProductScreen>
   void initState() {
     super.initState();
     sharedPreferenceHelper = SharedPreferenceHelper();
-    sharedPreferenceHelper.init();
-
     _tabController = TabController(length: 2, vsync: this);
+    initializeData();
+  }
 
-    // Load initial tab (Approved = status 1)
+  Future<void> initializeData() async {
+    await sharedPreferenceHelper.init(); // ✅ Wait for SharedPref ready
+
+    if (!mounted) return;
+
     loadProduct(status: "1");
 
-    // Listen to tab changes
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       final status = _tabController.index == 0 ? "1" : "0";
@@ -46,20 +49,51 @@ class _ProductScreenState extends State<ProductScreen>
   }
 
   void loadProduct({required String status}) {
-    // Load menu/category info
+    final storeId = sharedPreferenceHelper.getStoreId;
+
+    if (storeId == null || storeId.isEmpty) {
+      Fluttertoast.showToast(msg: "Please create a store first");
+      return;
+    }
+
+    // Load category/menu
     context.read<ProductCategoryCubit>().login(
-          StoreIdReqmodel(storeId: sharedPreferenceHelper.getStoreId),
+          StoreIdReqmodel(storeId: storeId),
         );
 
-    // Load products
+    // Load product list
     context.read<ProductListCubit>().login(
           ProductListReqModel(
-            storeId: sharedPreferenceHelper.getStoreId,
+            storeId: storeId,
             status: status,
             pageId: "0",
             searchKey: "",
           ),
         );
+  }
+
+  Future<void> refreshProducts() async {
+    final storeId = sharedPreferenceHelper.getStoreId;
+    if (storeId == null || storeId.isEmpty) return;
+
+    final productCubit = context.read<ProductListCubit>();
+
+    await Future.delayed(
+        const Duration(milliseconds: 100)); // stabilize rebuild
+
+    productCubit.login(ProductListReqModel(
+      storeId: storeId,
+      status: "1",
+      pageId: "0",
+      searchKey: "",
+    ));
+
+    productCubit.login(ProductListReqModel(
+      storeId: storeId,
+      status: "0",
+      pageId: "0",
+      searchKey: "",
+    ));
   }
 
   @override
@@ -121,35 +155,16 @@ class _ProductScreenState extends State<ProductScreen>
                                 return GestureDetector(
                                   onTap: () {
                                     context.push('/products/details',
-                                        extra: {'product': product}).then(
-                                      (value) async {
-                                        final storeId =
-                                            sharedPreferenceHelper.getStoreId;
-
-                                        final productCubit = await context
-                                            .read<ProductListCubit>();
-                                        productCubit.login(
-                                          ProductListReqModel(
-                                            storeId: storeId,
-                                            status: "0",
-                                            pageId: "0",
-                                            searchKey: "",
-                                          ),
-                                        );
-                                        productCubit.login(
-                                          ProductListReqModel(
-                                            storeId: storeId,
-                                            status: "1",
-                                            pageId: "0",
-                                            searchKey: "",
-                                          ),
-                                        );
-                                      },
-                                    );
+                                        extra: {'product': product}).then((_) {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        refreshProducts(); // ✅ stable reload
+                                      });
+                                    });
                                   },
                                   child: CustomImageListTile(
                                     imageUrl:
-                                        "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
+                                        "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
                                     status: "Approved",
                                     subtitle: product.outOfStock == 0
                                         ? "Available"
@@ -160,7 +175,9 @@ class _ProductScreenState extends State<ProductScreen>
                                 );
                               },
                             )
-                          : const Center(child: Text("No approved products")),
+                          : const Center(
+                              child: Text("No approved products"),
+                            ),
                       unapprovedProducts.isNotEmpty
                           ? ListView.builder(
                               itemCount: unapprovedProducts.length,
@@ -168,31 +185,17 @@ class _ProductScreenState extends State<ProductScreen>
                                 final product = unapprovedProducts[index];
                                 return GestureDetector(
                                   onTap: () {
-                                    context.push('/products/details', extra: {
-                                      'product': product
-                                    }).then((value) async {
+                                    context.push('/products/details',
+                                        extra: {'product': product}).then((_) {
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        final storeId =
-                                            sharedPreferenceHelper.getStoreId;
-                                        final cubit =
-                                            context.read<ProductListCubit>();
-                                        cubit.login(ProductListReqModel(
-                                            storeId: storeId,
-                                            status: "0",
-                                            pageId: "0",
-                                            searchKey: ""));
-                                        cubit.login(ProductListReqModel(
-                                            storeId: storeId,
-                                            status: "1",
-                                            pageId: "0",
-                                            searchKey: ""));
+                                        refreshProducts(); // ✅ stable reload
                                       });
                                     });
                                   },
                                   child: CustomImageListTile(
                                     imageUrl:
-                                        "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
+                                        "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
                                     status: "Pending",
                                     subtitle: "Awaiting approval",
                                     subtitle1: product.createdAt ?? "",
@@ -201,7 +204,9 @@ class _ProductScreenState extends State<ProductScreen>
                                 );
                               },
                             )
-                          : const Center(child: Text("No unapproved products")),
+                          : const Center(
+                              child: Text("No unapproved products"),
+                            ),
                     ],
                   ),
                 ),
@@ -225,14 +230,14 @@ class _ProductScreenState extends State<ProductScreen>
                         .read<ProductCategoryCubit>()
                         .state
                         .categoryResponse
-                        .result!
-                        .menus;
+                        .result
+                        ?.menus;
                     final units = context
                         .read<ProductCategoryCubit>()
                         .state
                         .categoryResponse
-                        .result!
-                        .units;
+                        .result
+                        ?.units;
 
                     if (menus == null || menus.isEmpty) {
                       Fluttertoast.showToast(msg: "Please create a menu first");
@@ -243,28 +248,13 @@ class _ProductScreenState extends State<ProductScreen>
                       "catname": sharedPreferenceHelper.getcatName,
                       "menu": menus,
                       "units": units,
-                      "storeId": sharedPreferenceHelper.getStoreId,
+                      "storeId": storeId,
                       "sellerId": sharedPreferenceHelper.getSellerId
                     });
 
-                    // 🔁 Reload APIs after coming back
-                    final productCubit = await context.read<ProductListCubit>();
-                    productCubit.login(
-                      ProductListReqModel(
-                        storeId: storeId,
-                        status: "0",
-                        pageId: "0",
-                        searchKey: "",
-                      ),
-                    );
-                    productCubit.login(
-                      ProductListReqModel(
-                        storeId: storeId,
-                        status: "1",
-                        pageId: "0",
-                        searchKey: "",
-                      ),
-                    );
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      refreshProducts(); // ✅ reload after coming back
+                    });
                   },
                 ),
               ),
