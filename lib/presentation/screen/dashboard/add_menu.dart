@@ -291,11 +291,13 @@ class _AddMenuScreenState extends State<AddMenuScreen> {
             ),
 
             /// ---- Bottom Button ----
-            bottomNavigationBar: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-              child: CustomButton(
-                title: load ? "Please wait..." : (isEdit ? "Update" : "Save"),
-                onPressed: isEdit ? _update : _save,
+            bottomNavigationBar: SafeArea(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+                child: CustomButton(
+                  title: load ? "Please wait..." : (isEdit ? "Update" : "Save"),
+                  onPressed: isEdit ? _update : _save,
+                ),
               ),
             ),
           );

@@ -365,22 +365,24 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
               ),
             ),
           ),
-          bottomNavigationBar: Container(
-            margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-            child: CustomButton(
-              title: calculateTotalPrice() > 0
-                  ? "Pay ₹${calculateTotalPrice().round()}"
-                  : "Pay",
-              onPressed: () {
-                var totalAmount = calculateTotalPrice();
-                if (totalAmount <= 0) {
-                  Fluttertoast.showToast(
-                      msg: "Please select valid start and end date");
-                  return;
-                }
-                _save();
-              },
-              icon: Icons.arrow_forward_ios_rounded,
+          bottomNavigationBar: SafeArea(
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+              child: CustomButton(
+                title: calculateTotalPrice() > 0
+                    ? "Pay ₹${calculateTotalPrice().round()}"
+                    : "Pay",
+                onPressed: () {
+                  var totalAmount = calculateTotalPrice();
+                  if (totalAmount <= 0) {
+                    Fluttertoast.showToast(
+                        msg: "Please select valid start and end date");
+                    return;
+                  }
+                  _save();
+                },
+                icon: Icons.arrow_forward_ios_rounded,
+              ),
             ),
           ),
         );

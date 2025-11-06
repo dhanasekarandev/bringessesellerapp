@@ -11,8 +11,11 @@ import 'package:bringessesellerapp/model/request/login_req_model.dart';
 import 'package:bringessesellerapp/model/request/menu_creat_req_model.dart';
 import 'package:bringessesellerapp/model/request/menu_update_req_model.dart';
 import 'package:bringessesellerapp/model/request/notification_req_model.dart';
+import 'package:bringessesellerapp/model/request/oder_list_req_model.dart';
 import 'package:bringessesellerapp/model/request/payout_prefs_req_model.dart';
+import 'package:bringessesellerapp/model/request/product_delete_req_model.dart';
 import 'package:bringessesellerapp/model/request/product_req_model.dart';
+import 'package:bringessesellerapp/model/request/product_update_req_model.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
@@ -25,7 +28,9 @@ import 'package:bringessesellerapp/model/request/transaction_request_model.dart'
 import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
 import 'package:bringessesellerapp/model/response/change_password_model.dart';
+import 'package:bringessesellerapp/model/response/common_success_res_model.dart';
 import 'package:bringessesellerapp/model/response/dashboard_model.dart';
+import 'package:bringessesellerapp/model/response/delete_product_res_model.dart';
 import 'package:bringessesellerapp/model/response/get_sore_response_model.dart';
 
 import 'package:bringessesellerapp/model/response/login_model.dart';
@@ -33,8 +38,10 @@ import 'package:bringessesellerapp/model/response/logout_response_model.dart';
 import 'package:bringessesellerapp/model/response/menu_create_res_model.dart';
 import 'package:bringessesellerapp/model/response/menu_list_response_model.dart';
 import 'package:bringessesellerapp/model/response/notification_model.dart';
+import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/model/response/payou_error_response_model.dart';
 import 'package:bringessesellerapp/model/response/payout_response_model.dart';
+import 'package:bringessesellerapp/model/response/product_by_id_response_model.dart';
 import 'package:bringessesellerapp/model/response/product_list_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
@@ -117,15 +124,41 @@ class AuthRepository {
     try {
       final sellerId = sharedPreferenceHelper?.getSellerId;
       print("sldfkns$sellerId");
-      var response =
-          await apiService.get(ApiConstant.userViewProfile(sellerId!), true);
+      var response = await apiService.getprofile(
+          ApiConstant.userViewProfile(sellerId!), true);
       if (response.data['status_code'] == 200) {
         log("ProfileViewData:${response.data}");
         var responseData = response.data;
         return (true, ViewProfileModel.fromJson(responseData));
       } else {
         // Handle other status codes
+        if (response.data['error'] == 'Unauthorized Access API') {
+          print("slkdfns");
+          var res = await apiService.refresToken(
+            ApiConstant.refreshToken,
+            {'sellerId': sellerId},
+            true,
+          );
+          print("fslkjllkj${res.data}");
+          if (res.data['status'] == 'true') {
+            print("sljfbskj");
+            sharedPreferenceHelper.saveToken(res.data['accessToken']);
+            sharedPreferenceHelper.saveRefreshToken(res.data['refreshToken']);
+            var retryResponse = await apiService.getprofile(
+                ApiConstant.userViewProfile(sellerId), true);
+
+            if (retryResponse.data['status_code'] == 200) {
+              log("ProfileViewData (After Refresh): ${retryResponse.data}");
+              var responseData = retryResponse.data;
+              return (true, ViewProfileModel.fromJson(responseData));
+            } else {
+              print('Failed again after refresh: ${retryResponse.statusCode}');
+              return (false, ViewProfileModel());
+            }
+          }
+        }
         print('Unexpected status code: ${response.statusCode}');
+
         return (false, ViewProfileModel());
       }
     } catch (e, stacktrace) {
@@ -588,6 +621,85 @@ class AuthRepository {
     }
   }
 
+  Future<dynamic> productUpdate(
+      ProductUpdateReqModel productupdateModel) async {
+    try {
+      print("Store request: $productupdateModel");
+
+      final formData = await productupdateModel.toFormData();
+
+      var response = await apiService.patch(
+        ApiConstant.productupdate,
+        formData,
+        false,
+        isFormData: true,
+      );
+
+      log("API response: $response");
+
+      if (response.data['status'] == "true") {
+        var responseData = response.data;
+        return (true, CommonSuccessResModel.fromJson(responseData));
+      } else {
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, CommonSuccessResModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace: $stacktrace');
+      return (false, CommonSuccessResModel());
+    }
+  }
+
+  Future<dynamic> productDelete(
+      ProductDeleteReqModel productupdateModel) async {
+    try {
+      print("Store request: $productupdateModel");
+
+      //final formData = await productupdateModel.toFormData();
+
+      var response = await apiService.patch(
+        ApiConstant.deleteproduct,
+        productupdateModel,
+        false,
+        isFormData: false,
+      );
+
+      log("API response: $response");
+
+      if (response.data['status'] == "true") {
+        var responseData = response.data;
+        return (true, DeleteProductResponseModel.fromJson(responseData));
+      } else {
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, DeleteProductResponseModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace: $stacktrace');
+      return (false, DeleteProductResponseModel());
+    }
+  }
+
+  Future<dynamic> productById(String id) async {
+    try {
+      var response = await apiService.get(ApiConstant.productbyId(id), false);
+      print("asldfnd${response.data}");
+      if (response.data['status_code'] == 200) {
+        var responseData = response.data;
+        return (true, ProductByIdResponse.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.data['status_code']}');
+        return (false, ProductByIdResponse());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, ProductByIdResponse());
+    }
+  }
+
   Future<dynamic> menuCreate(MenuCreateReqModel menuCreateReq) async {
     try {
       print("Store request: $menuCreateReq");
@@ -776,6 +888,26 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, BannerResponseModel());
+    }
+  }
+
+  Future<dynamic> oderList(OderListReqModel orderlistreqmodel) async {
+    try {
+      var response =
+          await apiService.post(ApiConstant.order, orderlistreqmodel, false);
+      log(" asda${response}");
+      if (response.statusCode == 200) {
+        var responseData = response.data;
+        return (true, OderListResponse.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, OderListResponse());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, OderListResponse());
     }
   }
 

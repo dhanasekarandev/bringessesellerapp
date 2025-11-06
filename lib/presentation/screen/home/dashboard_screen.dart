@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
@@ -53,9 +55,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _loadDashboard() {
-    context.read<GetStoreCubit>().login();
-    context.read<DashboardCubit>().login();
+    // if()
+
     context.read<ViewProfileCubit>().login();
+    loadStore();
+  }
+
+  loadStore() {
+    if (sharedPreferenceHelper.getStoreId != 'err') {
+      context.read<GetStoreCubit>().login();
+      context.read<DashboardCubit>().login();
+    }
   }
 
   void _startPaymentStatusCheck() {
@@ -68,6 +78,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final token = sharedPreferenceHelper?.getRefreshToken;
+    log("sdjfbs$token");
     return MultiBlocListener(
       listeners: [
         // ✅ GetStoreCubit Listener

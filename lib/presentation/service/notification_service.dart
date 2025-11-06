@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+/// ✅ Background FCM Handler
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: const FirebaseOptions(
@@ -13,9 +14,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       storageBucket: "bringessedeliverypartner.firebasestorage.app",
     ),
   );
+
+  final data = message.data;
+  final String scope = data['scope'] ?? 'General';
+  final String body = data['message'] ?? 'No message body';
+
   if (kDebugMode) {
-    print('🔔 Background message: ${message.notification?.title}');
+    print('🔔 Background FCM received!');
+    print('➡️ Scope: $scope');
+    print('➡️ Message: $body');
   }
+
+  // Show background local notification
+  await NotificationService().showBackgroundNotification(scope, body);
 }
 
 class NotificationService {
@@ -27,6 +38,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  /// ✅ Initialize Firebase Messaging & Local Notifications
   Future<void> init() async {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -37,6 +49,8 @@ class NotificationService {
         storageBucket: "bringessedeliverypartner.firebasestorage.app",
       ),
     );
+
+    // Register background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     await _initLocalNotifications();
@@ -45,6 +59,7 @@ class NotificationService {
     _setupMessageHandlers();
   }
 
+  /// ✅ Request permission for notifications
   Future<void> _requestNotificationPermission() async {
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
@@ -57,7 +72,7 @@ class NotificationService {
     }
   }
 
-  /// Get FCM token (send this to your backend)
+  /// ✅ Get and print the FCM Token
   Future<void> _getToken() async {
     String? token = await _messaging.getToken();
     if (kDebugMode) {
@@ -65,7 +80,7 @@ class NotificationService {
     }
   }
 
-  /// Initialize local notifications for foreground use
+  /// ✅ Initialize local notifications
   Future<void> _initLocalNotifications() async {
     const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -78,15 +93,34 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _localNotificationsPlugin.initialize(initSettings);
+    await _localNotificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (kDebugMode) {
+          print('🚀 Notification tapped: ${response.payload}');
+        }
+        // handle navigation based on payload if needed
+      },
+    );
   }
 
-  /// Display a local notification when app is in foreground
+  /// ✅ Foreground local notification
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    final data = message.data;
+    final String title = data['scope'] ?? 'Notification';
+    final String body = data['message'] ?? 'No message';
+
+    if (kDebugMode) {
+      print('📩 Foreground notification:');
+      print('➡️ Scope: $title');
+      print('➡️ Message: $body');
+    }
+
     const AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       'high_importance_channel',
       'High Importance Notifications',
+      channelDescription: 'Used for important notifications',
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
@@ -97,33 +131,79 @@ class NotificationService {
 
     await _localNotificationsPlugin.show(
       message.hashCode,
-      message.notification?.title ?? 'No Title',
-      message.notification?.body ?? 'No Body',
+      title,
+      body,
       platformDetails,
+      payload: title, // Optional for deep linking
     );
   }
 
-  /// Listen for foreground, background, and tap events
+  /// ✅ Show background local notification
+  Future<void> showBackgroundNotification(String scope, String message) async {
+    const androidDetails = AndroidNotificationDetails(
+      'high_importance_channel',
+      'High Importance Notifications',
+      channelDescription: 'Used for important notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+    );
+
+    const notificationDetails = NotificationDetails(android: androidDetails);
+
+    await _localNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      scope,
+      message,
+      notificationDetails,
+      payload: scope,
+    );
+  }
+
+  /// ✅ Message listeners (foreground, background, tap)
   void _setupMessageHandlers() {
+    // Foreground message
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print(
-            '💥 Foreground message: ${message.notification!.body} ,${message.notification!.title}');
+        print('💥 Foreground message received!');
+        print('Data: ${message.data}');
       }
       _showLocalNotification(message);
     });
 
+    // Notification tap when app is in background
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print('🚀 Notification opened: ${message.notification?.title}');
+        print('🚀 Notification opened from background!');
+        print('Data: ${message.data}');
       }
+      _handleNotificationTap(message.data);
     });
 
+    // Notification tap when app was terminated
     _messaging.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null && kDebugMode) {
-        print(
-            '🟢 App launched by notification: ${message.notification?.title}');
+      if (message != null) {
+        if (kDebugMode) {
+          print('🟢 App launched by notification!');
+          print('Data: ${message.data}');
+        }
+        _handleNotificationTap(message.data);
       }
     });
+  }
+
+  /// ✅ Optional: Handle deep linking / navigation
+  void _handleNotificationTap(Map<String, dynamic> data) {
+    final scope = data['scope'] ?? '';
+    if (kDebugMode) {
+      print('🧭 Handling navigation for scope: $scope');
+    }
+
+    // Example:
+    // if (scope == 'order_update') {
+    //   GoRouter.of(context).go('/orders');
+    // } else if (scope == 'payment_alert') {
+    //   GoRouter.of(context).go('/payments');
+    // }
   }
 }

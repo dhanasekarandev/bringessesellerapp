@@ -5,7 +5,7 @@ description: "A new Flutter project."
 publish_to: 'none'
 
 # Versioning
-version: 1.0.7+21
+version: 1.1.0+25
 
 environment:
   sdk: '>=3.6.3 <4.0.0'
@@ -40,7 +40,6 @@ dependencies:
 
   # File & Image handling
   file_picker: ^10.3.3
-  open_file: ^3.5.10
   image_picker: ^1.2.0
 
   # Splash screen and launcher icons
@@ -64,6 +63,7 @@ dependencies:
   device_info_plus: ^11.5.0
   open_filex: ^4.7.0
   path_provider: ^2.1.5
+  flutter_pdfview: ^1.4.3
  
 
 # Development dependencies

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';

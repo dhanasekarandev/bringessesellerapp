@@ -45,7 +45,9 @@ class SharedPreferenceHelper {
   Future<void> saveToken(String? version) async {
     await _sharedPreferences?.setString(PrefKeys.token, version ?? "");
   }
-
+  Future<void> saveRefreshToken(String? version) async {
+    await _sharedPreferences?.setString(PrefKeys.refreshToken, version ?? "");
+  }
   Future<void> saveTemp(String? tempId) async {
     await _sharedPreferences?.setString(PrefKeys.token, tempId ?? "");
   }
@@ -126,6 +128,10 @@ class SharedPreferenceHelper {
     return _sharedPreferences?.getString(PrefKeys.token) ?? '';
   }
 
+  String get getRefreshToken {
+    return _sharedPreferences?.getString(PrefKeys.refreshToken) ?? '';
+  }
+
   String get getMpinStatus {
     return _sharedPreferences?.getString(PrefKeys.mpinStatus) ?? '';
   }
@@ -184,6 +190,7 @@ mixin PrefKeys {
   static const String logo = 'logo';
   static const String version = 'version';
   static const String token = 'token';
+  static const String refreshToken = 'refreshToken';
   static const String site = 'site';
   static const String tempId = 'tempId';
   static const String mpinStatus = 'mpinStatus';

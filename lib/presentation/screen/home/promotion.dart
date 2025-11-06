@@ -38,9 +38,11 @@ class _PromotionScreenState extends State<PromotionScreen> {
 
   void _loadPredate() {
     context.read<PromotionBeforeDataCubit>().login();
-    context
-        .read<ViewPromotionCubit>()
-        .login(StoreIdReqmodel(storeId: sharedPreferenceHelper.getStoreId));
+    if (sharedPreferenceHelper.getStoreId != 'err') {
+      context
+          .read<ViewPromotionCubit>()
+          .login(StoreIdReqmodel(storeId: sharedPreferenceHelper.getStoreId));
+    }
   }
 
   String? storeId;
@@ -69,6 +71,14 @@ class _PromotionScreenState extends State<PromotionScreen> {
                   Expanded(
                     child: BlocBuilder<ViewPromotionCubit, ViewPromotionState>(
                       builder: (context, state) {
+                        print(
+                            "slfghfg${state.networkStatusEnum == NetworkStatusEnum.initial}");
+                        if (state.networkStatusEnum ==
+                            NetworkStatusEnum.initial) {
+                          const Center(
+                            child: Text("No promotions found"),
+                          );
+                        }
                         if (state.networkStatusEnum ==
                             NetworkStatusEnum.loading) {
                           return const Center(
@@ -190,10 +200,13 @@ class _PromotionScreenState extends State<PromotionScreen> {
                               );
                             },
                           );
-                        } else {
+                        } else if (state.networkStatusEnum ==
+                            NetworkStatusEnum.initial) {
                           return Center(
-                            child: Text("Something went wrong"),
+                            child: Text("No data"),
                           );
+                        } else {
+                          return SizedBox();
                         }
                       },
                     ),
@@ -201,31 +214,33 @@ class _PromotionScreenState extends State<PromotionScreen> {
                 ],
               ),
             ),
-            bottomNavigationBar: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.w),
-              child: CustomButton(
-                title: "Add Banner",
-                onPressed: storeId != null && storeId != ""
-                    ? () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddBannerScreen(
-                                sections: state.promotionpreRes.sections,
-                                currency: state
-                                    .promotionpreRes.appData!.currencySymbol,
-                                storeId: storeId,
-                                appData: state.promotionpreRes.appData,
-                              ),
-                            ));
-                      }
-                    : () {
-                        Fluttertoast.showToast(
-                          msg: "First, you need to create a store",
-                          toastLength: Toast.LENGTH_SHORT,
-                        );
-                      },
-                icon: Icons.arrow_forward_ios_rounded,
+            bottomNavigationBar: SafeArea(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.w),
+                child: CustomButton(
+                  title: "Add Banner",
+                  onPressed: storeId != null && storeId != 'err'
+                      ? () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddBannerScreen(
+                                  sections: state.promotionpreRes.sections,
+                                  currency: state
+                                      .promotionpreRes.appData!.currencySymbol,
+                                  storeId: storeId,
+                                  appData: state.promotionpreRes.appData,
+                                ),
+                              ));
+                        }
+                      : () {
+                          Fluttertoast.showToast(
+                            msg: "First, you need to create a store",
+                            toastLength: Toast.LENGTH_SHORT,
+                          );
+                        },
+                  icon: Icons.arrow_forward_ios_rounded,
+                ),
               ),
             ));
       },

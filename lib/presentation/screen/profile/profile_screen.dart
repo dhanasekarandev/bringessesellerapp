@@ -19,6 +19,7 @@ import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -39,6 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _contactController = TextEditingController();
   String? sellerId;
   late SharedPreferenceHelper sharedPreferenceHelper;
+  bool loading = false;
   @override
   void initState() {
     super.initState();
@@ -118,10 +120,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               (value) {
                 setState(() {
                   phone = false;
+                  loading = false;
                 });
               },
             );
-
+            context.read<ViewProfileCubit>().login();
             Fluttertoast.showToast(
               msg: state.ChangePassword.message ?? '',
               toastLength: Toast.LENGTH_SHORT,
@@ -186,63 +189,94 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           vericalSpaceMedium,
                           const SubTitleText(title: "Email ID"),
                           CustomTextField(
-                            controller: _emailController,
-                            hintText: "Email",
-                            suffixWidget: InkWell(
-                              onTap: () {
-                                _sendOtpEmail();
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 15),
-                                child: Container(
-                                  padding: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5.r),
-                                      border: Border.all(
-                                          color: AppTheme.primaryColor,
-                                          strokeAlign: 2)),
-                                  child: Text(
-                                    "Verify",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall!
-                                        .copyWith(color: AppTheme.primaryColor),
-                                  ),
-                                ),
+                              controller: _emailController,
+                              hintText: "Email",
+                              suffixWidget: loading
+                                  ? CupertinoActivityIndicator()
+                                  : InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          loading = true;
+                                        });
+                                        _sendOtpEmail();
+                                      },
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 15, vertical: 15),
+                                        child: Container(
+                                          padding: EdgeInsets.all(5),
+                                          decoration: state.viewProfile.result!
+                                                      .emailVerified !=
+                                                  true
+                                              ? BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          5.r),
+                                                  border: Border.all(
+                                                      color:
+                                                          AppTheme.primaryColor,
+                                                      strokeAlign: 2))
+                                              : BoxDecoration(),
+                                          child: state.viewProfile.result!
+                                                      .emailVerified !=
+                                                  true
+                                              ? Text(
+                                                  "Verify",
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall!
+                                                      .copyWith(
+                                                          color: AppTheme
+                                                              .primaryColor),
+                                                )
+                                              : Icon(
+                                                  Icons.verified,
+                                                  color: AppTheme.primaryColor,
+                                                ),
+                                        ),
+                                      ),
+                                    )
+
+                              // prefixIcon: ,
                               ),
-                            ),
-                            // prefixIcon: ,
-                          ),
                           vericalSpaceMedium,
                           const SubTitleText(title: "Mobile number"),
                           CustomTextField(
                             controller: _contactController,
                             hintText: "Mobilr number",
-                            suffixWidget: InkWell(
-                              onTap: () {
-                                _sendOtpPhone();
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 15),
-                                child: Container(
-                                  padding: EdgeInsets.all(5),
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5.r),
-                                      border: Border.all(
-                                          color: AppTheme.primaryColor,
-                                          strokeAlign: 2)),
-                                  child: Text(
-                                    "Verify",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall!
-                                        .copyWith(color: AppTheme.primaryColor),
+                            suffixWidget: state
+                                        .viewProfile.result!.phoneVerified !=
+                                    true
+                                ? InkWell(
+                                    onTap: () {
+                                      _sendOtpPhone();
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 15, vertical: 15),
+                                      child: Container(
+                                        padding: EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(5.r),
+                                            border: Border.all(
+                                                color: AppTheme.primaryColor,
+                                                strokeAlign: 2)),
+                                        child: Text(
+                                          "Verify",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall!
+                                              .copyWith(
+                                                  color: AppTheme.primaryColor),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Icon(
+                                    Icons.verified,
+                                    color: AppTheme.primaryColor,
                                   ),
-                                ),
-                              ),
-                            ),
                           ),
                         ],
                       ),

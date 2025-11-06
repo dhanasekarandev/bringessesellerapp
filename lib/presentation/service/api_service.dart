@@ -12,12 +12,23 @@ class ApiService {
   ApiService(this.dio, this.sharedPreferenceHelper);
 
   Future<Map<String, dynamic>> _getHeaders() async {
-    final token =  sharedPreferenceHelper?.getToken;
+    final token = sharedPreferenceHelper?.getToken;
     final sellerId = sharedPreferenceHelper?.getSellerId;
+    print("slkdfhs$sellerId");
     return {
       'Content-Type': 'application/json',
       'Authorization': '$token',
-      'sellerid': '$sellerId'
+      'sellerid': '${sellerId.toString()}'
+    };
+  }
+
+  Future<Map<String, dynamic>> _refreshHeaders() async {
+    final token = sharedPreferenceHelper?.getRefreshToken;
+    final sellerId = sharedPreferenceHelper?.getSellerId;
+    print("sdjfbs$token");
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': '$token',
     };
   }
 
@@ -25,6 +36,32 @@ class ApiService {
     return {
       'Content-Type': 'application/json',
     };
+  }
+
+  Future<Response> getprofile(String endpoint, bool? _isheaders,
+      {Map<String, dynamic>? headers}) async {
+    try {
+      if (_isheaders == true) {
+        headers ??= await _getHeaders();
+      }
+
+      print("lakdfhsfff${headers}");
+      // headers!.putIfAbsent('Content-Type', () => 'application/json');
+
+      final response = await dio.get(
+        endpoint,
+        options: Options(
+          headers: headers,
+        ),
+      );
+
+      print("Request Headers: $headers");
+      print("Endpoint: $endpoint");
+
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
+    }
   }
 
   Future<Response> get(String endpoint, bool? _isheaders,
@@ -35,6 +72,31 @@ class ApiService {
       }
       if (_isheaders == false) {
         headers ??= await _getHeaders1();
+      }
+      //print("lakdfhs${headers}");
+      headers!.putIfAbsent('Content-Type', () => 'application/json');
+
+      final response = await dio.get(
+        endpoint,
+        options: Options(
+          headers: headers,
+        ),
+      );
+
+      print("Request Headers: $headers");
+      print("Endpoint: $endpoint");
+
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
+    }
+  }
+
+  Future<Response> getRefresh(String endpoint, bool? _isheaders,
+      {Map<String, dynamic>? headers}) async {
+    try {
+      if (_isheaders == true) {
+        headers ??= await _refreshHeaders();
       }
 
       headers!.putIfAbsent('Content-Type', () => 'application/json');
@@ -56,7 +118,9 @@ class ApiService {
   }
 
   Future<Response> post(String? endpoint, dynamic body, bool? _isheaders,
-      {Map<String, dynamic>? headers, isFormData = false}) async {
+      {Map<String, dynamic>? headers,
+      isFormData = false,
+      bool? isrefresh}) async {
     try {
       print(body);
 
@@ -65,6 +129,43 @@ class ApiService {
       }
       if (_isheaders == false) {
         headers ??= await _getHeaders1();
+      }
+
+      print(headers);
+      print("BodyData:$headers");
+      Response response;
+      if (isFormData) {
+        response = await dio.post(
+          endpoint!,
+          data: body as FormData,
+          options: Options(headers: headers),
+        );
+      } else {
+        response = await dio.post(
+          endpoint!,
+          data: jsonEncode(body),
+          options: Options(headers: headers),
+        );
+      }
+
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
+    }
+  }
+
+  Future<Response> refresToken(
+    String? endpoint,
+    dynamic body,
+    bool? _isheaders, {
+    Map<String, dynamic>? headers,
+    isFormData = false,
+  }) async {
+    try {
+      print(body);
+
+      if (_isheaders == true) {
+        headers ??= await _refreshHeaders();
       }
       print(headers);
       print("BodyData:$headers");
@@ -88,75 +189,76 @@ class ApiService {
       throw DataException.fromDioError(e);
     }
   }
-Future<Response> delete(String? endpoint, bool? _isheaders,
-    {Map<String, dynamic>? headers, dynamic body}) async {
-  try {
-    print("DELETE Endpoint: $endpoint");
-    if (_isheaders == true) {
-      headers ??= await _getHeaders();
-    } else {
-      headers ??= await _getHeaders1();
+
+  Future<Response> delete(String? endpoint, bool? _isheaders,
+      {Map<String, dynamic>? headers, dynamic body}) async {
+    try {
+      print("DELETE Endpoint: $endpoint");
+      if (_isheaders == true) {
+        headers ??= await _getHeaders();
+      } else {
+        headers ??= await _getHeaders1();
+      }
+
+      print("Final Headers: $headers");
+      print("Body: $body");
+
+      final response = await dio.delete(
+        endpoint!,
+        data: body != null ? jsonEncode(body) : null,
+        options: Options(headers: headers),
+      );
+
+      print("DELETE Response: ${response.data}");
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
     }
-
-    print("Final Headers: $headers");
-    print("Body: $body");
-
-    final response = await dio.delete(
-      endpoint!,
-      data: body != null ? jsonEncode(body) : null,
-      options: Options(headers: headers),
-    );
-
-    print("DELETE Response: ${response.data}");
-    return response;
-  } on DioError catch (e) {
-    throw DataException.fromDioError(e);
   }
-}
+
   Future<Response> patch(
-  String? endpoint,
-  dynamic body,
-  bool? _isheaders, {
-  Map<String, dynamic>? headers,
-  bool isFormData = false,
-}) async {
-  try {
-    print("PATCH Endpoint: $endpoint");
-    print("Incoming Body: $body");
+    String? endpoint,
+    dynamic body,
+    bool? _isheaders, {
+    Map<String, dynamic>? headers,
+    bool isFormData = false,
+  }) async {
+    try {
+      print("PATCH Endpoint: $endpoint");
+      print("Incoming Body: $body");
 
-    // Handle headers based on flag
-    if (_isheaders == true) {
-      headers ??= await _getHeaders();
-    } else {
-      headers ??= await _getHeaders1();
+      // Handle headers based on flag
+      if (_isheaders == true) {
+        headers ??= await _getHeaders();
+      } else {
+        headers ??= await _getHeaders1();
+      }
+
+      print("Final Headers: $headers");
+
+      Response response;
+      if (isFormData) {
+        // ✅ Handle multipart/form-data
+        response = await dio.patch(
+          endpoint!,
+          data: body as FormData,
+          options: Options(headers: headers),
+        );
+      } else {
+        // ✅ Default JSON patch
+        response = await dio.patch(
+          endpoint!,
+          data: jsonEncode(body),
+          options: Options(headers: headers),
+        );
+      }
+
+      print("PATCH Response: ${response.data}");
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
     }
-
-    print("Final Headers: $headers");
-
-    Response response;
-    if (isFormData) {
-      // ✅ Handle multipart/form-data
-      response = await dio.patch(
-        endpoint!,
-        data: body as FormData,
-        options: Options(headers: headers),
-      );
-    } else {
-      // ✅ Default JSON patch
-      response = await dio.patch(
-        endpoint!,
-        data: jsonEncode(body),
-        options: Options(headers: headers),
-      );
-    }
-
-    print("PATCH Response: ${response.data}");
-    return response;
-  } on DioError catch (e) {
-    throw DataException.fromDioError(e);
   }
-}
-
 
   FormData mapToFormData(Map<String, dynamic> data) {
     final formData = FormData();

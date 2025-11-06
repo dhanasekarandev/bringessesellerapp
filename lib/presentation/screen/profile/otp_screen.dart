@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
@@ -16,9 +17,9 @@ import 'package:go_router/go_router.dart';
 
 class OtpScreen extends StatefulWidget {
   final bool isPhone;
-
   final String? phone;
   final String? email;
+
   const OtpScreen({
     super.key,
     required this.isPhone,
@@ -34,8 +35,40 @@ class _OtpScreenState extends State<OtpScreen> {
   final List<TextEditingController> _controllers =
       List.generate(4, (_) => TextEditingController());
 
+  Timer? _timer;
+  int _secondsRemaining = 30; // Timer countdown (30s)
+  bool _canResend = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    setState(() {
+      _secondsRemaining = 30;
+      _canResend = false;
+    });
+
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _canResend = true;
+        });
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _timer?.cancel();
     for (var c in _controllers) {
       c.dispose();
     }
@@ -45,7 +78,6 @@ class _OtpScreenState extends State<OtpScreen> {
   void _verifyOtp() {
     String otp = _controllers.map((c) => c.text).join();
 
-    // Validate OTP length
     if (otp.length != 4) {
       showAppToast(message: "Please enter the full 4-digit OTP");
       return;
@@ -55,16 +87,20 @@ class _OtpScreenState extends State<OtpScreen> {
           phoneNumber: widget.phone,
           otp: otp,
           email: widget.email,
-          type: widget.isPhone == true ? 'phone' : 'email',
+          type: widget.isPhone ? 'phone' : 'email',
         ));
   }
 
   void _resendOtp() {
+    if (!_canResend) return;
+
     context.read<SendOtpCubit>().login(SendOtpReqModel(
           email: widget.email,
           phoneNumber: widget.phone,
           type: widget.isPhone ? 'phone' : 'email',
         ));
+
+    _startTimer(); // Restart timer after resend
   }
 
   Widget _buildOtpBox(int index) {
@@ -102,13 +138,11 @@ class _OtpScreenState extends State<OtpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("sdkgfbshk${widget.isPhone}");
     final message = widget.isPhone
         ? "We’ve sent a 4-digit code to your phone number"
         : "We’ve sent a 4-digit code to your email address";
 
     return Scaffold(
-      // backgroundColor: Colors.white,
       appBar: CustomAppBar(title: ''),
       body: MultiBlocListener(
         listeners: [
@@ -147,7 +181,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  "$message",
+                  message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.grey[600],
@@ -156,7 +190,6 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
                 SizedBox(height: 40.h),
 
-                // 🔢 OTP Boxes
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(4, (index) => _buildOtpBox(index)),
@@ -164,50 +197,34 @@ class _OtpScreenState extends State<OtpScreen> {
 
                 SizedBox(height: 30.h),
 
-                // 🔁 Resend OTP
-                TextButton(
-                  onPressed: () {
-                    _resendOtp();
-                    //
-                  },
-                  child: Text(
-                    "Resend OTP",
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                // 🔁 Resend OTP with timer
+                _canResend
+                    ? TextButton(
+                        onPressed: _resendOtp,
+                        child: Text(
+                          "Resend OTP",
+                          style: TextStyle(
+                            color: Colors.blueAccent,
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        "Resend in 00:${_secondsRemaining.toString().padLeft(2, '0')}",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
 
                 SizedBox(height: 40.h),
 
-                // ✅ Verify Button
                 CustomButton(
                   title: "Verify",
                   onPressed: _verifyOtp,
-                )
-                // SizedBox(
-                //   width: double.infinity,
-                //   height: 50.h,
-                //   child: ElevatedButton(
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: Colors.blueAccent,
-                //       shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(12.r),
-                //       ),
-                //     ),
-                //     onPressed: _verifyOtp,
-                //     child: Text(
-                //       "Verify",
-                //       style: TextStyle(
-                //         fontSize: 18.sp,
-                //         fontWeight: FontWeight.w600,
-                //         color: Colors.white,
-                //       ),
-                //     ),
-                //   ),
-                // ),
+                ),
               ],
             ),
           ),

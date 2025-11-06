@@ -89,6 +89,8 @@ class _LoginScreenState extends State<LoginScreen> {
               ///  log("sdkfnsj${state.login.result.}");
               sharedPreferenceHelper.saveSellerId(state.login.result?.sellerId);
               sharedPreferenceHelper.saveToken(state.login.result!.accessToken);
+              sharedPreferenceHelper
+                  .saveRefreshToken(state.login.result!.refreshToken);
               sharedPreferenceHelper.saveStoreId(state.login.result!.storeId);
               sharedPreferenceHelper
                   .saveCategoryId(state.login.result!.categoryId);
@@ -230,24 +232,28 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           },
         ),
-        bottomNavigationBar: Container(
-          margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-          child: CustomButton(
-            title: "Login",
-            onPressed: () async {
-              if (_formKey.currentState!.validate()) {
-                final deviceData = await _getDeviceDetails();
+        bottomNavigationBar: SafeArea(
+          bottom: true,
+          maintainBottomViewPadding: true,
+          minimum: EdgeInsets.symmetric(horizontal: 10.w, vertical: 50.w),
+          child: Container(
+            child: CustomButton(
+              title: "Login",
+              onPressed: () async {
+                if (_formKey.currentState!.validate()) {
+                  final deviceData = await _getDeviceDetails();
 
-                context.read<LoginCubit>().login(LoginRequestModel(
-                      email: _emailController.text,
-                      password: _passwordController.text,
-                      deviceId: deviceData["deviceId"],
-                      deviceType: deviceData["deviceType"],
-                      deviceToken: deviceData["deviceToken"],
-                    ));
-              }
-            },
-            icon: Icons.arrow_forward_ios_rounded,
+                  context.read<LoginCubit>().login(LoginRequestModel(
+                        email: _emailController.text,
+                        password: _passwordController.text,
+                        deviceId: deviceData["deviceId"],
+                        deviceType: deviceData["deviceType"],
+                        deviceToken: deviceData["deviceToken"],
+                      ));
+                }
+              },
+              icon: Icons.arrow_forward_ios_rounded,
+            ),
           ),
         ));
   }

@@ -238,7 +238,7 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                       CustomTextField(
                         controller: _panCardController,
                         hintText: "PAN number",
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.multiline,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'PAN card number is required';
@@ -293,13 +293,15 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                         ),
                         debounceTime: 800,
                         itemClick: (Prediction prediction) {
-                          setState(() {
-                            _cityController.text = prediction.description ?? "";
-                            _cityController.selection =
-                                TextSelection.fromPosition(
-                              TextPosition(offset: _cityController.text.length),
-                            );
-                          });
+                          _cityController.text = prediction.description ?? "";
+                          _cityController.selection =
+                              TextSelection.fromPosition(
+                            TextPosition(offset: _cityController.text.length),
+                          );
+                        },
+                        isLatLngRequired: false,
+                        getPlaceDetailWithLatLng: (Prediction prediction) {
+                          // optional: can be empty
                         },
                       ),
                       vericalSpaceSmall,
@@ -362,11 +364,13 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
           },
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
-        child: CustomButton(
-          title: loading != false ? "Please Wait..." : "Save",
-          onPressed: loading != false ? () {} : _saveForm,
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
+          child: CustomButton(
+            title: loading != false ? "Please Wait..." : "Save",
+            onPressed: loading != false ? () {} : _saveForm,
+          ),
         ),
       ),
     );

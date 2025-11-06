@@ -73,11 +73,11 @@ class _ProductScreenState extends State<ProductScreen>
     return BlocConsumer<ProductListCubit, ProductListState>(
       listener: (context, state) {},
       builder: (context, state) {
-        final approvedProducts = state.productListModel?.result?.items
+        final approvedProducts = state.productListModel.result?.items
                 ?.where((e) => e.status == 1)
                 .toList() ??
             [];
-        final unapprovedProducts = state.productListModel?.result?.items
+        final unapprovedProducts = state.productListModel.result?.items
                 ?.where((e) => e.status == 0)
                 .toList() ??
             [];
@@ -118,15 +118,45 @@ class _ProductScreenState extends State<ProductScreen>
                               itemCount: approvedProducts.length,
                               itemBuilder: (context, index) {
                                 final product = approvedProducts[index];
-                                return CustomImageListTile(
-                                  imageUrl:
-                                      "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
-                                  status: "Approved",
-                                  subtitle: product.outOfStock == 0
-                                      ? "Available"
-                                      : "Out of Stock",
-                                  subtitle1: product.createdAt ?? "",
-                                  title: product.name ?? "",
+                                return GestureDetector(
+                                  onTap: () {
+                                    context.push('/products/details',
+                                        extra: {'product': product}).then(
+                                      (value) async {
+                                        final storeId =
+                                            sharedPreferenceHelper.getStoreId;
+
+                                        final productCubit = await context
+                                            .read<ProductListCubit>();
+                                        productCubit.login(
+                                          ProductListReqModel(
+                                            storeId: storeId,
+                                            status: "0",
+                                            pageId: "0",
+                                            searchKey: "",
+                                          ),
+                                        );
+                                        productCubit.login(
+                                          ProductListReqModel(
+                                            storeId: storeId,
+                                            status: "1",
+                                            pageId: "0",
+                                            searchKey: "",
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                  child: CustomImageListTile(
+                                    imageUrl:
+                                        "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
+                                    status: "Approved",
+                                    subtitle: product.outOfStock == 0
+                                        ? "Available"
+                                        : "Out of Stock",
+                                    subtitle1: product.createdAt ?? "",
+                                    title: product.name ?? "",
+                                  ),
                                 );
                               },
                             )
@@ -136,13 +166,38 @@ class _ProductScreenState extends State<ProductScreen>
                               itemCount: unapprovedProducts.length,
                               itemBuilder: (context, index) {
                                 final product = unapprovedProducts[index];
-                                return CustomImageListTile(
-                                  imageUrl:
-                                      "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
-                                  status: "Pending",
-                                  subtitle: "Awaiting approval",
-                                  subtitle1: product.createdAt ?? "",
-                                  title: product.name ?? "",
+                                return GestureDetector(
+                                  onTap: () {
+                                    context.push('/products/details', extra: {
+                                      'product': product
+                                    }).then((value) async {
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                        final storeId =
+                                            sharedPreferenceHelper.getStoreId;
+                                        final cubit =
+                                            context.read<ProductListCubit>();
+                                        cubit.login(ProductListReqModel(
+                                            storeId: storeId,
+                                            status: "0",
+                                            pageId: "0",
+                                            searchKey: ""));
+                                        cubit.login(ProductListReqModel(
+                                            storeId: storeId,
+                                            status: "1",
+                                            pageId: "0",
+                                            searchKey: ""));
+                                      });
+                                    });
+                                  },
+                                  child: CustomImageListTile(
+                                    imageUrl:
+                                        "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
+                                    status: "Pending",
+                                    subtitle: "Awaiting approval",
+                                    subtitle1: product.createdAt ?? "",
+                                    title: product.name ?? "",
+                                  ),
                                 );
                               },
                             )
@@ -152,61 +207,66 @@ class _ProductScreenState extends State<ProductScreen>
                 ),
               ],
             ),
-            bottomNavigationBar: Container(
-              margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-              child: CustomButton(
-                title: "Add Product",
-                onPressed: () {
-                  final storeId = sharedPreferenceHelper.getStoreId;
+            bottomNavigationBar: SafeArea(
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+                child: CustomButton(
+                  title: "Add Product",
+                  onPressed: () async {
+                    final storeId = sharedPreferenceHelper.getStoreId;
 
-                  if (storeId == null || storeId.isEmpty) {
-                    Fluttertoast.showToast(
-                      msg: "Please create a store first",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
+                    if (storeId == null || storeId.isEmpty) {
+                      Fluttertoast.showToast(
+                          msg: "Please create a store first");
+                      return;
+                    }
+
+                    final menus = context
+                        .read<ProductCategoryCubit>()
+                        .state
+                        .categoryResponse
+                        .result!
+                        .menus;
+                    final units = context
+                        .read<ProductCategoryCubit>()
+                        .state
+                        .categoryResponse
+                        .result!
+                        .units;
+
+                    if (menus == null || menus.isEmpty) {
+                      Fluttertoast.showToast(msg: "Please create a menu first");
+                      return;
+                    }
+
+                    await context.push('/products/add', extra: {
+                      "catname": sharedPreferenceHelper.getcatName,
+                      "menu": menus,
+                      "units": units,
+                      "storeId": sharedPreferenceHelper.getStoreId,
+                      "sellerId": sharedPreferenceHelper.getSellerId
+                    });
+
+                    // 🔁 Reload APIs after coming back
+                    final productCubit = await context.read<ProductListCubit>();
+                    productCubit.login(
+                      ProductListReqModel(
+                        storeId: storeId,
+                        status: "0",
+                        pageId: "0",
+                        searchKey: "",
+                      ),
                     );
-                    return;
-                  }
-
-                  final menus = context
-                      .read<ProductCategoryCubit>()
-                      .state
-                      .categoryResponse
-                      .result!
-                      .menus;
-                  final units = context
-                      .read<ProductCategoryCubit>()
-                      .state
-                      .categoryResponse
-                      .result!
-                      .units;
-
-                  if (menus == null || menus.isEmpty) {
-                    Fluttertoast.showToast(
-                      msg: "Please create a menu first",
-                      toastLength: Toast.LENGTH_SHORT,
-                      gravity: ToastGravity.BOTTOM,
+                    productCubit.login(
+                      ProductListReqModel(
+                        storeId: storeId,
+                        status: "1",
+                        pageId: "0",
+                        searchKey: "",
+                      ),
                     );
-                    return;
-                  }
-
-                  context.push('/products/add', extra: {
-                    "catname": sharedPreferenceHelper.getcatName,
-                    "menu": menus,
-                    "units": units,
-                    "storeId": sharedPreferenceHelper.getStoreId,
-                    "sellerId": sharedPreferenceHelper.getSellerId
-                  }).then((_) {
-                    context.read<ProductListCubit>().login(
-                          ProductListReqModel(
-                            storeId: sharedPreferenceHelper.getStoreId,
-                            status: "0",
-                            pageId: "0",
-                            searchKey: "",
-                          ),
-                        ); // ✅ reload list
-                  });
-                },
+                  },
+                ),
               ),
             ),
           ),

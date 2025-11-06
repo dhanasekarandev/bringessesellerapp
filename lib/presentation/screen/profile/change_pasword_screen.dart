@@ -147,22 +147,24 @@ class _ChangePaswordScreenState extends State<ChangePaswordScreen> {
           );
         },
       ),
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-        child: CustomButton(
-          title: "Save",
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              context.read<ChangePasswordCubit>().login(
-                    ChangePasswordReqModel(
-                      oldPassword: _currentPasswordController.text,
-                      sellerId: sharedPreferenceHelper.getSellerId,
-                      password: _confirmPasswordController.text,
-                    ),
-                  );
-            }
-          },
-          icon: Icons.arrow_forward_ios_rounded,
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+          child: CustomButton(
+            title: "Save",
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                context.read<ChangePasswordCubit>().login(
+                      ChangePasswordReqModel(
+                        oldPassword: _currentPasswordController.text,
+                        sellerId: sharedPreferenceHelper.getSellerId,
+                        password: _confirmPasswordController.text,
+                      ),
+                    );
+              }
+            },
+            icon: Icons.arrow_forward_ios_rounded,
+          ),
         ),
       ),
     );

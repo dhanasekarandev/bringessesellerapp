@@ -2,6 +2,7 @@ import 'package:bringessesellerapp/presentation/screen/banner/add_banner.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/add_menu.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/add_product.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/product_details.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bottom_layout.dart';
 import 'package:bringessesellerapp/presentation/screen/home/notfication_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/home/promotion.dart';
@@ -135,9 +136,18 @@ final GoRouter appRouter = GoRouter(
                 units: args['units'],
                 storeId: args['storeId'],
                 sellerId: args['sellerId'],
+                editProduct : args['edit'],
+                subcat:  args['subcat'],
               );
             },
           ),
+          GoRoute(
+            path: 'details',
+            builder: (context, state) {
+              var args = state.extra as Map;
+              return ProductDetailsScreen(product: args['product']);
+            },
+          )
         ]),
   ],
 );

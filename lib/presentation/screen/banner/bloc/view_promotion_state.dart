@@ -1,4 +1,4 @@
-import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
+
 import 'package:bringessesellerapp/model/response/view_transaction_response_model.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:equatable/equatable.dart';

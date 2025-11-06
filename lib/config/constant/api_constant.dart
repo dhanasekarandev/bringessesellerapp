@@ -79,6 +79,7 @@ class ApiConstant {
   static const String menu = 'menus/create';
   static const String menulist = 'menus/lists';
   static const String createproduct = 'items/create';
+  static const String productupdate = 'items/update';
   static const String productlist = 'items/lists';
   static const String logout = 'accounts/logout';
   static const String transcationPromotion = 'promotions/transaction';
@@ -87,7 +88,10 @@ class ApiConstant {
   static const String menuUpdate = 'menus/update';
   static const String subscriptionPlan = 'subscriptionplans/defaults';
   static String deleteBanner(String bannerId) => 'promotions/delete/$bannerId';
+  static String productbyId(String productId) => 'items/list/$productId';
   static const String subscriptionCheckout = 'subscriptions/checkout';
   static const String verifyOtp = 'accounts/verifyotp';
   static const String sendOtp = 'accounts/sendotp';
+  static const String refreshToken = 'refreshtoken';
+  static const String deleteproduct = 'items/changestatus';
 }

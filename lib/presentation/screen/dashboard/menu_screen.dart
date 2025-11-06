@@ -123,40 +123,42 @@ class _MenuScreenState extends State<MenuScreen> {
             }
           },
         ),
-        bottomNavigationBar: Container(
-          margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-          child: BlocBuilder<GetMenuCategoryCubit, MenuCategoryState>(
-            builder: (context, state) {
-              final categories = state.categoryResponse.result?.subcategories;
-              return CustomButton(
-                  title: "Add Menu",
-                  onPressed: sharedPreferenceHelper.getStoreId != ""
-                      ? () {
-                          context.push(
-                            '/menu/addmenu',
-                            extra: {
-                              'category': categories,
-                              'storeId': sharedPreferenceHelper.getStoreId,
-                            },
-                          ).then((res) {
-                            if (res == true) {
-                              context.read<MenuListCubit>().login(
-                                    StoreIdReqmodel(
-                                        storeId:
-                                            sharedPreferenceHelper.getStoreId),
-                                  );
-                            }
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+            child: BlocBuilder<GetMenuCategoryCubit, MenuCategoryState>(
+              builder: (context, state) {
+                final categories = state.categoryResponse.result?.subcategories;
+                return CustomButton(
+                    title: "Add Menu",
+                    onPressed: sharedPreferenceHelper.getStoreId != ""
+                        ? () {
+                            context.push(
+                              '/menu/addmenu',
+                              extra: {
+                                'category': categories,
+                                'storeId': sharedPreferenceHelper.getStoreId,
+                              },
+                            ).then((res) {
+                              if (res == true) {
+                                context.read<MenuListCubit>().login(
+                                      StoreIdReqmodel(
+                                          storeId:
+                                              sharedPreferenceHelper.getStoreId),
+                                    );
+                              }
+                            });
+                          }
+                        : () {
+                            Fluttertoast.showToast(
+                              msg: "First, you need to create a store",
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                              toastLength: Toast.LENGTH_SHORT,
+                            );
                           });
-                        }
-                      : () {
-                          Fluttertoast.showToast(
-                            msg: "First, you need to create a store",
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                            toastLength: Toast.LENGTH_SHORT,
-                          );
-                        });
-            },
+              },
+            ),
           ),
         ),
       ),

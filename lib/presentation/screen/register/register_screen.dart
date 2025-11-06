@@ -1,17 +1,15 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/themes.dart';
-import 'package:bringessesellerapp/model/request/register_request_model.dart';
+
 import 'package:bringessesellerapp/presentation/repository/api_class.dart';
-import 'package:bringessesellerapp/presentation/repository/auth_repo.dart';
-import 'package:bringessesellerapp/presentation/screen/register/bloc/register_cubit.dart';
-import 'package:bringessesellerapp/presentation/service/api_service.dart';
+
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
@@ -223,8 +221,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
+      bottomNavigationBar: SafeArea(
+        minimum: EdgeInsets.symmetric(horizontal: 10.w, vertical: 50.w),
         child: CustomButton(
           title: "Confirm",
           onPressed: () => _submitForm(),

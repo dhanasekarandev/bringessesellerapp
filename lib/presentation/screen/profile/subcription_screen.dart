@@ -136,24 +136,26 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
               },
             ),
           ),
-          bottomNavigationBar: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
-            child: CustomButton(
-              title: "Save",
-              onPressed: () {
-                if (selectedIndex != -1) {
-                  final selectedSubscription = subscriptions[selectedIndex];
-                  _checkout(
-                      subsId: selectedSubscription.id,
-                      subsPrice:
-                          double.parse(selectedSubscription.price.toString()));
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text("Please select a subscription")),
-                  );
-                }
-              },
+          bottomNavigationBar: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
+              child: CustomButton(
+                title: "Save",
+                onPressed: () {
+                  if (selectedIndex != -1) {
+                    final selectedSubscription = subscriptions[selectedIndex];
+                    _checkout(
+                        subsId: selectedSubscription.id,
+                        subsPrice: double.parse(
+                            selectedSubscription.price.toString()));
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text("Please select a subscription")),
+                    );
+                  }
+                },
+              ),
             ),
           ),
         );

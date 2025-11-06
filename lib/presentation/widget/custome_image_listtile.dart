@@ -52,7 +52,7 @@ class CustomImageListTile extends StatelessWidget {
           : Text(
               status,
               style: TextStyle(
-                color: status.toLowerCase() == "active"
+                color: status.toLowerCase() == "approved"
                     ? Colors.green
                     : Colors.redAccent,
                 fontWeight: FontWeight.bold,

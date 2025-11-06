@@ -9,15 +9,20 @@ import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_cre
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_transction_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/view_promotion_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_product_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_create_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/menu_update_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_by_id_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_create_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
@@ -38,12 +43,26 @@ import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/router/app_router.dart';
 import 'package:bringessesellerapp/utils/location_permission_helper.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:logger/logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
+      appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
+      messagingSenderId: "989733009995",
+      projectId: "bringessedeliverypartner",
+      storageBucket: "bringessedeliverypartner.firebasestorage.app",
+    ),
+  );
+  print("🔔 Handling a background message: ${message.messageId}");
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +77,9 @@ void main() async {
     ),
   );
 
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await NotificationService().init();
+
   final RemoteConfigService remoteConfigService = RemoteConfigService();
   bool granted = await LocationPermissionHelper.isLocationGranted();
   if (!granted) {
@@ -194,6 +215,18 @@ class MyApp extends StatelessWidget {
           BlocProvider<VerifyOtpCubit>(
               create: (repoContext) =>
                   VerifyOtpCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<OderListCubit>(
+              create: (repoContext) =>
+                  OderListCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<ProductByIdCubit>(
+              create: (repoContext) =>
+                  ProductByIdCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<ProductUpdateCubit>(
+              create: (repoContext) => ProductUpdateCubit(
+                  authRepository: AuthRepository(apiService))),
+          BlocProvider<DeleteProductCubit>(
+              create: (repoContext) => DeleteProductCubit(
+                  authRepository: AuthRepository(apiService))),
         ],
         child: ScreenUtilInit(
           designSize: const Size(360, 690),
