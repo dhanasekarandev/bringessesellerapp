@@ -1,5 +1,6 @@
 import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/constant/themecubit/theme_cubit.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/presentation/repository/auth_repo.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/delete_banner_cubit.dart';
@@ -25,6 +26,7 @@ import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubi
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/coupon_create_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/logout_cubit.dart';
@@ -40,8 +42,9 @@ import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_upload_cu
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/update_store_cubit.dart';
 import 'package:bringessesellerapp/presentation/service/api_service.dart';
 import 'package:bringessesellerapp/presentation/service/notification_service.dart';
-import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
+
 import 'package:bringessesellerapp/router/app_router.dart';
+import 'package:bringessesellerapp/utils/app_lifecyle.dart';
 import 'package:bringessesellerapp/utils/location_permission_helper.dart';
 import 'package:dio/dio.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -78,6 +81,7 @@ void main() async {
     ),
   );
 
+  WidgetsBinding.instance.addObserver(AppLifecycleObserver());
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   await NotificationService().init();
 
@@ -109,8 +113,8 @@ class MyApp extends StatelessWidget {
       headers: {
         "Accept": "application/json",
       },
-      connectTimeout: const Duration(seconds: 100),
-      receiveTimeout: const Duration(seconds: 100),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
     ));
 
     dio.interceptors.add(LoggerInterceptor());
@@ -231,21 +235,30 @@ class MyApp extends StatelessWidget {
           BlocProvider<DeleteMenuCubit>(
               create: (repoContext) =>
                   DeleteMenuCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<CouponCreateCubit>(
+              create: (repoContext) => CouponCreateCubit(
+                  authRepository: AuthRepository(apiService))),
+          BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
         ],
         child: ScreenUtilInit(
           designSize: const Size(360, 690),
           minTextAdapt: true,
           splitScreenMode: true,
           builder: (context, child) {
-            return MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-                child: MaterialApp.router(
-                  routerConfig: appRouter,
-                  debugShowCheckedModeBanner: false,
-                  theme: AppTheme.lightTheme,
-                  darkTheme: AppTheme.darkTheme,
-                  themeMode: ThemeMode.system,
-                ));
+            return BlocBuilder<ThemeCubit, ThemeMode>(
+              builder: (context, themeMode) {
+                return MediaQuery(
+                  data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+                  child: MaterialApp.router(
+                    routerConfig: appRouter,
+                    debugShowCheckedModeBanner: false,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    themeMode: themeMode,
+                  ),
+                );
+              },
+            );
           },
         ),
       ),

@@ -1,8 +1,10 @@
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/oder_list_req_model.dart';
-
+import 'package:bringessesellerapp/presentation/screen/home/order_detail.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_state.dart';
+
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,7 +33,6 @@ class _OrderScreenState extends State<OrderScreen>
     // Load initial tab (Pending Orders)
     loadOrder(status: "1");
 
-    // Listen to tab changes
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       final status = _tabController.index == 0 ? "1" : "0";
@@ -61,93 +62,114 @@ class _OrderScreenState extends State<OrderScreen>
     return BlocConsumer<OderListCubit, OderListState>(
       listener: (context, state) {},
       builder: (context, state) {
-        final pendingOrders = state.orderlistresponse.items
-                ?.where((e) => e.status == "1")
-                .toList() ??
-            [];
-        final completedOrders = state.orderlistresponse.items
-                ?.where((e) => e.status == "0")
-                .toList() ??
-            [];
+        final dummyOrders = [
+          {
+            "uniqueId": "ORD1001",
+            "status": "1",
+            "userDetails": {"name": "John Doe"},
+            "currencySymbol": "₹",
+            "price": "299.00",
+            "date": "2025-11-08",
+          },
+          {
+            "uniqueId": "ORD1002",
+            "status": "0",
+            "userDetails": {"name": "Priya Sharma"},
+            "currencySymbol": "₹",
+            "price": "499.00",
+            "date": "2025-11-07",
+          },
+        ];
 
-        return DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            appBar: const CustomAppBar(
-              title: "Orders",
-              showLeading: false,
-            ),
-            body: Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: const BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.all(Radius.circular(8)),
-                    ),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.black87,
-                    tabs: const [
-                      Tab(text: "Pending"),
-                      Tab(text: "Completed"),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // ✅ Pending Orders List
-                      pendingOrders.isNotEmpty
-                          ? ListView.builder(
-                              itemCount: pendingOrders.length,
-                              padding: EdgeInsets.all(10.w),
-                              itemBuilder: (context, index) {
-                                final order = pendingOrders[index];
-                                return _buildOrderCard(order, isPending: true);
-                              },
-                            )
-                          : const Center(
-                              child: Text("No pending orders"),
-                            ),
+        final items = state.orderlistresponse.items?.isNotEmpty == true
+            ? state.orderlistresponse.items
+            : dummyOrders;
 
-                      // ✅ Completed Orders List
-                      completedOrders.isNotEmpty
-                          ? ListView.builder(
-                              itemCount: completedOrders.length,
-                              padding: EdgeInsets.all(10.w),
-                              itemBuilder: (context, index) {
-                                final order = completedOrders[index];
-                                return _buildOrderCard(order, isPending: false);
-                              },
-                            )
-                          : const Center(
-                              child: Text("No completed orders"),
-                            ),
-                    ],
-                  ),
+        final pendingOrders = items!.where((e) => e["status"] == "1").toList();
+        final completedOrders = items.where((e) => e["status"] == "0").toList();
+
+        return Scaffold(
+          appBar: const CustomAppBar(title: "Orders", showLeading: false),
+          body: Column(
+            children: [
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
-              ],
-            ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: const BoxDecoration(
+                    color: AppTheme.primaryColor,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor:
+                      Theme.of(context).tabBarTheme.indicatorColor,
+                  tabs: const [
+                    Tab(text: "Pending"),
+                    Tab(text: "Completed"),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildOrderList(pendingOrders, true, true),
+                    _buildOrderList(completedOrders, false, false),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
     );
   }
 
+  Widget _buildOrderList(
+      List<dynamic> orders, bool isPending, bool navigation) {
+    return orders.isNotEmpty
+        ? ListView.builder(
+            itemCount: orders.length,
+            padding: EdgeInsets.all(10.w),
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              return GestureDetector(
+                onTap: navigation
+                    ? () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => OrderDetailsScreen(order: order),
+                          ),
+                        );
+                      }
+                    : null,
+                child: _buildOrderCard(order, isPending: isPending),
+              );
+            },
+          )
+        : const Center(child: Text("No orders found"));
+  }
+
   Widget _buildOrderCard(dynamic order, {required bool isPending}) {
+    final uniqueId = order["uniqueId"];
+    final name = order["userDetails"]["name"];
+    final price = order["price"];
+    final symbol = order["currencySymbol"];
+    final date = order["date"];
+
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade900
+            : Colors.white,
         borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
           BoxShadow(
@@ -160,12 +182,12 @@ class _OrderScreenState extends State<OrderScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Order ID & Status
+          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Order #${order.uniqueId ?? ""}",
+                "Order #$uniqueId",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16.sp,
@@ -192,32 +214,18 @@ class _OrderScreenState extends State<OrderScreen>
             ],
           ),
           SizedBox(height: 8.h),
-
-          // Customer Name
-          Text(
-            "Customer: ${order.userDetails?.name ?? "N/A"}",
-            style: TextStyle(fontSize: 14.sp),
-          ),
+          Text("Customer: $name", style: TextStyle(fontSize: 14.sp)),
           SizedBox(height: 4.h),
-
-          // Price
           Text(
-            "Price: ${order.currencySymbol ?? "₹"}${order.price ?? "0.00"}",
+            "Price: $symbol$price",
             style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 15.sp,
             ),
           ),
           SizedBox(height: 4.h),
-
-          // Date
-          Text(
-            "Date: ${order.date ?? "--"}",
-            style: TextStyle(
-              fontSize: 13.sp,
-              color: Colors.grey.shade600,
-            ),
-          ),
+          Text("Date: $date",
+              style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
         ],
       ),
     );

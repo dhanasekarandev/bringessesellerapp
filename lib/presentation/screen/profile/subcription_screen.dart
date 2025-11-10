@@ -78,16 +78,17 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
                   child: Container(
                     padding: const EdgeInsets.all(16.0),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color:
-                            isSelected ? Colors.purple : Colors.grey.shade300,
+                        color: isSelected
+                            ? Colors.purple
+                            : Theme.of(context).cardColor,
                         width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.grey.shade200,
+                          color: Theme.of(context).cardColor,
                           blurRadius: 6,
                           offset: const Offset(0, 4),
                         ),
@@ -97,10 +98,9 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          sub.name ?? "",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
+                          (sub.name ?? "").toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
@@ -115,18 +115,16 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
                         const SizedBox(height: 8),
                         Text(
                           "₹ ${sub.price ?? 0}",
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.black87,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           sub.duration ?? "",
-                          style: const TextStyle(
-                            fontSize: 14,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.w500,
-                            color: Colors.black54,
                           ),
                         ),
                       ],

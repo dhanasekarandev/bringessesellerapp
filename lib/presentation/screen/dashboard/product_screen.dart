@@ -77,23 +77,17 @@ class _ProductScreenState extends State<ProductScreen>
     if (storeId == null || storeId.isEmpty) return;
 
     final productCubit = context.read<ProductListCubit>();
+    final currentStatus = _tabController.index == 0 ? "1" : "0";
 
-    await Future.delayed(
-        const Duration(milliseconds: 100)); // stabilize rebuild
-
-    productCubit.login(ProductListReqModel(
-      storeId: storeId,
-      status: "1",
-      pageId: "0",
-      searchKey: "",
-    ));
-
-    productCubit.login(ProductListReqModel(
-      storeId: storeId,
-      status: "0",
-      pageId: "0",
-      searchKey: "",
-    ));
+    await Future.delayed(const Duration(milliseconds: 100));
+    productCubit.login(
+      ProductListReqModel(
+        storeId: storeId,
+        status: currentStatus,
+        pageId: "0",
+        searchKey: "",
+      ),
+    );
   }
 
   @override
@@ -158,7 +152,7 @@ class _ProductScreenState extends State<ProductScreen>
                                         extra: {'product': product}).then((_) {
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        refreshProducts(); // ✅ stable reload
+                                        refreshProducts(); // only reloads current tab
                                       });
                                     });
                                   },
@@ -189,7 +183,7 @@ class _ProductScreenState extends State<ProductScreen>
                                         extra: {'product': product}).then((_) {
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        refreshProducts(); // ✅ stable reload
+                                        refreshProducts(); // only reloads current tab
                                       });
                                     });
                                   },

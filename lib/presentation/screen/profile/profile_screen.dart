@@ -1,5 +1,6 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/constant/themecubit/theme_cubit.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/edit_profile_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
@@ -96,6 +97,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: CustomAppBar(
         title: "Profile",
+        onBack: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/dashboard');
+          }
+        },
         actions: [
           TextButton(
             onPressed: _saveProfile,
@@ -192,19 +200,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               controller: _emailController,
                               hintText: "Email",
                               suffixWidget: loading
-                                  ? CupertinoActivityIndicator()
+                                  ? const CupertinoActivityIndicator()
                                   : InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          loading = true;
-                                        });
-                                        _sendOtpEmail();
-                                      },
+                                      onTap: state.viewProfile.result!
+                                                  .emailVerified !=
+                                              true
+                                          ? () {
+                                              setState(() {
+                                                loading = true;
+                                              });
+                                              _sendOtpEmail();
+                                            }
+                                          : null,
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 15, vertical: 15),
                                         child: Container(
-                                          padding: EdgeInsets.all(5),
+                                          padding: const EdgeInsets.all(5),
                                           decoration: state.viewProfile.result!
                                                       .emailVerified !=
                                                   true
@@ -216,7 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       color:
                                                           AppTheme.primaryColor,
                                                       strokeAlign: 2))
-                                              : BoxDecoration(),
+                                              : const BoxDecoration(),
                                           child: state.viewProfile.result!
                                                       .emailVerified !=
                                                   true
@@ -229,9 +241,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                           color: AppTheme
                                                               .primaryColor),
                                                 )
-                                              : Icon(
+                                              : const Icon(
                                                   Icons.verified,
-                                                  color: AppTheme.primaryColor,
+                                                  color: Colors.green,
                                                 ),
                                         ),
                                       ),
@@ -248,14 +260,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         .viewProfile.result!.phoneVerified !=
                                     true
                                 ? InkWell(
-                                    onTap: () {
-                                      _sendOtpPhone();
-                                    },
+                                    onTap: state.viewProfile.result!
+                                                .emailVerified !=
+                                            true
+                                        ? () {
+                                            _sendOtpPhone();
+                                          }
+                                        : null,
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 15, vertical: 15),
                                       child: Container(
-                                        padding: EdgeInsets.all(5),
+                                        padding: const EdgeInsets.all(5),
                                         decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(5.r),
@@ -273,9 +289,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       ),
                                     ),
                                   )
-                                : Icon(
+                                : const Icon(
                                     Icons.verified,
-                                    color: AppTheme.primaryColor,
+                                    color: Colors.green,
                                   ),
                           ),
                         ],
@@ -292,6 +308,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
                               context.push('/profile/changepassword');
+                            },
+                          ),
+                          CustomListTile(
+                            title: "Theme",
+                            leadingIcon: Icons.brightness_4_outlined,
+                            trailing: BlocBuilder<ThemeCubit, ThemeMode>(
+                              builder: (context, mode) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    context.read<ThemeCubit>().toggleTheme();
+                                  },
+                                  child: AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 400),
+                                    transitionBuilder: (child, animation) {
+                                      return RotationTransition(
+                                        turns: Tween(begin: 0.75, end: 1.0)
+                                            .animate(
+                                          CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeInOut),
+                                        ),
+                                        child: FadeTransition(
+                                            opacity: animation, child: child),
+                                      );
+                                    },
+                                    child: Icon(
+                                      mode == ThemeMode.dark
+                                          ? Icons.dark_mode_rounded
+                                          : Icons.light_mode_rounded,
+                                      //  key: ValueKey(isDark),
+                                      color: mode == ThemeMode.dark
+                                          ? AppTheme.primaryColor
+                                          : Colors.amber,
+                                      size: 28,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          CustomListTile(
+                            title: "Coupon",
+                            leadingIcon: Icons.countertops_outlined,
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              context.push('/profile/coupon');
                             },
                           ),
                           CustomListTile(
@@ -346,7 +408,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             },
                             title: "Logout",
                             leadingIcon: Icons.exit_to_app_outlined,
-                            trailing: Icon(Icons.arrow_forward_ios),
+                            trailing: const Icon(Icons.arrow_forward_ios),
                           ),
                         ],
                       ),

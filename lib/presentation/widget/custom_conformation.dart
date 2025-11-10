@@ -14,7 +14,7 @@ Future<void> showCustomConfirmationDialog({
     barrierDismissible: false,
     builder: (BuildContext ctx) {
       return Dialog(
-        backgroundColor: Colors.white,
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
         ),
@@ -44,7 +44,6 @@ Future<void> showCustomConfirmationDialog({
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -55,7 +54,9 @@ Future<void> showCustomConfirmationDialog({
               Text(
                 content,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 15, color: Colors.black54),
+                style: const TextStyle(
+                  fontSize: 15,
+                ),
               ),
 
               const SizedBox(height: 25),
@@ -78,7 +79,6 @@ Future<void> showCustomConfirmationDialog({
                       child: Text(
                         cancelText,
                         style: const TextStyle(
-                          color: Colors.black87,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

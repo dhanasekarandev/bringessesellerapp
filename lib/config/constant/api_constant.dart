@@ -95,4 +95,5 @@ class ApiConstant {
   static const String sendOtp = 'accounts/sendotp';
   static const String refreshToken = 'refreshtoken';
   static const String deleteproduct = 'items/changestatus';
+  static const String createcoupon = 'coupon/create';
 }

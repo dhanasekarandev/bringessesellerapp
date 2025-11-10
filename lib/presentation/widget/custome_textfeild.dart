@@ -87,7 +87,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
             textInputAction: widget.textInputAction ?? TextInputAction.next,
             decoration: InputDecoration(
               filled: true,
-              fillColor: widget.fillColor ?? Colors.grey.shade200,
+              fillColor: widget.fillColor ?? Theme.of(context).cardTheme.color,
               hintText: widget.hintText,
               labelText: widget.labelText,
               hintStyle: TextStyle(
@@ -99,8 +99,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 fontSize: 15.sp,
               ),
               prefixIcon: widget.prefixIcon != null
-                  ? Icon(widget.prefixIcon,
-                      color: AppTheme.textColor, size: 20.sp)
+                  ? Icon(widget.prefixIcon, size: 20.sp)
                   : null,
               suffixIcon: widget.suffixWidget ??
                   (widget.isPassword

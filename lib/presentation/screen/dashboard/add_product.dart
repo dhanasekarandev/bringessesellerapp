@@ -383,7 +383,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   CustomCard(
                       child: Column(
                     children: [
-                      TitleText(title: "Upload Product Video"),
+                    const  TitleText(title: "Upload Product Video"),
                       vericalSpaceMedium,
                       _productVideo == null
                           ? InkWell(
@@ -398,8 +398,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                       Icon(Icons.video_collection_outlined,
                                           color: Colors.grey.shade600,
                                           size: 40),
-                                      SizedBox(height: 10),
-                                      Text(
+                                   const   SizedBox(height: 10),
+                                   const   Text(
                                           "Upload product video (max 2 min, MP4/MOV)"),
                                     ],
                                   ),

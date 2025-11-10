@@ -43,7 +43,7 @@ class CustomListTile extends StatelessWidget {
         ],
       ),
       child: Material(
-        color: Colors.transparent,
+        // color: Colors.transparent,
         borderRadius: BorderRadius.circular(borderRadius.r),
         child: InkWell(
           borderRadius: BorderRadius.circular(borderRadius.r),
@@ -57,12 +57,12 @@ class CustomListTile extends StatelessWidget {
                   Container(
                     padding: EdgeInsets.all(8.w),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      color: AppTheme.primaryColor,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       leadingIcon,
-                      color: iconColor ?? AppTheme.primaryColor,
+                      color: Colors.white,
                       size: 22.sp,
                     ),
                   ),
@@ -78,7 +78,6 @@ class CustomListTile extends StatelessWidget {
                         style:
                             Theme.of(context).textTheme.titleMedium!.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppTheme.textColor,
                                 ),
                       ),
                       if (subtitle != null)

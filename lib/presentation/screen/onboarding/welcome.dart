@@ -4,7 +4,7 @@ import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -22,6 +22,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: Theme.of(context).cardColor,
       body: Column(
         children: [
           CustomAppBar(
@@ -42,11 +43,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             //  height: 300.h,
             width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.whiteColor,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Theme.of(context).cardColor,
                   spreadRadius: 1,
                   blurRadius: 8,
                   offset: const Offset(0, 4),

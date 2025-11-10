@@ -93,7 +93,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 margin: EdgeInsets.all(8.w),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10.r),
-                  color: AppTheme.whiteColor,
+                  color: theme.cardColor,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.08),

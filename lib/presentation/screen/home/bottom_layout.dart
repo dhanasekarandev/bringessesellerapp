@@ -85,10 +85,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
       bottomNavigationBar: Container(
         padding: EdgeInsets.symmetric(vertical: 6.h),
         decoration: BoxDecoration(
-          color: AppTheme.whiteColor,
+          color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Theme.of(context).focusColor,
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -97,7 +97,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
           onTap: (index) => _onItemTapped(index, context),
-          backgroundColor: AppTheme.whiteColor,
+          backgroundColor: Theme.of(context).cardColor,
           elevation: 0,
           type: BottomNavigationBarType.fixed,
           showSelectedLabels: false,
@@ -105,34 +105,58 @@ class _BottomNavBarState extends State<BottomNavBar> {
           selectedItemColor: AppTheme.primaryColor,
           unselectedItemColor: AppTheme.graycolor,
           items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard),
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                'assets/icons/dashboards.png',
+                height: 20.h,
+                color: AppTheme.graycolor,
+              ),
+              activeIcon: Image.asset(
+                'assets/icons/dashboards (1).png',
+                height: 20.h,
+                color: AppTheme.primaryColor,
+              ),
               label: 'Dashboard',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.local_offer_outlined),
-              activeIcon: Icon(Icons.local_offer),
+            BottomNavigationBarItem(
+              icon: Image.asset(
+                'assets/icons/promotion.png',
+                height: 22.h,
+                color: AppTheme.graycolor,
+              ),
+              activeIcon: Image.asset(
+                'assets/icons/marketing (1).png',
+                height: 22.h,
+                color: AppTheme.primaryColor,
+              ),
               label: 'Promotion',
             ),
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.shopping_bag_outlined,
+              icon: Image.asset(
+                'assets/icons/box.png',
+                height: 22.h,
                 color: paymentStatus != 'true'
                     ? AppTheme.graycolor.withOpacity(0.5)
-                    : null,
+                    : AppTheme.graycolor,
               ),
-              activeIcon: Icon(
-                Icons.shopping_bag,
+              activeIcon: Image.asset(
+                height: 18.h,
+                'assets/icons/box (1).png',
                 color: paymentStatus != 'true'
                     ? AppTheme.graycolor.withOpacity(0.5)
-                    : null,
+                    : AppTheme.primaryColor,
               ),
               label: 'Order',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.notifications_none),
-              activeIcon: Icon(Icons.notifications),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.notifications_none,
+                size: 25.sp,
+              ),
+              activeIcon: Icon(
+                Icons.notifications,
+                size: 25.sp,
+              ),
               label: 'Notification',
             ),
             BottomNavigationBarItem(

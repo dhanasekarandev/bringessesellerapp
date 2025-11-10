@@ -155,7 +155,6 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
   Widget build(BuildContext context) {
     return BlocListener<PromotionCheckoutCubit, PromotionCheckoutState>(
         listener: (context, checkoutState) {
-          print("csdklkkl${checkoutState.promotionResponseModel.statuscode}");
           if (checkoutState.networkStatusEnum == NetworkStatusEnum.loaded &&
               checkoutState.promotionResponseModel.statuscode == 200) {
             final orderId = checkoutState.promotionResponseModel.orderId ?? "";
@@ -366,7 +365,7 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          TitleText(title: "Select banner date"),
+                          const TitleText(title: "Select banner date"),
                           vericalSpaceMedium,
                           TextFormField(
                             controller: _startDateController,
@@ -466,7 +465,6 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
-                  color: AppTheme.textColor,
                 ),
               ),
             ],
@@ -479,7 +477,6 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                 trailing1,
                 style: TextStyle(
                   fontSize: 14.sp,
-                  color: AppTheme.textColor,
                 ),
               ),
               Text(

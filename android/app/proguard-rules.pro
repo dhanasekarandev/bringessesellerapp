@@ -1,38 +1,84 @@
-# Flutter core
+# =========================
+# Flutter Core
+# =========================
 -keep class io.flutter.app.** { *; }
+-keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.plugin.** { *; }
--keep class io.flutter.embedding.android.** { *; }
--keep class io.flutter.embedding.engine.** { *; }
+-keep class io.flutter.plugins.** { *; }
 
-# Keep native method names
--keepclasseswithmembernames class * {
-    native <methods>;
-}
-
-# Keep enums
+# Prevent stripping of enums used in Flutter
 -keepclassmembers enum * { *; }
 
-# Firebase Analytics & Messaging (if used)
+# =========================
+# Firebase
+# =========================
 -keep class com.google.firebase.** { *; }
 -keep class com.google.android.gms.** { *; }
+-keep class com.google.firebase.messaging.** { *; }
 
-# Gson or JSON serialization (if used)
--keep class com.google.gson.** { *; }
--keep class com.fasterxml.jackson.** { *; }
-
-# Room / Database entities (if used)
--keep class androidx.room.** { *; }
--keepclassmembers class * extends androidx.room.RoomDatabase { *; }
-
-# Retrofit / OkHttp (if used)
--keep class retrofit2.** { *; }
--keep interface retrofit2.** { *; }
-
-# Google Maps (if used)
+# =========================
+# Google Maps
+# =========================
 -keep class com.google.android.gms.maps.** { *; }
--keep class com.google.maps.android.** { *; }
+-keep interface com.google.android.gms.maps.** { *; }
+-keep class com.google.maps.android.** { *; }   # If using maps utils library
 
-# Suppress warnings
--dontwarn io.flutter.embedding.**
--dontwarn com.google.**
--dontwarn androidx.**
+# =========================
+# Razorpay
+# =========================
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+
+# =========================
+# Fix for Flutter Play Core (Split Install)
+# =========================
+-keep class com.google.android.play.core.** { *; }
+-dontwarn com.google.android.play.core.**
+
+-keep class io.flutter.embedding.engine.deferredcomponents.** { *; }
+-dontwarn io.flutter.embedding.engine.deferredcomponents.**
+
+-keep class com.google.android.play.core.splitcompat.** { *; }
+-dontwarn com.google.android.play.core.splitcompat.**
+
+-keep class com.google.android.play.core.splitinstall.** { *; }
+-dontwarn com.google.android.play.core.splitinstall.**
+
+-keep class com.google.android.play.core.splitinstall.SplitInstallSessionState { *; }
+
+-keep class com.google.android.play.core.tasks.** { *; }
+-dontwarn com.google.android.play.core.tasks.**
+
+# =========================
+# Gson / JSON Models
+# =========================
+-keep class com.bringsesellerapp.model.** { *; }   # ✅ Replace with your actual model package
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# =========================
+# Logging (optional)
+# =========================
+-assumenosideeffects class android.util.Log {
+    public static *** d(...);
+    public static *** v(...);
+    public static *** i(...);
+}
+
+# =========================
+# Keep Main Activity
+# =========================
+-keep class com.bringsesellerapp.MainActivity { *; }   # ✅ Replace with your actual package name
+
+# =========================
+# Misc
+# =========================
+-keep class * implements java.io.Serializable { *; }
+
+# =========================
+# Additional Flutter Safe Keep Rules
+# =========================
+-keep class io.flutter.util.** { *; }
+-keep class io.flutter.view.** { *; }
+-dontwarn io.flutter.**

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/utility/network/exception.dart';
@@ -130,6 +129,40 @@ class ApiService {
       if (_isheaders == false) {
         headers ??= await _getHeaders1();
       }
+
+      print(headers);
+      print("BodyData:$headers");
+      Response response;
+      if (isFormData) {
+        response = await dio.post(
+          endpoint!,
+          data: body as FormData,
+          options: Options(headers: headers),
+        );
+      } else {
+        response = await dio.post(
+          endpoint!,
+          data: jsonEncode(body),
+          options: Options(headers: headers),
+        );
+      }
+
+      return response;
+    } on DioError catch (e) {
+      throw DataException.fromDioError(e);
+    }
+  }
+
+  Future<Response> login(String? endpoint, dynamic body,
+      {Map<String, dynamic>? headers,
+      isFormData = false,
+      bool? isrefresh}) async {
+    try {
+      print(body);
+
+      
+        headers ??= await _getHeaders1();
+      
 
       print(headers);
       print("BodyData:$headers");

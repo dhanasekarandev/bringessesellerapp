@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 
@@ -19,7 +20,11 @@ import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
+import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
+import 'package:bringessesellerapp/presentation/widget/medium_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
+import 'package:bringessesellerapp/presentation/widget/title_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/location_permission_helper.dart';
@@ -108,6 +113,7 @@ class _ShopScreenState extends State<ShopScreen> {
   String? _storeImg;
   String? _storeId;
   String? _catId;
+
   Future<void> _pickTime({required bool isOpenTime}) async {
     final picked = await showTimePicker(
       context: context,
@@ -272,6 +278,16 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
+  final List<String> paymentMethods = [
+    "Cash on Delivery",
+    "Razorpay",
+    "UPI",
+    "Credit/Debit Card",
+  ];
+  String selectedSize = 'Small';
+  bool isOwnDelivery = false;
+  final List<String> storeSizes = ['Small', 'Medium', 'Large'];
+  final Set<String> selectedMethods = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -527,7 +543,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             child: Center(
                                 child: CircleAvatar(
                               radius: 60.r,
-                              backgroundColor: Colors.grey.shade200,
+                              backgroundColor: Theme.of(context).cardColor,
                               backgroundImage: _selectedImage != null
                                   ? FileImage(_selectedImage!)
                                   : (_storeImg != null && _storeImg!.isNotEmpty
@@ -577,7 +593,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             onChanged: (value) {
                               setState(() {
                                 selectedOption = value;
-                                print("//");
+                                print("");
                               });
                             },
                           ),
@@ -637,6 +653,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           ),
                           vericalSpaceMedium,
                           const SubTitleText(title: "Shop opening time"),
+                          vericalSpaceSmall,
                           InkWell(
                             onTap: () => _pickTime(isOpenTime: true),
                             child: Container(
@@ -656,10 +673,10 @@ class _ShopScreenState extends State<ShopScreen> {
                                         ? "Select open time"
                                         : _formatTime(_openTime!),
                                     style: TextStyle(
-                                      color: _openTime == null
-                                          ? Colors.grey
-                                          : Colors.black,
-                                    ),
+                                        // color: _openTime == null
+                                        //     ? Colors.grey
+                                        //     : Colors.black,
+                                        ),
                                   ),
                                   const Icon(Icons.access_time,
                                       color: Colors.grey),
@@ -669,6 +686,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           ),
                           vericalSpaceMedium,
                           const SubTitleText(title: "Shop close time"),
+                          vericalSpaceSmall,
                           InkWell(
                             onTap: () => _pickTime(isOpenTime: false),
                             child: Container(
@@ -688,10 +706,10 @@ class _ShopScreenState extends State<ShopScreen> {
                                         ? "Select close time"
                                         : _formatTime(_closeTime!),
                                     style: TextStyle(
-                                      color: _closeTime == null
-                                          ? Colors.grey
-                                          : Colors.black,
-                                    ),
+                                        // color: _closeTime == null
+                                        //     ? Colors.grey
+                                        //     : Colors.black,
+                                        ),
                                   ),
                                   const Icon(Icons.access_time,
                                       color: Colors.grey),
@@ -699,6 +717,101 @@ class _ShopScreenState extends State<ShopScreen> {
                               ),
                             ),
                           ),
+                          vericalSpaceMedium,
+                          const SubTitleText(title: "Select delivery option"),
+                          vericalSpaceSmall,
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: paymentMethods.map((method) {
+                              final bool isSelected =
+                                  selectedMethods.contains(method);
+                              return FilterChip(
+                                showCheckmark: true,
+                                checkmarkColor: Colors.white,
+                                label: Text(
+                                  method,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                selectedColor: AppTheme.primaryColor,
+                                backgroundColor: Theme.of(context).cardColor,
+                                onSelected: (bool selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      selectedMethods.add(method);
+                                    } else {
+                                      selectedMethods.remove(method);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          vericalSpaceMedium,
+                          const SubTitleText(title: "Store type"),
+                          vericalSpaceSmall,
+                          Wrap(
+                            spacing: 16,
+                            children: storeSizes.map((size) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Radio<String>(
+                                    value: size,
+                                    groupValue: selectedSize,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        selectedSize = value!;
+                                      });
+                                    },
+                                    activeColor: AppTheme.primaryColor,
+                                  ),
+                                  MediumText(
+                                    title: size,
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          ),
+                          vericalSpaceMedium,
+                          Row(
+                            children: [
+                              const SubTitleText(title: "Own delivery"),
+                              const Spacer(),
+                              Switch(
+                                value: isOwnDelivery,
+                                onChanged: (value) {
+                                  setState(() {
+                                    isOwnDelivery = value;
+                                  });
+                                },
+                                activeColor: Colors.green,
+                              ),
+                            ],
+                          ),
+                          vericalSpaceSmall,
+                          const SubTitleText(
+                            title:
+                                '(To manage deliveries, get our Delivery Partner App)',
+                          ),
+                          if (isOwnDelivery) ...[
+                            const SizedBox(height: 8),
+                            GestureDetector(
+                              child: Center(
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                      'https://upload.wikimedia.org/wikipedia/commons/2/29/Google_Play_Store_badge_NL_%28New%29_and_Apple_App_Store_badge.png',
+                                  height: 50,
+                                ),
+                              ),
+                            ),
+                          ],
+                          vericalSpaceMedium,
                           const SubTitleText(title: "Add document"),
                           vericalSpaceMedium,
                           if (documents.isNotEmpty)
@@ -708,7 +821,7 @@ class _ShopScreenState extends State<ShopScreen> {
                               itemCount: documents.length,
                               itemBuilder: (context, index) {
                                 final doc = documents[index];
-                                print("skdjfbsh${doc["name"]}");
+
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 8.0),
                                   child: CustomCard(

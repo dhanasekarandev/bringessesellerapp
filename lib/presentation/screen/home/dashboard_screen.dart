@@ -122,7 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppTheme.whiteColor,
+                    //  color: AppTheme.whiteColor,
                   ),
                   child: const Icon(Icons.person_2_outlined),
                 ),

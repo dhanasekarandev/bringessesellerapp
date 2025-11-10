@@ -12,6 +12,7 @@ class AppTheme {
   static const Color graycolor = Colors.grey;
 
   static ThemeData lightTheme = ThemeData(
+    cardColor: Colors.white,
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(
       seedColor: primaryColor,
@@ -75,6 +76,7 @@ class AppTheme {
   );
 
   static ThemeData darkTheme = ThemeData(
+    cardColor: Colors.grey.shade900,
     brightness: Brightness.dark,
     useMaterial3: true,
     colorScheme: ColorScheme.fromSeed(

@@ -2,6 +2,7 @@ import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 class WaitingApprovalScreen extends StatelessWidget {
   const WaitingApprovalScreen({super.key});
@@ -17,11 +18,7 @@ class WaitingApprovalScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.hourglass_top,
-                size: 100.w,
-                color: theme.primaryColor,
-              ),
+              Lottie.asset('assetslottie/Waiting.json'),
               SizedBox(height: 20.h),
 
               Text(

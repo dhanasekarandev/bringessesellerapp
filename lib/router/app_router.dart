@@ -11,6 +11,8 @@ import 'package:bringessesellerapp/presentation/screen/login/login_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/onboarding.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/welcome.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/change_pasword_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/coupon_screeen.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/create_coupon_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/payout_prefs.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/profile_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/subcription_screen.dart';
@@ -106,6 +108,15 @@ final GoRouter appRouter = GoRouter(
               );
             },
           ),
+          GoRoute(
+              path: '/coupon',
+              builder: (context, state) => const CouponScreeen(),
+              routes: [
+                GoRoute(
+                  path: 'add',
+                  builder: (context, state) => const CreateCoupon(),
+                ),
+              ]),
         ]),
     GoRoute(
         path: '/menu',
@@ -136,8 +147,8 @@ final GoRouter appRouter = GoRouter(
                 units: args['units'],
                 storeId: args['storeId'],
                 sellerId: args['sellerId'],
-                editProduct : args['edit'],
-                subcat:  args['subcat'],
+                editProduct: args['edit'],
+                subcat: args['subcat'],
               );
             },
           ),

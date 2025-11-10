@@ -6,6 +6,7 @@ import 'package:bringessesellerapp/model/edit_profile_model.dart';
 import 'package:bringessesellerapp/model/request/account_req_model.dart';
 import 'package:bringessesellerapp/model/request/category_id_req_model.dart';
 import 'package:bringessesellerapp/model/request/change_password_req_model.dart';
+import 'package:bringessesellerapp/model/request/create_coupon_req.dart';
 import 'package:bringessesellerapp/model/request/edit_profile_req_model.dart';
 import 'package:bringessesellerapp/model/request/login_req_model.dart';
 import 'package:bringessesellerapp/model/request/menu_creat_req_model.dart';
@@ -99,8 +100,10 @@ class AuthRepository {
   // }
   Future<dynamic> validateUserLogin(LoginRequestModel loginRequestModel) async {
     try {
-      var response = await apiService.post(
-          ApiConstant.userLogin, loginRequestModel, false);
+      var response = await apiService.login(
+        ApiConstant.userLogin,
+        loginRequestModel,
+      );
 
       if (response.data['status_code'] == 200) {
         print("asldfnd${response.data}");
@@ -334,6 +337,30 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, StoreDefaultModel());
+    }
+  }
+
+  Future<dynamic> CreateCoupon(CreateCouponReqModel createreqmodel) async {
+    try {
+      var response = await apiService.post(
+          ApiConstant.createcoupon, createreqmodel, false);
+      print("asldfnd${response.data}");
+      if (response.data['status'] == 'true') {
+        var responseData = response.data;
+        return (true, CommonSuccessResModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print("klsdfngjf");
+        return (
+          false,
+          CommonSuccessResModel(
+              message: response.data['message'], status: 'false')
+        );
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, CommonSuccessResModel());
     }
   }
 

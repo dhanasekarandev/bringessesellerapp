@@ -8,26 +8,14 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
-
-    <!-- ✅ Required for Android 13+ notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <!-- 🚫 Remove unwanted media read permissions -->
-    <uses-permission
-        android:name="android.permission.READ_MEDIA_IMAGES"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.READ_MEDIA_VIDEO"
-        tools:node="remove" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        tools:node="remove" />
 
     <application
         android:name="${applicationName}"
         android:label="Bringesse Seller App"
         android:icon="@mipmap/ic_launcher">
 
+        <!-- ✅ Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -49,12 +37,6 @@
             </intent-filter>
         </activity>
 
-        <!-- ✅ Fix: override exported conflict instead of redefining -->
-        <service
-            android:name="io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingService"
-            tools:replace="android:exported"
-            android:exported="true" />
-
         <!-- ✅ Firebase Metadata -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
@@ -68,12 +50,15 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
     </application>
 
+    <!-- ✅ Optional: to allow text sharing -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />
             <data android:mimeType="text/plain" />
         </intent>
     </queries>
+
 </manifest>

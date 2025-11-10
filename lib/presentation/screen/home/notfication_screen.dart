@@ -5,6 +5,7 @@ import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_st
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -41,16 +42,12 @@ class _NotficationScreenState extends State<NotficationScreen> {
       ),
       body: BlocConsumer<NotificationCubit, NotificationState>(
         listener: (context, state) {
-          print("sadfdfad${state}");
           if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
             final data = state.notificationResponseModel.result;
             if (state.notificationResponseModel.status == 'true' ||
                 state.notificationResponseModel.status == true) {
-              Fluttertoast.showToast(
-                msg: "Notification List loaded successfully",
-                backgroundColor: Colors.green,
-                textColor: Colors.white,
-                toastLength: Toast.LENGTH_SHORT,
+              showAppToast(
+                message: "Notification List loaded successfully",
               );
             } else {
               Fluttertoast.showToast(
@@ -115,8 +112,9 @@ class _NotficationScreenState extends State<NotficationScreen> {
                     ),
                     subtitle: Text(
                       notification.message ?? "",
-                      style:
-                          const TextStyle(fontSize: 14, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 14,
+                      ),
                     ),
                     onTap: () {
                       // Show dialog on tap

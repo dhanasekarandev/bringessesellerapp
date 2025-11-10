@@ -12,6 +12,7 @@ class ProductListCubit extends Cubit<ProductListState> {
       : super(ProductListState.initial());
 
   void login(storeId) async {
+    print("sadlfnjs$storeId");
     emit(state.copyWith(networkStatusEnum: NetworkStatusEnum.loading));
 
     (bool, dynamic) response = await authRepository.productList(storeId);

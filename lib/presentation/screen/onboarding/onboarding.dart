@@ -16,7 +16,7 @@ class OnBordingScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppTheme.grayshade.withOpacity(0.9),
+        backgroundColor: Theme.of(context).cardColor,
         body: Padding(
           padding: EdgeInsets.only(top: 20.w),
           child: Column(
@@ -33,7 +33,7 @@ class OnBordingScreen extends StatelessWidget {
                 //  height: 300.h,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppTheme.whiteColor,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
