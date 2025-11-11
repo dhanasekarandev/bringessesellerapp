@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,56 +23,98 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _init(); // ✅ Make sure we call this
+    _init();
   }
 
   Future<void> _init() async {
     sharedPreferenceHelper = SharedPreferenceHelper();
     await sharedPreferenceHelper.init();
-    await remoteConfigService.init();
 
-    // Wait for remote config and version check before navigation
-    final shouldShowUpdate = await _checkForUpdate();
+    // Step 1: Check Play Store version first
+    final playStoreUpdate = await playstoreVersionUpdate();
 
-    if (!shouldShowUpdate && mounted) {
-      _navigateNext(); // only navigate if no update dialog shown
+    // Step 2: If no update found in Play Store, then check Firebase Remote Config
+    bool firebaseUpdate = false;
+    if (!playStoreUpdate) {
+      try {
+        await remoteConfigService.init();
+        firebaseUpdate = await _checkForUpdate();
+      } catch (e) {
+        debugPrint("Firebase Remote Config init failed: $e");
+      }
+    }
+
+    // Step 3: If no updates required, go to next screen
+    if (!playStoreUpdate && !firebaseUpdate && mounted) {
+      _navigateNext();
     }
   }
 
-  Future<bool> _checkForUpdate() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    final currentVersion = packageInfo.version;
+  /// ✅ Step 1: Check Play Store version
+  Future<bool> playstoreVersionUpdate() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+      final packageName = packageInfo.packageName;
 
-    if (remoteConfigService.isUpdateRequired(currentVersion)) {
-      if (mounted) {
-        _showUpdateDialog();
+      final latestVersion = await PlayStoreVersionService()
+          .getLatestVersionFromPlayStore(packageName);
+
+      if (latestVersion != null &&
+          PlayStoreVersionService()
+              .isVersionNewer(latestVersion, currentVersion)) {
+        if (mounted) {
+          _showUpdateDialog(
+              "https://play.google.com/store/apps/details?id=$packageName");
+        }
+        return true;
       }
-      return true;
+    } catch (e) {
+      debugPrint("Play Store version check failed: $e");
     }
     return false;
   }
 
-  void _showUpdateDialog() {
+  /// ✅ Step 2: Check Firebase Remote Config (if no Play Store update)
+  Future<bool> _checkForUpdate() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+
+      if (remoteConfigService.isUpdateRequired(currentVersion)) {
+        if (mounted) {
+          _showUpdateDialog(remoteConfigService.updateUrl);
+        }
+        return true;
+      }
+    } catch (e) {
+      debugPrint("Firebase version check failed: $e");
+    }
+    return false;
+  }
+
+  /// ✅ Common update dialog (used by both Firebase and Play Store)
+  void _showUpdateDialog(String updateUrl) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Center(child: Text("Update Available")),
         content: SizedBox(
-          width: 300, // fixed width
-          height: 250, // fixed height
+          width: 300,
+          height: 250,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
                 'assets/images/Update img-bringesse.png',
-                height: 150, // adjust as needed
-                width: 150, // adjust as needed
+                height: 150,
+                width: 150,
                 fit: BoxFit.contain,
               ),
-              Text(
+              const SizedBox(height: 15),
+              const Text(
                 "You're using an older version of the app. Please update now to continue using all features smoothly.",
-                style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -83,12 +125,9 @@ class _SplashScreenState extends State<SplashScreen> {
           CustomButton(
             title: "Update Now",
             onPressed: () async {
-              final url = remoteConfigService.updateUrl;
-              if (await canLaunchUrl(Uri.parse(url))) {
-                await launchUrl(
-                  Uri.parse(url),
-                  mode: LaunchMode.externalApplication,
-                );
+              final uri = Uri.parse(updateUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
               }
             },
           ),
@@ -97,12 +136,12 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
+  /// ✅ Navigate to next screen
   Future<void> _navigateNext() async {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('onboard_seen') ?? false;
     final loginSeen = prefs.getBool('login_seen') ?? false;
 
-    // ✅ Delay for splash image
     await Future.delayed(const Duration(seconds: 3));
 
     if (!mounted) return;
@@ -128,6 +167,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
+/// ✅ Firebase Remote Config Service
 class RemoteConfigService {
   final FirebaseRemoteConfig _remoteConfig = FirebaseRemoteConfig.instance;
 
@@ -140,8 +180,6 @@ class RemoteConfigService {
   }
 
   bool isUpdateRequired(String currentVersion) {
-    print(
-        "ldjbfskd$currentVersion , ${_remoteConfig.getString('latest_version')}");
     final latestVersion = _remoteConfig.getString('latest_version');
     final updateRequired = _remoteConfig.getBool('update_required');
 
@@ -160,6 +198,42 @@ class RemoteConfigService {
       while (l.length < 3) l.add(0);
 
       for (int i = 0; i < 3; i++) {
+        if (r[i] > l[i]) return true;
+        if (r[i] < l[i]) return false;
+      }
+    } catch (e) {
+      debugPrint("Version parse error: $e");
+    }
+    return false;
+  }
+}
+
+/// ✅ Play Store Fallback Service
+class PlayStoreVersionService {
+  Future<String?> getLatestVersionFromPlayStore(String packageName) async {
+    try {
+      final url = Uri.parse(
+          "https://play.google.com/store/apps/details?id=$packageName&hl=en");
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final exp = RegExp(r'\[\[\["([0-9]+\.[0-9]+\.[0-9]+)"\]\]');
+        final match = exp.firstMatch(response.body);
+        if (match != null) {
+          return match.group(1);
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching Play Store version: $e");
+    }
+    return null;
+  }
+
+  bool isVersionNewer(String remote, String local) {
+    try {
+      final r = remote.split('.').map(int.parse).toList();
+      final l = local.split('.').map(int.parse).toList();
+      for (int i = 0; i < r.length; i++) {
         if (r[i] > l[i]) return true;
         if (r[i] < l[i]) return false;
       }

@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
-import 'package:bringessesellerapp/config/themes.dart';
+
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_state.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
@@ -231,7 +231,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           children: [
                             const SubTitleText(title: "Total Revenue"),
                             TitleText(title: "${model.totalRevenue ?? '0'}"),
-                            SalesGraph(),
+                            // Image.asset('assets/icons/money icon.png')
                           ],
                         ),
                       ),

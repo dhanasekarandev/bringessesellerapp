@@ -1,3 +1,4 @@
+import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
@@ -17,6 +18,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   final List<String> orderStages = [
     "Processing",
+    "Confirmed",
     "Packed",
     "Shipped",
     "Out for Delivery",
@@ -165,15 +167,39 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         if (index == currentStep)
                           Text(
                             "Currently in $stage stage.",
-                            style: TextStyle(color: Colors.black54),
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
+                        SizedBox(
+                          height: 10.h,
+                        ),
                         if (index == currentStep && !isLastStep)
-                          Padding(
-                            padding: EdgeInsets.only(top: 8.h),
-                            child: CustomButton(
-                              title: 'Move to Next Step',
-                              onPressed: moveToNextStage,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomButton(
+                                title: 'Move to Next Step',
+                                onPressed: moveToNextStage,
+                              ),
+                              if (currentStatus == "Processing") ...[
+                                SizedBox(height: 10.h),
+                                CustomButton(
+                                  title: 'Cancel Order',
+                                  backgroundColor: Colors.redAccent,
+                                  onPressed: () {
+                                    showCustomConfirmationDialog(
+                                      title: 'Cancel Order',
+                                      content:
+                                          'Are you sure you want to cancel this order?',
+                                      context: context,
+                                      onConfirm: () {
+                                        Navigator.pop(context);
+                                        updateStatus("Cancelled");
+                                      },
+                                    );
+                                  },
+                                ),
+                              ],
+                            ],
                           ),
                       ],
                     ),

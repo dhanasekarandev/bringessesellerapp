@@ -96,4 +96,9 @@ class ApiConstant {
   static const String refreshToken = 'refreshtoken';
   static const String deleteproduct = 'items/changestatus';
   static const String createcoupon = 'coupon/create';
+  static String getCouponList(String storeId, String sellerId,
+          {int page = 1, int limit = 10}) =>
+      'coupon/list?storeId=$storeId&sellerId=$sellerId&page=$page&limit=$limit';
+  static String deleteCoupon(String couponId) => 'coupon/delete/$couponId';
+  static String updateCoupon(String couponId) => 'coupon/update/$couponId';
 }

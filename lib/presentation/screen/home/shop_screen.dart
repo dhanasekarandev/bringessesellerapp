@@ -278,15 +278,12 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
-  final List<String> paymentMethods = [
-    "Cash on Delivery",
-    "Razorpay",
-    "UPI",
-    "Credit/Debit Card",
-  ];
+  final List<String> paymentMethods = ["Cash on Delivery", "Online payment"];
   String selectedSize = 'Small';
+  String selectedService = 'Subscription';
   bool isOwnDelivery = false;
   final List<String> storeSizes = ['Small', 'Medium', 'Large'];
+  final List<String> servicetype = ['Subscription', 'Partnership'];
   final Set<String> selectedMethods = {};
   @override
   Widget build(BuildContext context) {
@@ -718,7 +715,7 @@ class _ShopScreenState extends State<ShopScreen> {
                             ),
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Select delivery option"),
+                          const SubTitleText(title: "Select payment option"),
                           vericalSpaceSmall,
                           Wrap(
                             spacing: 8,

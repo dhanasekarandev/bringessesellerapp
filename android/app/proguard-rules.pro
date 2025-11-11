@@ -52,7 +52,7 @@
 # =========================
 # Gson / JSON Models
 # =========================
--keep class com.bringsesellerapp.model.** { *; }   # ✅ Replace with your actual model package
+-keep class com.bringsesellerapp.model.** { *; }  
 -keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
 }
@@ -69,7 +69,7 @@
 # =========================
 # Keep Main Activity
 # =========================
--keep class com.bringsesellerapp.MainActivity { *; }   # ✅ Replace with your actual package name
+-keep class com.bringsesellerapp.MainActivity { *; }  
 
 # =========================
 # Misc

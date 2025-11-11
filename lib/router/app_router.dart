@@ -114,7 +114,12 @@ final GoRouter appRouter = GoRouter(
               routes: [
                 GoRoute(
                   path: 'add',
-                  builder: (context, state) => const CreateCoupon(),
+                  builder: (context, state) {
+                    var args = state.extra as Map;
+                    return CreateCoupon(
+                      couponData: args['coupons'],
+                    );
+                  },
                 ),
               ]),
         ]),

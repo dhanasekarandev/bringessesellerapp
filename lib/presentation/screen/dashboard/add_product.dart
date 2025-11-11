@@ -143,8 +143,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (pickedVideo != null) {
       final file = File(pickedVideo.path);
       final fileSizeInBytes = await file.length();
-      final fileSizeInMB = fileSizeInBytes / (1024 * 1024); // Convert to MB
-
+      final fileSizeInMB = fileSizeInBytes / (1024 * 1024); 
       if (fileSizeInMB > 20) {
         Fluttertoast.showToast(msg: "Video size should not exceed 20 MB");
         return;

@@ -27,13 +27,16 @@ import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.da
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/coupon_create_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/delete_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/logout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/payout_account_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/update_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/verify_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/get_store_cubit.dart';
@@ -237,6 +240,15 @@ class MyApp extends StatelessWidget {
                   DeleteMenuCubit(authRepository: AuthRepository(apiService))),
           BlocProvider<CouponCreateCubit>(
               create: (repoContext) => CouponCreateCubit(
+                  authRepository: AuthRepository(apiService))),
+          BlocProvider<DeleteCouponCubit>(
+              create: (repoContext) => DeleteCouponCubit(
+                  authRepository: AuthRepository(apiService))),
+          BlocProvider<GetCouponCubit>(
+              create: (repoContext) =>
+                  GetCouponCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<UpdateCouponCubit>(
+              create: (repoContext) => UpdateCouponCubit(
                   authRepository: AuthRepository(apiService))),
           BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
         ],
