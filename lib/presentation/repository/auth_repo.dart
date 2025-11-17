@@ -21,12 +21,14 @@ import 'package:bringessesellerapp/model/request/product_update_req_model.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
+import 'package:bringessesellerapp/model/request/remove_video_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/transaction_request_model.dart';
+import 'package:bringessesellerapp/model/request/upload_video_req_model.dart';
 import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
 import 'package:bringessesellerapp/model/response/change_password_model.dart';
@@ -57,6 +59,7 @@ import 'package:bringessesellerapp/model/response/subcription_checkout_response.
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
 import 'package:bringessesellerapp/model/response/transaction_response_model.dart';
 import 'package:bringessesellerapp/model/response/verify_otp_response_model.dart';
+import 'package:bringessesellerapp/model/response/video_upload_response_model.dart';
 import 'package:bringessesellerapp/model/response/view_profile_model.dart';
 import 'package:bringessesellerapp/model/response/view_transaction_response_model.dart';
 
@@ -109,7 +112,6 @@ class AuthRepository {
       );
 
       if (response.data['status_code'] == 200) {
-     
         var responseData = response.data;
         return (true, LoginModel.fromJson(responseData));
       } else {
@@ -129,7 +131,7 @@ class AuthRepository {
   Future<dynamic> validateUserViewProfile() async {
     try {
       final sellerId = sharedPreferenceHelper?.getSellerId;
-    
+
       var response = await apiService.getprofile(
           ApiConstant.userViewProfile(sellerId!), true);
       if (response.data['status_code'] == 200) {
@@ -139,15 +141,13 @@ class AuthRepository {
       } else {
         // Handle other status codes
         if (response.data['error'] == 'Unauthorized Access API') {
-          
           var res = await apiService.refresToken(
             ApiConstant.refreshToken,
             {'sellerId': sellerId},
             true,
           );
-         
+
           if (res.data['status'] == 'true') {
-        
             sharedPreferenceHelper.saveToken(res.data['accessToken']);
             sharedPreferenceHelper.saveRefreshToken(res.data['refreshToken']);
             var retryResponse = await apiService.getprofile(
@@ -200,8 +200,6 @@ class AuthRepository {
           ApiConstant.getpayoutAccount, editProfileRequestModel, false);
 
       if (response.data['status'] == "true") {
-        
-
         var responseData = response.data;
         return (true, AccountDetailModel.fromJson(responseData));
       } else {
@@ -219,7 +217,7 @@ class AuthRepository {
   Future<dynamic> getDashboarddata() async {
     try {
       final storeId = sharedPreferenceHelper?.getStoreId;
-      
+
       var response =
           await apiService.get(ApiConstant.dashboardreq(storeId!), false);
       if (response.statusCode == 200) {
@@ -233,7 +231,7 @@ class AuthRepository {
     } catch (e, stacktrace) {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
-      return (false, DashboardModel());
+      return (false, DashboardModel(status: "false",));
     }
   }
 
@@ -241,7 +239,7 @@ class AuthRepository {
     try {
       final storeId = sharedPreferenceHelper?.getStoreId;
       final sellerId = sharedPreferenceHelper?.getSellerId;
-      
+
       var response = await apiService.get(
           ApiConstant.getCouponList(
             storeId!,
@@ -353,7 +351,7 @@ class AuthRepository {
     try {
       var response =
           await apiService.post(ApiConstant.storedefaults, {}, false);
-     
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, StoreDefaultModel.fromJson(responseData));
@@ -373,13 +371,13 @@ class AuthRepository {
     try {
       var response = await apiService.post(
           ApiConstant.createcoupon, createreqmodel, false);
-      
+
       if (response.data['status'] == 'true') {
         var responseData = response.data;
         return (true, CommonSuccessResModel.fromJson(responseData));
       } else {
         // Handle other status codes
-      
+
         return (
           false,
           CommonSuccessResModel(
@@ -396,7 +394,7 @@ class AuthRepository {
   Future<dynamic> promotionPre() async {
     try {
       var response = await apiService.get(ApiConstant.promotionPre, false);
-     
+
       if (response.statusCode == 200) {
         var responseData = response.data;
         return (true, PromotionPredataResponseModel.fromJson(responseData));
@@ -417,10 +415,10 @@ class AuthRepository {
       final storeId = sharedPreferenceHelper?.getStoreId;
       var response =
           await apiService.get(ApiConstant.storeget(storeId!), false);
-      
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
-       
+
         return (true, GetStoreModel.fromJson(responseData));
       } else {
         print('Unexpected status code: ${response.data['status_code']}');
@@ -436,10 +434,9 @@ class AuthRepository {
   Future<dynamic> subscriptionCheckout(
       SubscriptionCheckoutReqModel editProfileRequestModel) async {
     try {
-      
       var response = await apiService.post(
           ApiConstant.subscriptionCheckout, editProfileRequestModel, false);
-     
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, SubscriptionCheckoutResponse.fromJson(responseData));
@@ -461,7 +458,7 @@ class AuthRepository {
       print("Editreq:${notificationReqModel}");
       var response = await apiService.post(
           ApiConstant.notificationlist, notificationReqModel, false);
-      
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, NotificationResponseModel.fromJson(responseData));
@@ -479,8 +476,6 @@ class AuthRepository {
 
   Future<dynamic> storeUpload(StoreUpdateReq storereqModel) async {
     try {
-     
-
       final formData = await storereqModel.toFormData();
 
       var response = await apiService.post(
@@ -508,8 +503,6 @@ class AuthRepository {
 
   Future<dynamic> PromotionCreate(PromotionRequestModel promotionReq) async {
     try {
-     
-
       final formData = await promotionReq.toFormData();
 
       var response = await apiService.post(
@@ -537,8 +530,6 @@ class AuthRepository {
 
   Future<dynamic> storeUpdate(StoreUpdateReq storereqModel) async {
     try {
-      
-
       final formData = await storereqModel.toFormData();
 
       var response = await apiService.patch(
@@ -579,7 +570,6 @@ class AuthRepository {
           return (false, RazorpayErrorResponseModel.fromJson(responseData));
         }
       } else {
-       
         return (
           false,
           RazorpayErrorResponseModel(
@@ -601,7 +591,7 @@ class AuthRepository {
   Future<dynamic> getCategory(CategoryIdReqModel catId) async {
     try {
       var response = await apiService.post(ApiConstant.category, catId, false);
-     
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, StoreDefaultModel.fromJson(responseData));
@@ -621,7 +611,7 @@ class AuthRepository {
     try {
       var response =
           await apiService.post(ApiConstant.category, storeId, false);
-      
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, StoreDefaultModel.fromJson(responseData));
@@ -641,7 +631,7 @@ class AuthRepository {
     try {
       var response =
           await apiService.post(ApiConstant.menulist, storeId, false);
-     
+
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
         return (true, MenuListModel.fromJson(responseData));
@@ -823,6 +813,72 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace: $stacktrace');
       return (false, MenuCreateResModel());
+    }
+  }
+
+  Future<dynamic> videoUpload(UploadVideoReqModel uploadvideoreq) async {
+    try {
+      print("Store request: $uploadvideoreq");
+
+      final formData = await uploadvideoreq.toFormData();
+
+      var response = await apiService.post(
+        ApiConstant.productUploadvideo,
+        formData,
+        false,
+        isFormData: true,
+      );
+
+      log("API response: $response");
+
+      if (response.statusCode == 200) {
+        if (response.data['status'] == "true") {
+          var responseData = response.data;
+          return (true, UploadVideoResModel.fromJson(responseData));
+        } else {
+          print('Unexpected statusss: ${response.data['message']}');
+          return (false, UploadVideoResModel());
+        }
+      } else {
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, UploadVideoResModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace: $stacktrace');
+      return (false, UploadVideoResModel());
+    }
+  }
+
+  Future<dynamic> Removevideo(RemoveVideoReqModel uploadvideoreq) async {
+    try {
+      print("Store request: $uploadvideoreq");
+
+      var response = await apiService.post(
+        ApiConstant.productvideoremove,
+        uploadvideoreq,
+        false,
+        isFormData: false,
+      );
+
+      log("API response: $response");
+
+      if (response.statusCode == 200) {
+        if (response.data['status'] == "true") {
+          var responseData = response.data;
+          return (true, CommonSuccessResModel.fromJson(responseData));
+        } else {
+          print('Unexpected statusss: ${response.data['message']}');
+          return (false, CommonSuccessResModel());
+        }
+      } else {
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, CommonSuccessResModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace: $stacktrace');
+      return (false, CommonSuccessResModel());
     }
   }
 
@@ -1022,16 +1078,16 @@ class AuthRepository {
       log(" asda${response}");
       if (response.statusCode == 200) {
         var responseData = response.data;
-        return (true, OderListResponse.fromJson(responseData));
+        return (true, OrderListResponse.fromJson(responseData));
       } else {
         // Handle other status codes
         print('Unexpected status code: ${response.statusCode}');
-        return (false, OderListResponse());
+        return (false, OrderListResponse());
       }
     } catch (e, stacktrace) {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
-      return (false, OderListResponse());
+      return (false, OrderListResponse());
     }
   }
 

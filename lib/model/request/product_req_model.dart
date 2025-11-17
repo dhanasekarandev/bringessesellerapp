@@ -10,6 +10,8 @@ class ProductCreateReqModel {
   String? menuId;
   List<Variant>? variants;
   String? description;
+  String? videoUrl;
+  String? quantity;
   bool? comboOffer;
   List<File>? productImages;
 
@@ -18,6 +20,8 @@ class ProductCreateReqModel {
     this.storeId,
     this.name,
     this.sku,
+    this.videoUrl,
+    this.quantity,
     this.menuId,
     this.variants,
     this.description,
@@ -32,6 +36,8 @@ class ProductCreateReqModel {
       'storeId': storeId,
       'name': name,
       'SKU': sku,
+      'videoUrl': videoUrl,
+      'quantity':quantity,
       'menuId': menuId,
       'variants': variants?.map((v) => v.toJson()).toList(),
       'description': description,
@@ -46,6 +52,8 @@ class ProductCreateReqModel {
       'storeId': storeId,
       'name': name,
       'SKU': sku,
+      'videoUrl': videoUrl,
+      'quantity':quantity,
       'menuId': menuId,
       'variants': variants != null
           ? jsonEncode(variants!.map((v) => v.toJson()).toList())

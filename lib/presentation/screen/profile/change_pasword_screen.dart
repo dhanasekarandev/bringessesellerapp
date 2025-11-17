@@ -94,7 +94,10 @@ class _ChangePaswordScreenState extends State<ChangePaswordScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SubTitleText(title: "Current password"),
+                          const SubTitleText(
+                            title: "Current password",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _currentPasswordController,
                             hintText: "Current password",
@@ -107,7 +110,10 @@ class _ChangePaswordScreenState extends State<ChangePaswordScreen> {
                             },
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "New password"),
+                          const SubTitleText(
+                            title: "New password",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _newPasswordController,
                             hintText: "New password",
@@ -122,7 +128,10 @@ class _ChangePaswordScreenState extends State<ChangePaswordScreen> {
                             },
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Confirm password"),
+                          const SubTitleText(
+                            title: "Confirm password",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _confirmPasswordController,
                             hintText: "Confirm password",

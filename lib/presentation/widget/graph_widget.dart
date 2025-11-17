@@ -26,7 +26,7 @@ class _SalesGraphState extends State<SalesGraph> {
       height: 300.h,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor, // Auto adjust for dark/light mode
+        color: Theme.of(context).cardColor, 
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(

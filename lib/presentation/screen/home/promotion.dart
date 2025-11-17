@@ -71,8 +71,6 @@ class _PromotionScreenState extends State<PromotionScreen> {
                   Expanded(
                     child: BlocBuilder<ViewPromotionCubit, ViewPromotionState>(
                       builder: (context, state) {
-                        print(
-                            "slfghfg${state.networkStatusEnum == NetworkStatusEnum.initial}");
                         if (state.networkStatusEnum ==
                             NetworkStatusEnum.initial) {
                           const Center(
@@ -202,11 +200,11 @@ class _PromotionScreenState extends State<PromotionScreen> {
                           );
                         } else if (state.networkStatusEnum ==
                             NetworkStatusEnum.initial) {
-                          return Center(
+                          return const Center(
                             child: Text("No data"),
                           );
                         } else {
-                          return SizedBox();
+                          return const SizedBox();
                         }
                       },
                     ),

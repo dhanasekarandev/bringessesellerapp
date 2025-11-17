@@ -3,6 +3,8 @@ import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/model/request/product_req_model.dart';
 import 'package:bringessesellerapp/model/request/product_update_req_model.dart';
+import 'package:bringessesellerapp/model/request/remove_video_req_model.dart';
+import 'package:bringessesellerapp/model/request/upload_video_req_model.dart';
 import 'package:bringessesellerapp/model/response/product_by_id_response_model.dart'
     as pd;
 
@@ -11,7 +13,12 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_cr
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_create_state.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_state.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/remove_video_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/remove_video_state.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
+import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
@@ -19,7 +26,10 @@ import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
 import 'package:bringessesellerapp/presentation/widget/dotted_container.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
+import 'package:bringessesellerapp/presentation/widget/video_player_widget.dart';
+
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -63,7 +73,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _des = TextEditingController();
   final TextEditingController _cat = TextEditingController();
   final TextEditingController _sub = TextEditingController();
-
+  final TextEditingController _stock = TextEditingController();
+  final TextEditingController _gst = TextEditingController();
+  final TextEditingController _cgst = TextEditingController();
+  final TextEditingController _sgst = TextEditingController();
   List<Map<String, dynamic>> variantList = [];
   final List<String> offerOptions = ['Yes', 'No'];
   File? _productVideo;
@@ -85,8 +98,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _sku.text = product.sku ?? "";
       _des.text = product.description ?? "";
       _cat.text = widget.catname ?? "";
+      _stock.text = widget.editProduct!.quantity ?? "";
       isCombo = product.comboOffer == 0 ? false : true;
-
+      if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
+        uploadvideoUrl =
+            "${ApiConstant.imageUrl}/public/media/items/${product.videoUrl}";
+      }
       selectedMenuId = product.menuId;
       selectedMenu = widget.menuList
           ?.firstWhere((e) => e.id == product.menuId, orElse: () => Menu())
@@ -101,21 +118,51 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       // ✅ Prefill variants
       variantList.clear();
-      if (product.variants != null && product.variants!.isNotEmpty) {
-        for (var v in product.variants!) {
-          variantList.add({
-            'count': TextEditingController(text: v.name ?? ""),
-            'price': TextEditingController(text: v.price?.toString() ?? ""),
-            'offerPrice':
-                TextEditingController(text: v.offerPrice?.toString() ?? ""),
-            'selectedUnit': v.unit?.trim(), // ✅ FIX HERE
-            'selectedOffer': v.offerAvailable == "true" ? "Yes" : "No",
-          });
+      for (var v in product.variants!) {
+        final gstController =
+            TextEditingController(text: v.gst?.toString() ?? "0");
+        final cgstController =
+            TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
+        final sgstController =
+            TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
+        gstController.addListener(() {
+          double gstValue = double.tryParse(gstController.text) ?? 0;
+          double split = gstValue / 2;
+          cgstController.text = split.toStringAsFixed(2);
+          sgstController.text = split.toStringAsFixed(2);
+          setState(() {});
+        });
+        if (product.variants != null && product.variants!.isNotEmpty) {
+          for (var v in product.variants!) {
+            final gstValue =
+                v.price ?? 0; // Assuming product variant has gst field
+            final splitValue = gstValue / 2;
+
+            variantList.add({
+              'count': TextEditingController(text: v.name ?? ""),
+              'price': TextEditingController(text: v.price?.toString() ?? ""),
+              'offerPrice':
+                  TextEditingController(text: v.offerPrice?.toString() ?? ""),
+              'gst': TextEditingController(text: gstValue.toString()),
+              'cgst':
+                  TextEditingController(text: splitValue.toStringAsFixed(2)),
+              'sgst':
+                  TextEditingController(text: splitValue.toStringAsFixed(2)),
+              'selectedUnit': v.unit?.trim(),
+              'selectedOffer': v.offerAvailable == "true" ? "Yes" : "No",
+            });
+          }
+        } else {
+          addVariant();
         }
-      } else {
-        addVariant();
       }
     }
+  }
+
+  _remove() async {
+    context
+        .read<RemoveVideoCubit>()
+        .login(RemoveVideoReqModel(videoUrl: uploadvideoUrl));
   }
 
   /// Pick multiple images (max 5)
@@ -134,7 +181,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  bool loading = false;
+  String? uploadvideoUrl;
   Future<void> _pickVideo() async {
+    setState(() {
+      loading = true;
+    });
     final XFile? pickedVideo = await _picker.pickVideo(
       source: ImageSource.gallery,
       maxDuration: const Duration(minutes: 2),
@@ -143,7 +195,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     if (pickedVideo != null) {
       final file = File(pickedVideo.path);
       final fileSizeInBytes = await file.length();
-      final fileSizeInMB = fileSizeInBytes / (1024 * 1024); 
+      final fileSizeInMB = fileSizeInBytes / (1024 * 1024);
       if (fileSizeInMB > 20) {
         Fluttertoast.showToast(msg: "Video size should not exceed 20 MB");
         return;
@@ -152,6 +204,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       setState(() {
         _productVideo = file;
       });
+
+      context.read<UploadVideoCubit>().login(UploadVideoReqModel(video: file));
     }
   }
 
@@ -169,6 +223,156 @@ class _AddProductScreenState extends State<AddProductScreen> {
   void removeVariant(int index) {
     variantList.removeAt(index);
     setState(() {});
+  }
+
+  void _showCalculation() {
+    // Step 1: Prepare calculations for all variants
+    List<Widget> calculationWidgets = [];
+
+    for (var variant in variantList) {
+      double price = double.tryParse(variant['price'].text) ?? 0;
+      double offerPrice = double.tryParse(variant['offerPrice'].text) ?? 0;
+      double gstPercent = double.tryParse(_gst.text) ?? 0;
+      double processingFeePercent = 5; // Example: 5% processing fee
+      bool isOffer = variant['selectedOffer'] == "Yes";
+
+      final result = calculateFinalPrice(
+        price: price,
+        offerPrice: offerPrice,
+        gstPercent: gstPercent,
+        processingFeePercent: processingFeePercent,
+        isOffer: isOffer,
+      );
+
+      // Add each field as a separate widget
+      calculationWidgets.add(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 4),
+            // Text(
+            //   "Variant: ${variant['count'].text}",
+            //   style: Theme.of(context)
+            //       .textTheme
+            //       .bodyLarge!
+            //       .copyWith(fontSize: 18.sp, fontWeight: FontWeight.w700),
+            // ),
+            const SizedBox(height: 6),
+            Text(
+              "Selling Price: ₹${result['sellingPrice']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+
+            Text(
+              "CGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['cgst']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              "SGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['sgst']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              "Processing Fee ($processingFeePercent%): ₹${result['processingFeeAmount']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+            ),
+            Text(
+              "Final Price: ₹${result['finalPrice']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 18.sp, fontWeight: FontWeight.w700),
+            ),
+            Text(
+              "Earning Amount: ₹${result['earningAmount']!.toStringAsFixed(2)}",
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge!
+                  .copyWith(fontSize: 18.sp, fontWeight: FontWeight.w700),
+            ),
+            const Divider(height: 20, thickness: 1),
+          ],
+        ),
+      );
+    }
+
+    // Step 2: Show Modal Bottom Sheet
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+            left: 16,
+            right: 16,
+            top: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Price Calculation",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                ),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: calculationWidgets,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomOutlineButton(
+                      paddingHorizontal: 20.w,
+                      onPressed: () => Navigator.pop(context),
+                      title: "Cancel",
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomButton(
+                      height: 40.h,
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _save(); // call your actual save function
+                      },
+                      title: "Add product",
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20.h),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _save() async {
@@ -193,21 +397,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     try {
       if (widget.editProduct == null) {
-        // 🔹 ADD FLOW
         final req = ProductCreateReqModel(
-          sellerId: widget.sellerId,
-          storeId: widget.storeId,
-          name: _name.text,
-          sku: _sku.text,
-          menuId: selectedMenuId,
-          variants: variants,
-          description: _des.text,
-          comboOffer: isCombo,
-          productImages: newFiles,
-        );
+            sellerId: widget.sellerId,
+            storeId: widget.storeId,
+            name: _name.text,
+            sku: _sku.text,
+            menuId: selectedMenuId,
+            variants: variants,
+            description: _des.text,
+            comboOffer: isCombo,
+            quantity: _stock.text,
+            productImages: newFiles,
+            videoUrl: uploadvideoUrl);
         context.read<ProductCreateCubit>().login(req);
       } else {
-        // 🔹 UPDATE FLOW
         final req = ProductUpdateReqModel(
           itemId: widget.editProduct!.id,
           sellerId: widget.sellerId,
@@ -218,6 +421,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           variants: variants,
           description: _des.text,
           comboOffer: isCombo,
+          quantity: _stock.text,
           outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
           productImages: newFiles,
           existingImages: existingImages,
@@ -256,6 +460,31 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     return MultiBlocListener(
       listeners: [
+        BlocListener<UploadVideoCubit, UploadVideoState>(
+          listener: (context, state) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+              setState(() {
+                loading = false;
+                uploadvideoUrl = state.videoResModel.videoUrl!.trim();
+              });
+
+              Fluttertoast.showToast(msg: "Product video upload successfully");
+            }
+          },
+        ),
+        BlocListener<RemoveVideoCubit, RemoveVideoState>(
+          listener: (context, state) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+              setState(() {
+                loading = false;
+              });
+              setState(() {
+                _productVideo = null;
+              });
+              Fluttertoast.showToast(msg: "Product upload Video removed ");
+            }
+          },
+        ),
         BlocListener<ProductUpdateCubit, ProductUpdateState>(
           listener: (context, state) {
             if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
@@ -380,78 +609,129 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     ),
                   ),
                   CustomCard(
-                      child: Column(
-                    children: [
-                    const  TitleText(title: "Upload Product Video"),
-                      vericalSpaceMedium,
-                      _productVideo == null
-                          ? InkWell(
-                              onTap: _pickVideo,
-                              child: DottedContainer(
-                                child: Container(
-                                  height: 150.h,
-                                  alignment: Alignment.center,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.video_collection_outlined,
-                                          color: Colors.grey.shade600,
-                                          size: 40),
-                                   const   SizedBox(height: 10),
-                                   const   Text(
-                                          "Upload product video (max 2 min, MP4/MOV)"),
-                                    ],
-                                  ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const TitleText(title: "Upload Product Video"),
+                        vericalSpaceMedium,
+
+                        // CASE 1: Prefilled network video (Edit mode)
+                        if (widget.editProduct != null &&
+                            _productVideo == null &&
+                            widget.editProduct!.videoUrl != null)
+                          Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              Container(
+                                height: 180,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: VideoPlayerWidget(
+                                  videoUrl: widget.editProduct!.videoUrl!,
                                 ),
                               ),
-                            )
-                          : Stack(
-                              alignment: Alignment.topRight,
-                              children: [
-                                Container(
-                                  height: 180.h,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    border:
-                                        Border.all(color: Colors.grey.shade300),
+                              GestureDetector(
+                                onTap: () {
+                                  showCustomConfirmationDialog(
+                                    content:
+                                        'Are you sure you want to remove this video?',
+                                    context: context,
+                                    onConfirm: () {
+                                      setState(() {
+                                        widget.editProduct!.videoUrl = null;
+                                      });
+                                    },
+                                    title: 'Remove',
+                                  );
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
                                   ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      // Thumbnail placeholder (black with icon)
-                                      Container(
-                                        color: Colors.black12,
-                                        child: const Icon(
-                                            Icons.play_circle_outline,
-                                            size: 60,
-                                            color: Colors.black45),
-                                      ),
-                                    ],
-                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.close,
+                                      color: Colors.white, size: 30),
                                 ),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _productVideo = null;
-                                    });
-                                  },
-                                  child: Container(
-                                    margin: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.black54,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    padding: const EdgeInsets.all(4),
-                                    child: const Icon(Icons.close,
-                                        color: Colors.white, size: 18),
-                                  ),
+                              ),
+                            ],
+                          )
+
+// CASE 2: Local picked video
+                        else if (_productVideo != null)
+                          Stack(
+                            alignment: Alignment.topRight,
+                            children: [
+                              Container(
+                                height: 180,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border:
+                                      Border.all(color: Colors.grey.shade300),
                                 ),
-                              ],
+                                clipBehavior: Clip.antiAlias,
+                                child: VideoPlayerWidget(
+                                    videoFile: _productVideo!),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  showCustomConfirmationDialog(
+                                    content:
+                                        'Are you sure you want to remove this video?',
+                                    context: context,
+                                    onConfirm: _remove,
+                                    title: 'Remove',
+                                  );
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.all(6),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.close,
+                                      color: Colors.white, size: 30),
+                                ),
+                              ),
+                            ],
+                          )
+
+// CASE 3: Loading
+                        else if (loading)
+                          const Center(child: CupertinoActivityIndicator())
+
+// CASE 4: Default upload UI
+                        else
+                          InkWell(
+                            onTap: _pickVideo,
+                            child: DottedContainer(
+                              child: Container(
+                                height: 150,
+                                alignment: Alignment.center,
+                                child: const Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.video_collection_outlined,
+                                        color: Colors.grey, size: 40),
+                                    SizedBox(height: 10),
+                                    Text(
+                                        "Upload product video (max 2 min, MP4/MOV)"),
+                                  ],
+                                ),
+                              ),
                             ),
-                    ],
-                  )),
+                          )
+                      ],
+                    ),
+                  ),
 
                   /// ---- Product Details ----
                   CustomCard(
@@ -513,6 +793,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller: _sku,
                         ),
                         vericalSpaceMedium,
+                        const SubTitleText(title: "Stock Quantity"),
+                        CustomTextField(
+                            hintText: "",
+                            controller: _stock,
+                            keyboardType: TextInputType.number),
+                        vericalSpaceMedium,
                         const SubTitleText(title: "Description"),
                         CustomTextField(
                           hintText: "Description",
@@ -541,6 +827,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               isCombo = value ?? false;
                             });
                           },
+                        ),
+                      ],
+                    ),
+                  ),
+                  CustomCard(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            const TitleText(title: "GST"),
+                            horizontalSpaceMedium,
+                            GestureDetector(
+                              onTap: _showComboInfoDialog,
+                              child: const Icon(Icons.info_outline_rounded),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -621,6 +923,41 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   },
                                 ),
                                 vericalSpaceMedium,
+                                const SubTitleText(title: "GST"),
+                                CustomTextField(
+                                  controller: _gst,
+                                  //variant['gst'],
+                                  hintText: "",
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (value) {
+                                    double gstValue =
+                                        double.tryParse(value) ?? 0;
+                                    double split = gstValue / 2;
+
+                                    // Update CGST & SGST controllers
+                                    _cgst.text = split.toStringAsFixed(2);
+                                    _sgst.text = split.toStringAsFixed(2);
+
+                                    setState(() {}); // Refresh UI
+                                  },
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(title: "CGST"),
+                                CustomTextField(
+                                  controller: _cgst,
+                                  hintText: "",
+                                  keyboardType: TextInputType.number,
+//  enabled: false, // Auto-filled
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(title: "SGST"),
+                                CustomTextField(
+                                  controller: _sgst,
+                                  hintText: "",
+                                  keyboardType: TextInputType.number,
+                                  // enabled: false, // Auto-filled
+                                ),
+                                vericalSpaceMedium,
                                 const SubTitleText(title: "Price"),
                                 CustomTextField(
                                   controller: variant['price'],
@@ -683,7 +1020,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       : widget.editProduct != null
                           ? "Update Product"
                           : "Save Product",
-                  onPressed: _save,
+                  onPressed: _showCalculation,
                 ),
               ),
             ),
@@ -691,5 +1028,35 @@ class _AddProductScreenState extends State<AddProductScreen> {
         },
       ),
     );
+  }
+
+  Map<String, double> calculateFinalPrice({
+    required double price,
+    required double offerPrice,
+    required double gstPercent,
+    required double processingFeePercent,
+    required bool isOffer,
+  }) {
+    final sellingPrice = isOffer ? offerPrice : price;
+
+    double cgst = gstPercent / 2;
+    double sgst = gstPercent / 2;
+    double gstAmount = sellingPrice * gstPercent / 100;
+
+    double processingFeeAmount = sellingPrice * processingFeePercent / 100;
+
+    double finalPrice = sellingPrice + gstAmount + processingFeeAmount;
+
+    double earningAmount = finalPrice - processingFeeAmount;
+
+    return {
+      'sellingPrice': sellingPrice,
+      'cgst': sellingPrice * cgst / 100,
+      'sgst': sellingPrice * sgst / 100,
+      'gstAmount': gstAmount,
+      'processingFeeAmount': processingFeeAmount,
+      'finalPrice': finalPrice,
+      'earningAmount': earningAmount
+    };
   }
 }

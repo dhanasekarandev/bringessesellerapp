@@ -21,6 +21,8 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_ca
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_create_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/remove_video_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
@@ -250,6 +252,13 @@ class MyApp extends StatelessWidget {
           BlocProvider<UpdateCouponCubit>(
               create: (repoContext) => UpdateCouponCubit(
                   authRepository: AuthRepository(apiService))),
+          BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
+          BlocProvider<UploadVideoCubit>(
+              create: (repoContext) =>
+                  UploadVideoCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<RemoveVideoCubit>(
+              create: (repoContext) =>
+                  RemoveVideoCubit(authRepository: AuthRepository(apiService))),
           BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
         ],
         child: ScreenUtilInit(

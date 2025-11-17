@@ -38,6 +38,9 @@ class Result {
   String? description;
   double? lat;
   double? lon;
+  String? storeType;
+  String? returnPolicy;
+  List<String>? paymentOptions;
 
   Result({
     this.storeId,
@@ -57,6 +60,9 @@ class Result {
     this.description,
     this.lat,
     this.lon,
+    this.storeType,
+    this.returnPolicy,
+    this.paymentOptions,
   });
 
   Result.fromJson(Map<String, dynamic> json) {
@@ -68,7 +74,8 @@ class Result {
     status = json['status'];
     categoryId = json['categoryId'];
     categoryName = json['categoryName'];
-    documents = json['documents'] ?? [];
+    documents =
+        json['documents'] != null ? List<dynamic>.from(json['documents']) : [];
     createdAt = json['created_at'];
     openingTime = json['openingTime'];
     closingTime = json['closingTime'];
@@ -77,6 +84,11 @@ class Result {
     description = json['description'];
     lat = (json['lat'] != null) ? json['lat'].toDouble() : null;
     lon = (json['lon'] != null) ? json['lon'].toDouble() : null;
+    storeType = json['storeType'];
+    returnPolicy = json['returnPolicy'];
+    paymentOptions = json['paymentOptions'] != null
+        ? List<String>.from(json['paymentOptions'])
+        : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -98,6 +110,9 @@ class Result {
     data['description'] = description;
     data['lat'] = lat;
     data['lon'] = lon;
+    data['storeType'] = storeType;
+    data['returnPolicy'] = returnPolicy;
+    data['paymentOptions'] = paymentOptions;
     return data;
   }
 }

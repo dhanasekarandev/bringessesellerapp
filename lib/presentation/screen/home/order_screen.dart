@@ -1,11 +1,13 @@
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/oder_list_req_model.dart';
+import 'package:bringessesellerapp/model/response/oder_list_response.dart';
+
 import 'package:bringessesellerapp/presentation/screen/home/order_detail.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_state.dart';
-
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
+import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,21 +32,21 @@ class _OrderScreenState extends State<OrderScreen>
 
     _tabController = TabController(length: 2, vsync: this);
 
-    // Load initial tab (Pending Orders)
-    loadOrder(status: "1");
+    _loadOrder(status: "");
 
+    // Change tab listener
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-      final status = _tabController.index == 0 ? "1" : "0";
-      loadOrder(status: status);
+      final status = _tabController.index == 0 ? "" : "";
+      _loadOrder(status: status);
     });
   }
 
-  void loadOrder({required String status}) {
+  void _loadOrder({required String status}) {
     context.read<OderListCubit>().login(
           OderListReqModel(
             storeId: sharedPreferenceHelper.getStoreId,
-            status: status,
+            status: "",
             pageId: "0",
             searchKey: "",
           ),
@@ -62,36 +64,22 @@ class _OrderScreenState extends State<OrderScreen>
     return BlocConsumer<OderListCubit, OderListState>(
       listener: (context, state) {},
       builder: (context, state) {
-        final dummyOrders = [
-          {
-            "uniqueId": "ORD1001",
-            "status": "1",
-            "userDetails": {"name": "John Doe"},
-            "currencySymbol": "₹",
-            "price": "299.00",
-            "date": "2025-11-08",
-          },
-          {
-            "uniqueId": "ORD1002",
-            "status": "0",
-            "userDetails": {"name": "Priya Sharma"},
-            "currencySymbol": "₹",
-            "price": "499.00",
-            "date": "2025-11-07",
-          },
-        ];
+        List<OrderDetails> pendingOrders = [];
+        List<OrderDetails> completedOrders = [];
 
-        final items = state.orderlistresponse.items?.isNotEmpty == true
-            ? state.orderlistresponse.items
-            : dummyOrders;
-
-        final pendingOrders = items!.where((e) => e["status"] == "1").toList();
-        final completedOrders = items.where((e) => e["status"] == "0").toList();
+        if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+          final orders = state.orderlistresponse.result?.orders ?? [];
+          pendingOrders =
+              orders.where((e) => e.status?.toString() == "pending").toList();
+          completedOrders =
+              orders.where((e) => e.status?.toString() == "completed").toList();
+        }
 
         return Scaffold(
           appBar: const CustomAppBar(title: "Orders", showLeading: false),
           body: Column(
             children: [
+              // Tab section
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                 decoration: BoxDecoration(
@@ -114,14 +102,18 @@ class _OrderScreenState extends State<OrderScreen>
                   ],
                 ),
               ),
+
+              // Orders List
               Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildOrderList(pendingOrders, true, true),
-                    _buildOrderList(completedOrders, false, false),
-                  ],
-                ),
+                child: state.networkStatusEnum == NetworkStatusEnum.loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildOrderList(pendingOrders, true),
+                          _buildOrderList(completedOrders, false),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -130,38 +122,41 @@ class _OrderScreenState extends State<OrderScreen>
     );
   }
 
-  Widget _buildOrderList(
-      List<dynamic> orders, bool isPending, bool navigation) {
-    return orders.isNotEmpty
-        ? ListView.builder(
-            itemCount: orders.length,
-            padding: EdgeInsets.all(10.w),
-            itemBuilder: (context, index) {
-              final order = orders[index];
-              return GestureDetector(
-                onTap: navigation
-                    ? () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => OrderDetailsScreen(order: order),
-                          ),
-                        );
-                      }
-                    : null,
-                child: _buildOrderCard(order, isPending: isPending),
-              );
-            },
-          )
-        : const Center(child: Text("No orders found"));
+  /// Build ListView for each order category
+  Widget _buildOrderList(List<OrderDetails> orders, bool isPending) {
+    if (orders.isEmpty) {
+      return const Center(child: Text("No orders found"));
+    }
+
+    return ListView.builder(
+      itemCount: orders.length,
+      padding: EdgeInsets.all(10.w),
+      itemBuilder: (context, index) {
+        final order = orders[index];
+        return GestureDetector(
+          onTap: isPending
+              ? () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OrderDetailsScreen(order: order),
+                    ),
+                  );
+                }
+              : null,
+          child: _buildOrderCard(order, isPending: isPending),
+        );
+      },
+    );
   }
 
-  Widget _buildOrderCard(dynamic order, {required bool isPending}) {
-    final uniqueId = order["uniqueId"];
-    final name = order["userDetails"]["name"];
-    final price = order["price"];
-    final symbol = order["currencySymbol"];
-    final date = order["date"];
+  /// Build individual order card
+  Widget _buildOrderCard(OrderDetails order, {required bool isPending}) {
+    final uniqueId = order.uniqueId ?? "";
+    final name = order.userDetails?.name ?? "Unknown";
+    final price = order.price?.toStringAsFixed(2) ?? "0.00";
+    final symbol = order.currencySymbol ?? "₹";
+    final date = order.createdAt ?? "-";
 
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
@@ -182,7 +177,7 @@ class _OrderScreenState extends State<OrderScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
+          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -224,8 +219,10 @@ class _OrderScreenState extends State<OrderScreen>
             ),
           ),
           SizedBox(height: 4.h),
-          Text("Date: $date",
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600)),
+          Text(
+            "Date: $date",
+            style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
+          ),
         ],
       ),
     );

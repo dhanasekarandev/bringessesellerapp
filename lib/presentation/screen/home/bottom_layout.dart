@@ -6,7 +6,7 @@ import 'package:bringessesellerapp/presentation/screen/home/promotion.dart';
 import 'package:bringessesellerapp/presentation/screen/home/shop_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
-import 'package:bringessesellerapp/presentation/widget/toast_widget.dart';
+
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,9 +43,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   ];
 
   void _onItemTapped(int index, BuildContext context) {
-    // Check if payment status is not 'true' and user is trying to access restricted pages
     if (paymentStatus != 'true') {
-      // Restrict access to Orders (index 2) and Shop/Store (index 4) when payment is not verified
       if (index == 2 || index == 4) {
         Fluttertoast.showToast(
           msg: "Add payment to activate your account",

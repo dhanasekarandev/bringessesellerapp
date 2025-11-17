@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
         applicationId = "com.app.bringessesellerapp"
-        minSdk = flutter.minSdkVersion
+        minSdkVersion = flutter.minSdkVersion
         targetSdk = 36
         versionCode = flutterVersionCode.toInteger()
         versionName = flutterVersionName

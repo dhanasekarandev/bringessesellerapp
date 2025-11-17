@@ -206,7 +206,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                     children: [
                       const TitleText(title: "Account"),
                       vericalSpaceMedium,
-                      const SubTitleText(title: "Account Name"),
+                      const SubTitleText(
+                        title: "Account Name",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _accountNameController,
                         hintText: "Name",
@@ -222,7 +225,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                             "Please enter account holder name exactly on passbook",
                       ),
                       vericalSpaceMedium,
-                      const SubTitleText(title: "Account Number"),
+                      const SubTitleText(
+                        title: "Account Number",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _accountController,
                         hintText: "Account number",
@@ -234,7 +240,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                             "(We never share this data with others. These details are mandatory for account setup.)",
                       ),
                       vericalSpaceMedium,
-                      const SubTitleText(title: "PAN number"),
+                      const SubTitleText(
+                        title: "PAN number",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _panCardController,
                         hintText: "PAN number",
@@ -251,7 +260,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                             "(We never share this data with others. These details are mandatory for account setup.)",
                       ),
                       vericalSpaceMedium,
-                      const SubTitleText(title: "IFSC number"),
+                      const SubTitleText(
+                        title: "IFSC number",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _ifscController,
                         hintText: "IFSC number",
@@ -262,7 +274,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                             "(We never share this data with others. These details are mandatory for account setup.)",
                       ),
                       vericalSpaceMedium,
-                      const SubTitleText(title: "Street 1"),
+                      const SubTitleText(
+                        title: "Street 1",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _street1Controller,
                         hintText: "Street 1",
@@ -274,13 +289,19 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                         },
                       ),
                       vericalSpaceSmall,
-                      const SubTitleText(title: "Street 2"),
+                      const SubTitleText(
+                        title: "Street 2",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _street2Controller,
                         hintText: "Street 2",
                       ),
                       vericalSpaceSmall,
-                      const SubTitleText(title: "City"),
+                      const SubTitleText(
+                        title: "City",
+                        isMandatory: true,
+                      ),
                       vericalSpaceSmall,
                       GooglePlaceAutoCompleteTextField(
                         textEditingController: _cityController,
@@ -315,7 +336,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                       //     return null;
                       //   },
                       // ),
-                      const SubTitleText(title: "State"),
+                      const SubTitleText(
+                        title: "State",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _stateController,
                         hintText: "State",
@@ -327,7 +351,10 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                         },
                       ),
                       vericalSpaceSmall,
-                      const SubTitleText(title: "Country"),
+                      const SubTitleText(
+                        title: "Country",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
                         controller: _countryController,
                         hintText: "Country",
@@ -339,9 +366,12 @@ class _PayoutPrefsScreenState extends State<PayoutPrefsScreen> {
                         },
                       ),
                       vericalSpaceSmall,
-                      const SubTitleText(title: "Pin code"),
+                      const SubTitleText(
+                        title: "Pin code",
+                        isMandatory: true,
+                      ),
                       CustomTextField(
-                        labelText: "Pin Code",
+                        // labelText: "Pin Code",
                         controller: _pinCodeController,
                         hintText: "Pin code",
                         keyboardType: TextInputType.number,

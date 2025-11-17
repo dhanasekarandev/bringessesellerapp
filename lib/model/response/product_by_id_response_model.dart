@@ -14,7 +14,8 @@ class ProductByIdResponse {
   ProductByIdResponse.fromJson(Map<String, dynamic> json) {
     statusCode = json['status_code'];
     status = json['status']?.toString();
-    result = json['result'] != null ? ProductResult.fromJson(json['result']) : null;
+    result =
+        json['result'] != null ? ProductResult.fromJson(json['result']) : null;
     menu = json['menu'] != null ? Menu.fromJson(json['menu']) : null;
   }
 
@@ -32,11 +33,13 @@ class ProductResult {
   String? id;
   String? name;
   List<ProductVariant>? variants;
+  String? videoUrl;
   int? imageposition;
   int? status;
   String? sku;
   String? description;
   String? menuId;
+  String? quantity;
   String? menuName;
   int? outOfStock;
   int? comboOffer;
@@ -47,8 +50,10 @@ class ProductResult {
     this.id,
     this.name,
     this.variants,
+    this.videoUrl,
     this.imageposition,
     this.status,
+    this.quantity,
     this.sku,
     this.description,
     this.menuId,
@@ -67,8 +72,10 @@ class ProductResult {
           .map((v) => ProductVariant.fromJson(v))
           .toList();
     }
+    videoUrl = json['videoUrl'];
     imageposition = json['imageposition'];
     status = json['status'];
+    quantity = json['quantity'];
     sku = json['SKU'];
     description = json['description'];
     menuId = json['menuId'];
@@ -86,9 +93,11 @@ class ProductResult {
     if (variants != null) {
       data['variants'] = variants!.map((v) => v.toJson()).toList();
     }
+    data['videoUrl'] = videoUrl;
     data['imageposition'] = imageposition;
     data['status'] = status;
     data['SKU'] = sku;
+    data['quantity'] = quantity;
     data['description'] = description;
     data['menuId'] = menuId;
     data['menuName'] = menuName;
@@ -103,6 +112,7 @@ class ProductResult {
 class ProductVariant {
   String? name;
   num? price;
+  num? gst;
   String? offerAvailable;
   num? offerPrice;
   String? unit;
@@ -110,14 +120,16 @@ class ProductVariant {
   ProductVariant({
     this.name,
     this.price,
+    this.gst,
     this.offerAvailable,
     this.offerPrice,
     this.unit,
   });
 
   ProductVariant.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
+    name = json['name'] ?? "";
     price = json['price'];
+    gst = json['gst'];
     offerAvailable = json['offer_available']?.toString();
     offerPrice = json['offer_price'];
     unit = json['unit']?.trim(); // ✅ handles spaces like " kg"
@@ -127,6 +139,7 @@ class ProductVariant {
     final data = <String, dynamic>{};
     data['name'] = name;
     data['price'] = price;
+    data['gst'] = gst;
     data['offer_available'] = offerAvailable;
     data['offer_price'] = offerPrice;
     data['unit'] = unit;

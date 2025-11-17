@@ -15,6 +15,9 @@ class StoreReqModel {
   String? opentime;
   String? closetime;
   String? packingtime;
+  String? storeType;
+  String? returnPolicy;
+  List<String>? paymentOptions;
   String? packingcharge;
 
   StoreReqModel(
@@ -30,7 +33,10 @@ class StoreReqModel {
       this.closetime,
       this.opentime,
       this.storeId,
+      this.storeType,
+      this.returnPolicy,
       this.packingcharge,
+      this.paymentOptions,
       this.packingtime});
 
   StoreReqModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +52,9 @@ class StoreReqModel {
     closetime = json['closingTime'];
     packingcharge = json['packingCharge'];
     packingtime = json['packingTime'];
+    storeType = json['storeType'];
+
+    returnPolicy = json['returnPolicy'];
   }
 
   Map<String, dynamic> toJson() {
@@ -62,6 +71,8 @@ class StoreReqModel {
     data['packingCharge'] = packingcharge;
     data['openingTime'] = opentime;
     data['closingTime'] = closetime;
+    data['storeType'] = storeType;
+    data['returnPolicy'] = returnPolicy;
     // image and documents should be sent via FormData, not JSON
     return data;
   }
@@ -88,8 +99,15 @@ class StoreReqModel {
     addField('openingTime', opentime);
     addField('closingTime', closetime);
     addField('packingTime', packingtime);
+    addField("storeType", storeType);
     addField('packingCharge', packingcharge);
+    addField('returnPolicy', returnPolicy);
 
+    if (paymentOptions != null && paymentOptions!.isNotEmpty) {
+      for (var option in paymentOptions!) {
+        formData.fields.add(MapEntry('paymentOptions[]', option));
+      }
+    }
     // ✅ Handle image logic
     if (image != null && await image!.exists()) {
       // Send new image file

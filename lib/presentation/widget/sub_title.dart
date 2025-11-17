@@ -1,6 +1,6 @@
-import 'package:bringessesellerapp/config/themes.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; // if you are using .sp
+import 'package:bringessesellerapp/config/themes.dart'; // adjust as per your project
 
 class SubTitleText extends StatelessWidget {
   final String title;
@@ -10,9 +10,10 @@ class SubTitleText extends StatelessWidget {
   final int? maxLines;
   final TextAlign? textAlign;
   final TextOverflow? overflow;
+  final bool isMandatory; // 🔹 new flag
 
   const SubTitleText({
-    Key? key,
+    super.key,
     required this.title,
     this.fontWeight,
     this.textColor,
@@ -20,21 +21,36 @@ class SubTitleText extends StatelessWidget {
     this.maxLines,
     this.textAlign,
     this.overflow,
-  }) : super(key: key);
+    this.isMandatory = false, // default false
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Text(
-      title,
+    return RichText(
       textAlign: textAlign ?? TextAlign.start,
       maxLines: maxLines ?? 4,
-      overflow: overflow ?? TextOverflow.ellipsis,
-      style: theme.textTheme.titleMedium?.copyWith(
-        fontWeight: fontWeight ?? FontWeight.w800,
-        color: textColor ?? AppTheme.graycolor,
-        fontSize: fontSize ?? 15.sp,
+      text: TextSpan(
+        text: title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: fontWeight ?? FontWeight.w800,
+          color: textColor ?? AppTheme.graycolor,
+          fontSize: fontSize ?? 15.sp,
+          overflow: overflow ?? TextOverflow.ellipsis,
+        ),
+        children: isMandatory
+            ? [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w700,
+                    fontSize: fontSize ?? 15.sp,
+                  ),
+                ),
+              ]
+            : null,
       ),
     );
   }

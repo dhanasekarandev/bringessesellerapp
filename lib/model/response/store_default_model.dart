@@ -3,9 +3,14 @@ class StoreDefaultModel {
   String? status;
   Result? result;
   AppSettings? appSettings;
+  StoreType? storeType;
 
   StoreDefaultModel(
-      {this.statusCode, this.status, this.result, this.appSettings});
+      {this.statusCode,
+      this.status,
+      this.result,
+      this.appSettings,
+      this.storeType});
 
   StoreDefaultModel.fromJson(Map<String, dynamic> json) {
     statusCode = json['status_code'];
@@ -14,6 +19,8 @@ class StoreDefaultModel {
     appSettings = json['appSettings'] != null
         ? AppSettings.fromJson(json['appSettings'])
         : null;
+    storeType =
+        json['stores'] != null ? StoreType.fromJson(json['stores']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -22,6 +29,7 @@ class StoreDefaultModel {
     data['status'] = status;
     if (result != null) data['result'] = result!.toJson();
     if (appSettings != null) data['appSettings'] = appSettings!.toJson();
+    if (storeType != null) data['stores'] = storeType!.toJson();
     return data;
   }
 }
@@ -301,5 +309,22 @@ class AppSettings {
       'razorSecret': razorSecret,
       'stripeClientId': stripeClientId,
     };
+  }
+}
+
+class StoreType {
+  int? small;
+  int? medium;
+  int? large;
+  StoreType({required this.small, required this.medium, required this.large});
+
+  StoreType.fromJson(Map<String, dynamic> json) {
+    small = json['small'];
+    medium = json['medium'];
+    large = json['large'];
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'small': small, 'medium': medium, 'large': large};
   }
 }

@@ -10,6 +10,7 @@ class ProductUpdateReqModel {
   String? name;
   String? sku;
   String? menuId;
+  String? quantity;
   bool? outOfStock;
   bool? comboOffer;
   String? description;
@@ -29,6 +30,7 @@ class ProductUpdateReqModel {
     this.sellerId,
     this.storeId,
     this.name,
+    this.quantity,
     this.sku,
     this.menuId,
     this.outOfStock,
@@ -46,6 +48,7 @@ class ProductUpdateReqModel {
       'itemId': itemId,
       'sellerId': sellerId,
       'storeId': storeId,
+      'quantity': quantity,
       'name': name,
       'SKU': sku,
       'menuId': menuId,
@@ -64,6 +67,7 @@ class ProductUpdateReqModel {
       'itemId': itemId,
       'sellerId': sellerId,
       'storeId': storeId,
+      'quantity': quantity,
       'name': name,
       'SKU': sku,
       'menuId': menuId,
@@ -73,7 +77,8 @@ class ProductUpdateReqModel {
       'variants': variants != null
           ? jsonEncode(variants!.map((v) => v.toJson()).toList())
           : null,
-      'existingImages': existingImages != null ? jsonEncode(existingImages) : null,
+      'existingImages':
+          existingImages != null ? jsonEncode(existingImages) : null,
       'deletedImages': deletedImages != null ? jsonEncode(deletedImages) : null,
     };
 

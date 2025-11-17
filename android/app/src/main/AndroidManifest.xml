@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- ❌ Remove restricted media permissions auto-added by dependencies -->
+    <!-- ✅ Clean up unnecessary permissions auto-added by dependencies -->
     <uses-permission
         android:name="android.permission.READ_MEDIA_IMAGES"
         tools:node="remove" />
@@ -21,10 +21,13 @@
         android:name="android.permission.READ_MEDIA_AUDIO"
         tools:node="remove" />
 
+    <!-- ✅ Application -->
     <application
         android:name="${applicationName}"
         android:label="Bringesse Seller App"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true">
 
         <!-- ✅ Main Activity -->
         <activity
@@ -34,10 +37,10 @@
             android:taskAffinity=""
             android:theme="@style/LaunchTheme"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize"
             android:enableOnBackInvokedCallback="true">
 
+            <!-- ✅ Flutter UI Theme -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -48,22 +51,23 @@
             </intent-filter>
         </activity>
 
-        <!-- ✅ Firebase Metadata -->
+        <!-- ✅ Firebase Notification Channel -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="high_importance_channel" />
 
-        <!-- ✅ Google Maps API key -->
+        <!-- ✅ Google Maps API Key -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD3aWLyn9qHavlshIy49b1Pi9jjKjIPMnc" />
 
+        <!-- ✅ Flutter embedding v2 -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
-    <!-- ✅ Optional: to allow text sharing -->
+    <!-- ✅ Optional: Allow text sharing -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />

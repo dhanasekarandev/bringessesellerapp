@@ -64,7 +64,7 @@ class _ShopScreenState extends State<ShopScreen> {
   TextEditingController _des = TextEditingController();
   TextEditingController _packingchrg = TextEditingController();
   TextEditingController _packingtime = TextEditingController();
-
+  TextEditingController _return = TextEditingController();
   String? selectedOption;
   double? selectedLat;
   double? selectedLng;
@@ -224,53 +224,57 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     final storeReq = StoreReqModel(
-      sellerId: sharedPreferenceHelper.getSellerId,
-      storeId: _storeId,
-      name: _name.text.trim(),
-      contactNo: _phone.text.trim(),
-      categoryId: selectedOption ?? _catId,
-      description: _des.text.trim(),
-      packingcharge: _packingchrg.text.trim(),
-      packingtime: _packingtime.text.trim(),
-      opentime: _formatTime(_openTime),
-      closetime: _formatTime(_closeTime),
-      image: newImageFile,
-      documents: newDocuments,
-      lat: (selectedLat ??
-              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-              0.0)
-          .toString(),
-      lon: (selectedLng ??
-              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-              0.0)
-          .toString(),
-    );
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: _storeId,
+        name: _name.text.trim(),
+        contactNo: _phone.text.trim(),
+        categoryId: selectedOption ?? _catId,
+        description: _des.text.trim(),
+        packingcharge: _packingchrg.text.trim(),
+        packingtime: _packingtime.text.trim(),
+        opentime: _formatTime(_openTime),
+        closetime: _formatTime(_closeTime),
+        image: newImageFile,
+        documents: newDocuments,
+        lat: (selectedLat ??
+                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+                0.0)
+            .toString(),
+        lon: (selectedLng ??
+                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+                0.0)
+            .toString(),
+        storeType: selectedSize,
+        paymentOptions: selectedMethods.toList(),
+        returnPolicy: _return.text);
     final storeUpdate = StoreUpdateReq(
-      sellerId: sharedPreferenceHelper.getSellerId,
-      storeId: _storeId,
-      name: _name.text.trim(),
-      contactNo: _phone.text.trim(),
-      categoryId: selectedOption ?? _catId,
-      description: _des.text.trim(),
-      packingcharge: _packingchrg.text.trim(),
-      packingtime: _packingtime.text.trim(),
-      opentime: _formatTime(_openTime),
-      closetime: _formatTime(_closeTime),
-      image: newImageFile,
-      storeImage: existingImageName,
-      documents: newDocuments,
-      storeDocuments: existingDocs,
-      lat: (selectedLat ??
-              _existingLat ?? // ✅ fallback to old API lat
-              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-              0.0)
-          .toString(),
-      lon: (selectedLng ??
-              _existingLng ?? // ✅ fallback to old API lon
-              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-              0.0)
-          .toString(),
-    );
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: _storeId,
+        name: _name.text.trim(),
+        contactNo: _phone.text.trim(),
+        categoryId: selectedOption ?? _catId,
+        description: _des.text.trim(),
+        packingcharge: _packingchrg.text.trim(),
+        packingtime: _packingtime.text.trim(),
+        opentime: _formatTime(_openTime),
+        closetime: _formatTime(_closeTime),
+        image: newImageFile,
+        storeImage: existingImageName,
+        documents: newDocuments,
+        storeDocuments: existingDocs,
+        lat: (selectedLat ??
+                _existingLat ?? // ✅ fallback to old API lat
+                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+                0.0)
+            .toString(),
+        lon: (selectedLng ??
+                _existingLng ?? // ✅ fallback to old API lon
+                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+                0.0)
+            .toString(),
+        storeType: selectedSize,
+        paymentOptions: selectedMethods.toList(),
+        returnPolicy: _return.text);
     if (_isDataLoaded) {
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
@@ -393,9 +397,19 @@ class _ShopScreenState extends State<ShopScreen> {
                         _phone.text = data.contactNo?.toString() ?? '';
                         selectedOption = data.categoryId;
                         _des.text = data.description ?? "";
+                        _return.text = data.returnPolicy ?? '';
+                        if (data.storeType != null &&
+                            data.storeType!.isNotEmpty) {
+                          selectedSize =
+                              data.storeType!; // e.g. "small" → "Small"
+                        }
                         _packingtime.text = data.packingTime.toString();
                         _packingchrg.text = data.packingCharge.toString();
-
+                        if (data.paymentOptions != null &&
+                            data.paymentOptions!.isNotEmpty) {
+                          selectedMethods
+                              .addAll(List<String>.from(data.paymentOptions!));
+                        }
                         if (data.openingTime != null &&
                             data.openingTime!.isNotEmpty) {
                           final openParts = data.openingTime!.split(':');
@@ -557,19 +571,28 @@ class _ShopScreenState extends State<ShopScreen> {
                             )),
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Store name"),
+                          const SubTitleText(
+                            title: "Store name",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             hintText: "Store name",
                             controller: _name,
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Mobile number"),
+                          const SubTitleText(
+                            title: "Mobile number",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             hintText: "Mobile number",
                             controller: _phone,
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Store category"),
+                          const SubTitleText(
+                            title: "Store category",
+                            isMandatory: true,
+                          ),
                           vericalSpaceMedium,
                           DropdownButtonFormField<String>(
                             value: selectedOption,
@@ -595,7 +618,10 @@ class _ShopScreenState extends State<ShopScreen> {
                             },
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Store location"),
+                          const SubTitleText(
+                            title: "Store location",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             maxLines: 2,
                             onTap: () async {
@@ -630,26 +656,38 @@ class _ShopScreenState extends State<ShopScreen> {
                             hintText: "Location",
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Store description"),
+                          const SubTitleText(
+                            title: "Store description",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _des,
                             maxLines: 5,
                             hintText: "description",
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Packing charge"),
+                          const SubTitleText(
+                            title: "Packing charge",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _packingchrg,
                             hintText: "packing charge",
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "packing time"),
+                          const SubTitleText(
+                            title: "packing time",
+                            isMandatory: true,
+                          ),
                           CustomTextField(
                             controller: _packingtime,
                             hintText: "packing time",
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Shop opening time"),
+                          const SubTitleText(
+                            title: "Shop opening time",
+                            isMandatory: true,
+                          ),
                           vericalSpaceSmall,
                           InkWell(
                             onTap: () => _pickTime(isOpenTime: true),
@@ -682,7 +720,10 @@ class _ShopScreenState extends State<ShopScreen> {
                             ),
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Shop close time"),
+                          const SubTitleText(
+                            title: "Shop close time",
+                            isMandatory: true,
+                          ),
                           vericalSpaceSmall,
                           InkWell(
                             onTap: () => _pickTime(isOpenTime: false),
@@ -715,7 +756,10 @@ class _ShopScreenState extends State<ShopScreen> {
                             ),
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Select payment option"),
+                          const SubTitleText(
+                            title: "Select payment option",
+                            isMandatory: true,
+                          ),
                           vericalSpaceSmall,
                           Wrap(
                             spacing: 8,
@@ -750,64 +794,80 @@ class _ShopScreenState extends State<ShopScreen> {
                             }).toList(),
                           ),
                           vericalSpaceMedium,
-                          const SubTitleText(title: "Store type"),
+                          const SubTitleText(
+                            title: "Store type",
+                            isMandatory: true,
+                          ),
                           vericalSpaceSmall,
                           Wrap(
                             spacing: 16,
-                            children: storeSizes.map((size) {
+                            runSpacing: 8,
+                            children: (state.storeDefaultModel.storeType != null
+                                    ? {
+                                        "Small": state.storeDefaultModel
+                                                .storeType!.small ??
+                                            0,
+                                        "Medium": state.storeDefaultModel
+                                                .storeType!.medium ??
+                                            0,
+                                        "Large": state.storeDefaultModel
+                                                .storeType!.large ??
+                                            0,
+                                      }
+                                    : {})
+                                .entries
+                                .map((entry) {
+                              final displayText = entry.value == 0
+                                  ? "No kilometer restriction"
+                                  : "${entry.value} km";
+
                               return Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Radio<String>(
-                                    value: size,
+                                    value: entry.key.toLowerCase(),
                                     groupValue: selectedSize,
                                     onChanged: (value) {
                                       setState(() {
                                         selectedSize = value!;
                                       });
+                                      print(
+                                          "Selected store type: $selectedSize");
                                     },
                                     activeColor: AppTheme.primaryColor,
                                   ),
                                   MediumText(
-                                    title: size,
+                                    title: "${entry.key} ($displayText)",
                                   ),
                                 ],
                               );
                             }).toList(),
                           ),
                           vericalSpaceMedium,
-                          Row(
-                            children: [
-                              const SubTitleText(title: "Own delivery"),
-                              const Spacer(),
-                              Switch(
-                                value: isOwnDelivery,
-                                onChanged: (value) {
-                                  setState(() {
-                                    isOwnDelivery = value;
-                                  });
-                                },
-                                activeColor: Colors.green,
-                              ),
-                            ],
+                          const SubTitleText(
+                            title: "Return delivery",
+                          ),
+                          CustomTextField(
+                            hintText: 'add your return days',
+                            controller: _return,
                           ),
                           vericalSpaceSmall,
-                          const SubTitleText(
-                            title:
-                                '(To manage deliveries, get our Delivery Partner App)',
-                          ),
-                          if (isOwnDelivery) ...[
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              child: Center(
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      'https://upload.wikimedia.org/wikipedia/commons/2/29/Google_Play_Store_badge_NL_%28New%29_and_Apple_App_Store_badge.png',
-                                  height: 50,
-                                ),
-                              ),
-                            ),
-                          ],
+                          // const SubTitleText(
+                          //   title:
+                          //       '(To manage deliveries, get our Delivery Partner App)',
+                          // ),
+                          // if (isOwnDelivery) ...[
+                          //   const SizedBox(height: 8),
+                          //   GestureDetector(
+                          //     child: Center(
+                          //       child: CachedNetworkImage(
+                          //         imageUrl:
+                          //             'https://upload.wikimedia.org/wikipedia/commons/2/29/Google_Play_Store_badge_NL_%28New%29_and_Apple_App_Store_badge.png',
+                          //         height: 50,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ],
                           vericalSpaceMedium,
                           const SubTitleText(title: "Add document"),
                           vericalSpaceMedium,

@@ -16,7 +16,11 @@ class StoreUpdateReq {
   String? description;
   String? opentime;
   String? closetime;
+  String? storeType;
   String? packingtime;
+  List<String>? paymentOptions; // new ones
+  List<String>? storePaymentOptions; // ✅ existing ones
+  String? returnPolicy;
   String? packingcharge;
 
   StoreUpdateReq({
@@ -35,10 +39,13 @@ class StoreUpdateReq {
     this.opentime,
     this.closetime,
     this.packingtime,
+    this.storeType,
+    this.paymentOptions,
+    this.storePaymentOptions,
+    this.returnPolicy,
     this.packingcharge,
   });
 
-  /// ✅ JSON version — used for debugging or raw API
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -54,22 +61,24 @@ class StoreUpdateReq {
       'packingTime': packingtime,
       'packingCharge': packingcharge,
       'storeImage': storeImage,
-      'storeDocuments': storeDocuments, // ✅ stays as List<String>
+      'storeType': storeType,
+      "paymentOptions": paymentOptions,
+      "storePaymentOptions": storePaymentOptions, // ✅ added
+      "returnPolicy": returnPolicy,
+      'storeDocuments': storeDocuments,
     };
   }
 
-  /// ✅ Converts to FormData for Dio request
   Future<FormData> toFormData() async {
     final formData = FormData();
 
-    // Helper to add fields safely
     void addField(String key, String? value) {
       if (value != null && value.isNotEmpty) {
         formData.fields.add(MapEntry(key, value));
       }
     }
 
-    // --- Add normal text fields ---
+    // --- Normal text fields ---
     addField('name', name);
     addField('contactNo', contactNo);
     addField('categoryId', categoryId);
@@ -81,24 +90,22 @@ class StoreUpdateReq {
     addField('openingTime', opentime);
     addField('closingTime', closetime);
     addField('packingTime', packingtime);
+    addField('storeType', storeType);
+    addField('returnPolicy', returnPolicy);
     addField('packingCharge', packingcharge);
 
-    // --- Add image field ---
+    // --- Image ---
     if (image != null && await image!.exists()) {
-      formData.files.add(
-        MapEntry(
-          'storeImage',
-          await MultipartFile.fromFile(
-            image!.path,
-            filename: image!.path.split('/').last,
-          ),
-        ),
-      );
+      formData.files.add(MapEntry(
+        'storeImage',
+        await MultipartFile.fromFile(image!.path,
+            filename: image!.path.split('/').last),
+      ));
     } else if (storeImage != null && storeImage!.isNotEmpty) {
       addField('storeImage', storeImage);
     }
 
-    // --- ✅ Correct storeDocuments format (as JSON array) ---
+    // --- Store documents (existing) ---
     if (storeDocuments != null && storeDocuments!.isNotEmpty) {
       formData.fields.add(MapEntry(
         'storeDocuments',
@@ -106,19 +113,27 @@ class StoreUpdateReq {
       ));
     }
 
-    // --- Add new document files ---
+    // --- Payment Options (merge existing + new) ---
+    final allPayments = <String>{
+      ...?storePaymentOptions, // existing ones
+      ...?paymentOptions, // new ones
+    }.toList();
+
+    if (allPayments.isNotEmpty) {
+      for (var option in allPayments) {
+        formData.fields.add(MapEntry('paymentOptions[]', option));
+      }
+    }
+
+    // --- New document files ---
     if (documents != null && documents!.isNotEmpty) {
       for (var doc in documents!) {
         if (await doc.exists()) {
-          formData.files.add(
-            MapEntry(
-              'storeDocuments',
-              await MultipartFile.fromFile(
-                doc.path,
-                filename: doc.path.split('/').last,
-              ),
-            ),
-          );
+          formData.files.add(MapEntry(
+            'storeDocuments',
+            await MultipartFile.fromFile(doc.path,
+                filename: doc.path.split('/').last),
+          ));
         }
       }
     }

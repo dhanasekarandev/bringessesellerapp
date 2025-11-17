@@ -22,7 +22,8 @@
 -keep class com.google.android.gms.maps.** { *; }
 -keep interface com.google.android.gms.maps.** { *; }
 -keep class com.google.maps.android.** { *; }   # If using maps utils library
-
+-keep class io.flutter.plugins.videoplayer.** { *; }
+-keep class io.flutter.embedding.engine.plugins.** { *; }
 # =========================
 # Razorpay
 # =========================

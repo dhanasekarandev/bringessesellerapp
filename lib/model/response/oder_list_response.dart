@@ -1,40 +1,53 @@
-class OderListResponse {
+class OrderListResponse {
   int? statusCode;
   String? status;
-  OrderDetails? orderDetails;
-  List<dynamic>? items;
+  OrderResult? result;
 
-  OderListResponse({
-    this.statusCode,
-    this.status,
-    this.orderDetails,
-    this.items,
-  });
+  OrderListResponse({this.statusCode, this.status, this.result});
 
-  OderListResponse.fromJson(Map<String, dynamic> json) {
+  OrderListResponse.fromJson(Map<String, dynamic> json) {
     statusCode = json['status_code'];
     status = json['status'];
-    orderDetails = json['orderDetails'] != null
-        ? OrderDetails.fromJson(json['orderDetails'])
-        : null;
-    items = json['items'];
+    result = json['result'] != null ? OrderResult.fromJson(json['result']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
+    final data = <String, dynamic>{};
     data['status_code'] = statusCode;
     data['status'] = status;
-    if (orderDetails != null) {
-      data['orderDetails'] = orderDetails!.toJson();
+    if (result != null) data['result'] = result!.toJson();
+    return data;
+  }
+}
+
+class OrderResult {
+  int? count;
+  List<OrderDetails>? orders;
+
+  OrderResult({this.count, this.orders});
+
+  OrderResult.fromJson(Map<String, dynamic> json) {
+    count = json['count'];
+    if (json['orders'] != null) {
+      orders = (json['orders'] as List)
+          .map((v) => OrderDetails.fromJson(v))
+          .toList();
     }
-    data['items'] = items;
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['count'] = count;
+    if (orders != null) {
+      data['orders'] = orders!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
 
 class OrderDetails {
   String? orderId;
-  dynamic userDetails;
+  UserDetails? userDetails;
   String? storeId;
   String? uniqueId;
   String? currencyCode;
@@ -42,21 +55,19 @@ class OrderDetails {
   double? price;
   double? taxAmount;
   double? deliveryCharge;
-  double? packingCharge;
   double? total;
   int? itemCount;
-  dynamic taxes;
-  String? deliveryType;
-  dynamic adminOffer;
-  dynamic categoryOffer;
-  dynamic categoryOfferInfo;
-  dynamic storeAddress;
-  dynamic deliveryAddress;
+  List<Tax>? taxes;
+  double? adminOffer;
+  double? categoryOffer;
+  List<dynamic>? categoryOfferInfo;
+  StoreAddress? storeAddress;
+  DeliveryAddress? deliveryAddress;
   String? status;
+  String? deliveryType;
   String? createdAt;
   String? updatedAt;
-  List<dynamic>? vehicles;
-  String? vehicleId;
+  List<Vehicle>? vehicles;
 
   OrderDetails({
     this.orderId,
@@ -68,56 +79,61 @@ class OrderDetails {
     this.price,
     this.taxAmount,
     this.deliveryCharge,
-    this.packingCharge,
     this.total,
     this.itemCount,
     this.taxes,
-    this.deliveryType,
     this.adminOffer,
     this.categoryOffer,
     this.categoryOfferInfo,
     this.storeAddress,
     this.deliveryAddress,
     this.status,
+    this.deliveryType,
     this.createdAt,
     this.updatedAt,
     this.vehicles,
-    this.vehicleId,
   });
 
   OrderDetails.fromJson(Map<String, dynamic> json) {
     orderId = json['orderId'];
-    userDetails = json['userDetails'];
+    userDetails = json['userDetails'] != null
+        ? UserDetails.fromJson(json['userDetails'])
+        : null;
     storeId = json['storeId'];
     uniqueId = json['uniqueId'];
     currencyCode = json['currencyCode'];
     currencySymbol = json['currencySymbol'];
-    price = (json['price'] != null) ? json['price'].toDouble() : null;
-    taxAmount = (json['taxAmount'] != null) ? json['taxAmount'].toDouble() : null;
-    deliveryCharge =
-        (json['deliveryCharge'] != null) ? json['deliveryCharge'].toDouble() : null;
-    packingCharge =
-        (json['packingCharge'] != null) ? json['packingCharge'].toDouble() : null;
-    total = (json['total'] != null) ? json['total'].toDouble() : null;
+    price = (json['price'] as num?)?.toDouble();
+    taxAmount = (json['taxAmount'] as num?)?.toDouble();
+    deliveryCharge = (json['deliveryCharge'] as num?)?.toDouble();
+    total = (json['total'] as num?)?.toDouble();
     itemCount = json['itemCount'];
-    taxes = json['taxes'];
-    deliveryType = json['delivery_type'];
-    adminOffer = json['adminOffer'];
-    categoryOffer = json['categoryOffer'];
+    if (json['taxes'] != null) {
+      taxes = (json['taxes'] as List).map((v) => Tax.fromJson(v)).toList();
+    }
+    adminOffer = (json['adminOffer'] as num?)?.toDouble();
+    categoryOffer = (json['categoryOffer'] as num?)?.toDouble();
     categoryOfferInfo = json['categoryOfferInfo'];
-    storeAddress = json['storeAddress'];
-    deliveryAddress = json['deliveryAddress'];
+    storeAddress = json['storeAddress'] != null
+        ? StoreAddress.fromJson(json['storeAddress'])
+        : null;
+    deliveryAddress = json['deliveryAddress'] != null
+        ? DeliveryAddress.fromJson(json['deliveryAddress'])
+        : null;
     status = json['status'];
+    deliveryType = json['delivery_type'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
-    vehicles = json['vehicles'];
-    vehicleId = json['vehicleId'];
+    if (json['vehicles'] != null) {
+      vehicles =
+          (json['vehicles'] as List).map((v) => Vehicle.fromJson(v)).toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
+    final data = <String, dynamic>{};
     data['orderId'] = orderId;
-    data['userDetails'] = userDetails;
+    if (userDetails != null) data['userDetails'] = userDetails!.toJson();
     data['storeId'] = storeId;
     data['uniqueId'] = uniqueId;
     data['currencyCode'] = currencyCode;
@@ -125,21 +141,202 @@ class OrderDetails {
     data['price'] = price;
     data['taxAmount'] = taxAmount;
     data['deliveryCharge'] = deliveryCharge;
-    data['packingCharge'] = packingCharge;
     data['total'] = total;
     data['itemCount'] = itemCount;
-    data['taxes'] = taxes;
-    data['delivery_type'] = deliveryType;
+    if (taxes != null) data['taxes'] = taxes!.map((v) => v.toJson()).toList();
     data['adminOffer'] = adminOffer;
     data['categoryOffer'] = categoryOffer;
     data['categoryOfferInfo'] = categoryOfferInfo;
-    data['storeAddress'] = storeAddress;
-    data['deliveryAddress'] = deliveryAddress;
+    if (storeAddress != null) data['storeAddress'] = storeAddress!.toJson();
+    if (deliveryAddress != null)
+      data['deliveryAddress'] = deliveryAddress!.toJson();
     data['status'] = status;
+    data['delivery_type'] = deliveryType;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
-    data['vehicles'] = vehicles;
-    data['vehicleId'] = vehicleId;
+    if (vehicles != null) data['vehicles'] = vehicles!.map((v) => v.toJson()).toList();
+    return data;
+  }
+}
+
+class UserDetails {
+  String? id;
+  String? contactNo;
+  String? email;
+  String? name;
+  String? image;
+  List<Address>? address;
+
+  UserDetails({this.id, this.contactNo, this.email, this.name, this.image, this.address});
+
+  UserDetails.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
+    contactNo = json['contactNo'];
+    email = json['email'];
+    name = json['name'];
+    image = json['image'];
+    if (json['address'] != null) {
+      address = (json['address'] as List)
+          .map((v) => Address.fromJson(v))
+          .toList();
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['_id'] = id;
+    data['contactNo'] = contactNo;
+    data['email'] = email;
+    data['name'] = name;
+    data['image'] = image;
+    if (address != null) {
+      data['address'] = address!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Address {
+  double? lat;
+  double? lon;
+  String? address;
+  String? location;
+  String? addressType;
+  String? isDefault;
+
+  Address({
+    this.lat,
+    this.lon,
+    this.address,
+    this.location,
+    this.addressType,
+    this.isDefault,
+  });
+
+  Address.fromJson(Map<String, dynamic> json) {
+    lat = (json['lat'] as num?)?.toDouble();
+    lon = (json['lon'] as num?)?.toDouble();
+    address = json['address'];
+    location = json['location'];
+    addressType = json['address_type'];
+    isDefault = json['is_default'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['lon'] = lon;
+    data['address'] = address;
+    data['location'] = location;
+    data['address_type'] = addressType;
+    data['is_default'] = isDefault;
+    return data;
+  }
+}
+
+class Tax {
+  String? name;
+  double? percentage;
+  double? amount;
+
+  Tax({this.name, this.percentage, this.amount});
+
+  Tax.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    percentage = (json['percentage'] as num?)?.toDouble();
+    amount = (json['amount'] as num?)?.toDouble();
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['name'] = name;
+    data['percentage'] = percentage;
+    data['amount'] = amount;
+    return data;
+  }
+}
+
+class StoreAddress {
+  StoreLocation? location;
+  String? address;
+
+  StoreAddress({this.location, this.address});
+
+  StoreAddress.fromJson(Map<String, dynamic> json) {
+    location = json['location'] != null
+        ? StoreLocation.fromJson(json['location'])
+        : null;
+    address = json['address'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    if (location != null) data['location'] = location!.toJson();
+    data['address'] = address;
+    return data;
+  }
+}
+
+class StoreLocation {
+  String? type;
+  List<double>? coordinates;
+
+  StoreLocation({this.type, this.coordinates});
+
+  StoreLocation.fromJson(Map<String, dynamic> json) {
+    type = json['type'];
+    if (json['coordinates'] != null) {
+      coordinates =
+          (json['coordinates'] as List).map((e) => (e as num).toDouble()).toList();
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['type'] = type;
+    data['coordinates'] = coordinates;
+    return data;
+  }
+}
+
+class DeliveryAddress {
+  String? address;
+
+  DeliveryAddress({this.address});
+
+  DeliveryAddress.fromJson(Map<String, dynamic> json) {
+    address = json['address'];
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'address': address};
+  }
+}
+
+class Vehicle {
+  String? id;
+  String? name;
+  String? image;
+  String? category;
+  int? status;
+
+  Vehicle({this.id, this.name, this.image, this.category, this.status});
+
+  Vehicle.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
+    name = json['name'];
+    image = json['image'];
+    category = json['category'];
+    status = json['status'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['_id'] = id;
+    data['name'] = name;
+    data['image'] = image;
+    data['category'] = category;
+    data['status'] = status;
     return data;
   }
 }

@@ -86,6 +86,8 @@ class ApiConstant {
   static const String viewPromotion = 'promotions/views';
   static const String order = 'orders/lists';
   static const String menuUpdate = 'menus/update';
+  static const String productUploadvideo = 'upload-video';
+  static const String productvideoremove = 'remove-video';
   static const String subscriptionPlan = 'subscriptionplans/defaults';
   static String deleteBanner(String bannerId) => 'promotions/delete/$bannerId';
   static String deleteMenu(String menuId) => 'menus/delete/$menuId';

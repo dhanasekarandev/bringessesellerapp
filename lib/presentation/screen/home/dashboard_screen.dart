@@ -6,6 +6,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_state.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
@@ -167,7 +168,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 if (dashboardState.networkStatusEnum ==
                     NetworkStatusEnum.failed) {
-                  return const Center(child: Text("Failed to load dashboard"));
+                  return const Center(
+                      child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [Text("We are under maintanance")],
+                  ));
                 }
 
                 final model = dashboardState.dashboardModel;
@@ -285,6 +291,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
 
                       CustomCard(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ShopCustomerReviewsScreen(),
+                              ));
+                        },
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

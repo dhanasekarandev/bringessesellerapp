@@ -1,12 +1,14 @@
+import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
-  final Map<String, dynamic> order;
+  final OrderDetails order;
   const OrderDetailsScreen({super.key, required this.order});
 
   @override
@@ -17,7 +19,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late String currentStatus;
 
   final List<String> orderStages = [
-    "Processing",
+    "pending",
     "Confirmed",
     "Packed",
     "Shipped",
@@ -28,8 +30,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   void initState() {
+
     super.initState();
-    currentStatus = widget.order["currentStatus"] ?? "Processing";
+    currentStatus = widget.order.status ?? "pending";
   }
 
   void updateStatus(String newStatus) {
@@ -56,12 +59,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-    final products = order["products"] ?? [];
+
     final currentStep = orderStages.indexOf(currentStatus);
 
     return Scaffold(
       appBar: CustomAppBar(
-        title: "Order #${order["uniqueId"]}",
+        title: "Order #${order.uniqueId}",
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
@@ -79,13 +82,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Customer: ${order["userDetails"]["name"]}",
+                    Text("Customer: ${order.userDetails!.name}",
                         style: TextStyle(
                             fontSize: 16.sp, fontWeight: FontWeight.w600)),
                     SizedBox(height: 5.h),
-                    Text("Price: ${order["currencySymbol"]}${order["price"]}"),
-                    Text("Date: ${order["date"]}"),
-                    Text("Address: ${order["address"]}"),
+                    Text("Price: ${order.currencySymbol}${order.price}"),
+                    Text(
+                        "Date: ${DateFormat().format(DateTime.parse(order.createdAt.toString()))}"),
+                    Text("Address: ${order.deliveryAddress!.address}"),
                     SizedBox(height: 10.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -119,13 +123,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             Text("Items Ordered",
                 style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 8.h),
-            ...products.map((item) {
-              return ListTile(
-                title: Text(item["name"]),
-                subtitle: Text("Qty: ${item["qty"]}"),
-                trailing: Text("₹${item["price"]}"),
-              );
-            }).toList(),
+            // ...products.((item) {
+            //   return ListTile(
+            //     title: Text(item["name"]),
+            //     subtitle: Text("Qty: ${item["qty"]}"),
+            //     trailing: Text("₹${item["price"]}"),
+            //   );
+            // }).toList(),
 
             SizedBox(height: 20.h),
 
@@ -180,7 +184,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                 title: 'Move to Next Step',
                                 onPressed: moveToNextStage,
                               ),
-                              if (currentStatus == "Processing") ...[
+                              if (currentStatus == "pending") ...[
                                 SizedBox(height: 10.h),
                                 CustomButton(
                                   title: 'Cancel Order',

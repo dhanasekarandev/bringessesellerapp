@@ -5,14 +5,14 @@ import 'package:equatable/equatable.dart';
 
 class OderListState extends Equatable {
   final NetworkStatusEnum networkStatusEnum;
-  final OderListResponse orderlistresponse;
+  final OrderListResponse orderlistresponse;
 
   const OderListState(
       {required this.networkStatusEnum, required this.orderlistresponse});
 
   factory OderListState.initial() => OderListState(
         networkStatusEnum: NetworkStatusEnum.initial,
-        orderlistresponse: OderListResponse(),
+        orderlistresponse: OrderListResponse(),
       );
 
   @override
@@ -22,7 +22,7 @@ class OderListState extends Equatable {
       {NetworkStatusEnum? networkStatusEnum,
       NetworkStatusEnum? childNetworkStatusEnum,
       int? currentPage,
-      OderListResponse? orderlistresponse}) {
+      OrderListResponse? orderlistresponse}) {
     return OderListState(
         orderlistresponse: orderlistresponse ?? this.orderlistresponse,
         networkStatusEnum: networkStatusEnum ?? this.networkStatusEnum);

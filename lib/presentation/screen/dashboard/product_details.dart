@@ -7,6 +7,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_by
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
+import 'package:bringessesellerapp/presentation/widget/video_player_widget.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -161,6 +162,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                   SizedBox(height: 16.h),
+                  SizedBox(
+                    height: 150.h,
+                    child: VideoPlayerWidget(
+                      videoUrl: product.videoUrl,
+                    ),
+                  ),
                   Text(
                     product.name ?? "",
                     style: TextStyle(
@@ -241,6 +248,4 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       ),
     );
   }
-
- 
 }
