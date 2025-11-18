@@ -1,54 +1,73 @@
+import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/model/request/review_req_model.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
+import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart'; // ✅ add this import
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
-class ShopCustomerReviewsScreen extends StatelessWidget {
+class ShopCustomerReviewsScreen extends StatefulWidget {
   const ShopCustomerReviewsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final reviews = [
-      {
-        "name": "John Doe",
-        "rating": 4.5,
-        "review": "Great experience and fast delivery!",
-        "time": "1 min ago",
-        "id": "R-987654",
-        "avatar": "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-      },
-      {
-        "name": "Sarah Smith",
-        "rating": 5.0,
-        "review": "Excellent service and friendly staff.",
-        "time": "3 mins ago",
-        "id": "R-987321",
-        "avatar": "https://cdn-icons-png.flaticon.com/512/2922/2922510.png",
-      },
-      {
-        "name": "Alex Johnson",
-        "rating": 3.5,
-        "review": "Good but room for improvement.",
-        "time": "10 mins ago",
-        "id": "R-986210",
-        "avatar": "https://cdn-icons-png.flaticon.com/512/4128/4128349.png",
-      },
-    ];
+  State<ShopCustomerReviewsScreen> createState() =>
+      _ShopCustomerReviewsScreenState();
+}
 
+class _ShopCustomerReviewsScreenState extends State<ShopCustomerReviewsScreen> {
+  late SharedPreferenceHelper sharedPreferenceHelper;
+
+  @override
+  void initState() {
+    super.initState();
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    loadReview();
+  }
+
+  void loadReview() {
+    final storeId = sharedPreferenceHelper.getStoreId;
+    context.read<ReviewCubit>().login(
+          ReviewReqModel(storeId: storeId),
+        );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: " Reviews"),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(10),
-        itemCount: reviews.length,
-        itemBuilder: (context, index) {
-          final item = reviews[index];
-          return _ReviewCard(
-            name: item['name'].toString(),
-            rating: double.parse(item['rating'].toString()),
-            review: item['review'].toString(),
-            time: item['time'].toString(),
-            id: item['id'].toString(),
-            avatarUrl: item['avatar'].toString(),
-          );
+      appBar: const CustomAppBar(title: "Customer Reviews"),
+      body: BlocConsumer<ReviewCubit, ReviewState>(
+        listener: (context, state) {},
+        builder: (context, state) {
+          if (state.networkStatusEnum == NetworkStatusEnum.loading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+            final reviews = state.reviewResponseModel.result?.reviews ?? [];
+
+            if (reviews.isEmpty) {
+              return const Center(child: Text("No reviews available."));
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(10),
+              itemCount: reviews.length,
+              itemBuilder: (context, index) {
+                final item = reviews[index];
+                return _ReviewCard(
+                  name: item.userDetails?.name ?? "Anonymous",
+                  rating: (item.rating ?? 0).toDouble(),
+                  review: item.review ?? "",
+                  time: item.createdAt ?? "",
+                  // id: item.id ?? "",
+                  avatarUrl: item.userDetails?.image ??
+                      "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+                );
+              },
+            );
+          } else {
+            return const SizedBox.shrink();
+          }
         },
       ),
     );
@@ -60,7 +79,7 @@ class _ReviewCard extends StatelessWidget {
   final double rating;
   final String review;
   final String time;
-  final String id;
+  // final String id;
   final String avatarUrl;
 
   const _ReviewCard({
@@ -68,7 +87,7 @@ class _ReviewCard extends StatelessWidget {
     required this.rating,
     required this.review,
     required this.time,
-    required this.id,
+    // required this.id,
     required this.avatarUrl,
   });
 
@@ -81,13 +100,6 @@ class _ReviewCard extends StatelessWidget {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Theme.of(context).focusColor),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).cardColor,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Row(
         children: [
@@ -107,47 +119,29 @@ class _ReviewCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        name,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    const Text(
-                      "U/A",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
+                Text(name,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 16)),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Text(
-                      "Customer Rating: ",
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
                     RatingBarIndicator(
                       rating: rating,
-                      itemBuilder: (context, _) =>
+                      itemBuilder: (_, __) =>
                           const Icon(Icons.star, color: Colors.orange),
                       itemCount: 5,
                       itemSize: 16,
                     ),
+                    const SizedBox(width: 6),
+                    Text(rating.toString(),
+                        style: const TextStyle(fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  "Review ID: $id   •   $time",
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
+                // Text(
+                //   "Review ID: $id • $time",
+                //   style: const TextStyle(fontSize: 12, color: Colors.grey),
+                // ),
                 const SizedBox(height: 6),
                 Text(
                   review,

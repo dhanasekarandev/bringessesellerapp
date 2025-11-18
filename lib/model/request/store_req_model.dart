@@ -16,6 +16,7 @@ class StoreReqModel {
   String? closetime;
   String? packingtime;
   String? storeType;
+  bool? isfood;
   String? returnPolicy;
   List<String>? paymentOptions;
   String? packingcharge;
@@ -28,6 +29,7 @@ class StoreReqModel {
       this.lon,
       this.lat,
       this.image,
+      this.isfood,
       this.documents,
       this.description,
       this.closetime,
@@ -45,6 +47,7 @@ class StoreReqModel {
     categoryId = json['categoryId'];
     sellerId = json['sellerId'];
     storeId = json['storeId'];
+    isfood = json['isfood'];
     lon = json['lon'];
     lat = json['lat'];
     description = json['description'];
@@ -64,6 +67,7 @@ class StoreReqModel {
     data['categoryId'] = categoryId;
     data['sellerId'] = sellerId;
     data['storeId'] = storeId;
+    data['isfood'] = isfood;
     data['lon'] = lon;
     data['lat'] = lat;
     data['description'] = description;
@@ -93,6 +97,7 @@ class StoreReqModel {
     addField('categoryId', categoryId);
     addField('sellerId', sellerId);
     addField('storeId', storeId);
+    addField('isfood', isfood?.toString());
     addField('lon', lon);
     addField('lat', lat);
     addField('description', description);

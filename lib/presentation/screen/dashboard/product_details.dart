@@ -5,6 +5,7 @@ import 'package:bringessesellerapp/model/response/product_list_response_model.da
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/delete_product_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_by_id_state.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_category_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/video_player_widget.dart';
@@ -62,6 +63,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         .categoryResponse
                         .result!
                         .units;
+                    final processing = context
+                        .read<StoreDefaultsCubit>()
+                        .state
+                        .storeDefaultModel
+                        .appSettings!
+                        .processingFee
+                        .toString();
                     if (product != null) {
                       await context.push('/products/add', extra: {
                         'edit': product,
@@ -70,7 +78,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         "menu": menus,
                         "units": units,
                         "storeId": sharedPreferenceHelper.getStoreId,
-                        "sellerId": sharedPreferenceHelper.getSellerId
+                        "sellerId": sharedPreferenceHelper.getSellerId,
+                        'processingfee': processing
                       }).then(
                         (value) {
                           context
@@ -162,12 +171,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       ),
                     ),
                   SizedBox(height: 16.h),
-                  SizedBox(
-                    height: 150.h,
-                    child: VideoPlayerWidget(
-                      videoUrl: product.videoUrl,
+                  if (product.videoUrl != null && product.videoUrl != '')
+                    SizedBox(
+                      height: 150.h,
+                      child: VideoPlayerWidget(
+                        videoUrl: product.videoUrl,
+                      ),
                     ),
-                  ),
                   Text(
                     product.name ?? "",
                     style: TextStyle(

@@ -22,6 +22,7 @@ class StoreUpdateReq {
   List<String>? storePaymentOptions; // ✅ existing ones
   String? returnPolicy;
   String? packingcharge;
+  bool? isfood;
 
   StoreUpdateReq({
     this.name,
@@ -30,6 +31,7 @@ class StoreUpdateReq {
     this.sellerId,
     this.lon,
     this.lat,
+    this.isfood,
     this.storeId,
     this.image,
     this.storeImage,
@@ -53,6 +55,7 @@ class StoreUpdateReq {
       'categoryId': categoryId,
       'sellerId': sellerId,
       'storeId': storeId,
+      'isfood': isfood,
       'lon': lon,
       'lat': lat,
       'description': description,
@@ -83,6 +86,7 @@ class StoreUpdateReq {
     addField('contactNo', contactNo);
     addField('categoryId', categoryId);
     addField('sellerId', sellerId);
+    addField('isfood', isfood?.toString());
     addField('storeId', storeId);
     addField('lon', lon);
     addField('lat', lat);

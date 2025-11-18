@@ -244,28 +244,29 @@ class AppSettings {
   String? razorKey;
   String? razorSecret;
   String? stripeClientId;
+  int? processingFee;
   // ... add remaining fields similarly
 
-  AppSettings({
-    this.id,
-    this.siteName,
-    this.freeDeliveryForAllOrder,
-    this.freeDeliveryForMinimumAmt,
-    this.freeDeliveryForParentCategory,
-    this.sellerDeliveryOption,
-    this.referralAmount,
-    this.maxSearchDistance,
-    this.minSearchDistance,
-    this.pickupOrderCount,
-    this.googleMapKey,
-    this.firebaseFCMKey,
-    this.firebaseAPIKey,
-    this.stripePrivateKey,
-    this.stripePublicKey,
-    this.razorKey,
-    this.razorSecret,
-    this.stripeClientId,
-  });
+  AppSettings(
+      {this.id,
+      this.siteName,
+      this.freeDeliveryForAllOrder,
+      this.freeDeliveryForMinimumAmt,
+      this.freeDeliveryForParentCategory,
+      this.sellerDeliveryOption,
+      this.referralAmount,
+      this.maxSearchDistance,
+      this.minSearchDistance,
+      this.pickupOrderCount,
+      this.googleMapKey,
+      this.firebaseFCMKey,
+      this.firebaseAPIKey,
+      this.stripePrivateKey,
+      this.stripePublicKey,
+      this.razorKey,
+      this.razorSecret,
+      this.stripeClientId,
+      this.processingFee});
 
   AppSettings.fromJson(Map<String, dynamic> json) {
     id = json['_id'];
@@ -285,6 +286,7 @@ class AppSettings {
     stripePublicKey = json['stripePublicKey'];
     razorKey = json['razorKey'];
     razorSecret = json['razorSecret'];
+    processingFee = json['processingFee'];
     stripeClientId = json['stripeClientId'];
   }
 
@@ -307,6 +309,7 @@ class AppSettings {
       'stripePublicKey': stripePublicKey,
       'razorKey': razorKey,
       'razorSecret': razorSecret,
+      'processingFee': processingFee,
       'stripeClientId': stripeClientId,
     };
   }

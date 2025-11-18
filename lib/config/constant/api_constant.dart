@@ -103,4 +103,5 @@ class ApiConstant {
       'coupon/list?storeId=$storeId&sellerId=$sellerId&page=$page&limit=$limit';
   static String deleteCoupon(String couponId) => 'coupon/delete/$couponId';
   static String updateCoupon(String couponId) => 'coupon/update/$couponId';
+  static const String reviewlist = 'reviews/lists';
 }

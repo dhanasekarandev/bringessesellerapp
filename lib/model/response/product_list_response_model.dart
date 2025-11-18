@@ -8,8 +8,9 @@ class ProductListResponseModel {
   ProductListResponseModel.fromJson(Map<String, dynamic> json) {
     statusCode = json['status_code'];
     status = json['status'];
-    result =
-        json['result'] != null ? ProductListResult.fromJson(json['result']) : null;
+    result = json['result'] != null
+        ? ProductListResult.fromJson(json['result'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -56,19 +57,22 @@ class ProductItem {
   int? status;
   int? outOfStock;
   int? comboOffer;
+  String? quantity;
   List<String>? images;
+  List<ProductVariant>? variants;
   String? createdAt;
 
-  ProductItem({
-    this.id,
-    this.v,
-    this.name,
-    this.status,
-    this.outOfStock,
-    this.comboOffer,
-    this.images,
-    this.createdAt,
-  });
+  ProductItem(
+      {this.id,
+      this.v,
+      this.name,
+      this.status,
+      this.outOfStock,
+      this.comboOffer,
+      this.quantity,
+      this.images,
+      this.variants,
+      this.createdAt});
 
   ProductItem.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -77,7 +81,18 @@ class ProductItem {
     status = json['status'];
     outOfStock = json['outOfStock'];
     comboOffer = json['comboOffer'];
+    quantity = json['quantity'];
+
     images = json['images'] != null ? List<String>.from(json['images']) : [];
+
+    // variants 
+    if (json['variants'] != null) {
+      variants = <ProductVariant>[];
+      json['variants'].forEach((v) {
+        variants!.add(ProductVariant.fromJson(v));
+      });
+    }
+
     createdAt = json['created_at'];
   }
 
@@ -89,8 +104,69 @@ class ProductItem {
     data['status'] = status;
     data['outOfStock'] = outOfStock;
     data['comboOffer'] = comboOffer;
+    data['quantity'] = quantity;
     data['images'] = images;
+    if (variants != null) {
+      data['variants'] = variants!.map((e) => e.toJson()).toList();
+    }
     data['created_at'] = createdAt;
+    return data;
+  }
+}
+
+class ProductVariant {
+  String? name;
+  int? price;
+  String? offerAvailable;
+  int? offerPrice;
+  String? unit;
+  int? gst;
+  double? cGstInPercent;
+  double? cGstInAmount;
+  double? sGstInPercent;
+  double? sGstInAmount;
+  int? totalAmount;
+
+  ProductVariant(
+      {this.name,
+      this.price,
+      this.offerAvailable,
+      this.offerPrice,
+      this.unit,
+      this.gst,
+      this.cGstInPercent,
+      this.cGstInAmount,
+      this.sGstInPercent,
+      this.sGstInAmount,
+      this.totalAmount});
+
+  ProductVariant.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    price = json['price'];
+    offerAvailable = json['offer_available'];
+    offerPrice = json['offer_price'];
+    unit = json['unit'];
+    gst = json['gst'];
+    cGstInPercent = (json['cGstInPercent'] ?? 0).toDouble();
+    cGstInAmount = (json['cGstInAmount'] ?? 0).toDouble();
+    sGstInPercent = (json['sGstInPercent'] ?? 0).toDouble();
+    sGstInAmount = (json['sGstInAmount'] ?? 0).toDouble();
+    totalAmount = json['totalAmount'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['name'] = name;
+    data['price'] = price;
+    data['offer_available'] = offerAvailable;
+    data['offer_price'] = offerPrice;
+    data['unit'] = unit;
+    data['gst'] = gst;
+    data['cGstInPercent'] = cGstInPercent;
+    data['cGstInAmount'] = cGstInAmount;
+    data['sGstInPercent'] = sGstInPercent;
+    data['sGstInAmount'] = sGstInAmount;
+    data['totalAmount'] = totalAmount;
     return data;
   }
 }

@@ -3,18 +3,10 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-/// 🔔 This method runs when message received in background or terminated state.
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Firebase reinitialize because background isolate separate thread.
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
-      appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
-      messagingSenderId: "989733009995",
-      projectId: "bringessedeliverypartner",
-      storageBucket: "bringessedeliverypartner.firebasestorage.app",
-    ),
-  );
+
+   await Firebase.initializeApp();
 
   if (kDebugMode) {
     print("📩 Background FCM received");

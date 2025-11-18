@@ -5,6 +5,7 @@ import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_category_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_state.dart';
+import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_image_listtile.dart';
@@ -26,6 +27,8 @@ class _ProductScreenState extends State<ProductScreen>
   late SharedPreferenceHelper sharedPreferenceHelper;
   late TabController _tabController;
 
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -35,7 +38,7 @@ class _ProductScreenState extends State<ProductScreen>
   }
 
   Future<void> initializeData() async {
-    await sharedPreferenceHelper.init(); // ✅ Wait for SharedPref ready
+    await sharedPreferenceHelper.init();
 
     if (!mounted) return;
 
@@ -44,11 +47,11 @@ class _ProductScreenState extends State<ProductScreen>
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       final status = _tabController.index == 0 ? "1" : "0";
-      loadProduct(status: status);
+      loadProduct(status: status, search: _searchController.text.trim());
     });
   }
 
-  void loadProduct({required String status}) {
+  void loadProduct({required String status, String search = ""}) {
     final storeId = sharedPreferenceHelper.getStoreId;
 
     if (storeId == null || storeId.isEmpty) {
@@ -56,18 +59,17 @@ class _ProductScreenState extends State<ProductScreen>
       return;
     }
 
-    // Load category/menu
     context.read<ProductCategoryCubit>().login(
           StoreIdReqmodel(storeId: storeId),
         );
+    context.read<StoreDefaultsCubit>().login();
 
-    // Load product list
     context.read<ProductListCubit>().login(
           ProductListReqModel(
             storeId: storeId,
             status: status,
             pageId: "0",
-            searchKey: "",
+            searchKey: search,
           ),
         );
   }
@@ -76,23 +78,22 @@ class _ProductScreenState extends State<ProductScreen>
     final storeId = sharedPreferenceHelper.getStoreId;
     if (storeId == null || storeId.isEmpty) return;
 
-    final productCubit = context.read<ProductListCubit>();
     final currentStatus = _tabController.index == 0 ? "1" : "0";
 
-    await Future.delayed(const Duration(milliseconds: 100));
-    productCubit.login(
-      ProductListReqModel(
-        storeId: storeId,
-        status: currentStatus,
-        pageId: "0",
-        searchKey: "",
-      ),
-    );
+    context.read<ProductListCubit>().login(
+          ProductListReqModel(
+            storeId: storeId,
+            status: currentStatus,
+            pageId: "0",
+            searchKey: _searchController.text.trim(),
+          ),
+        );
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -105,6 +106,7 @@ class _ProductScreenState extends State<ProductScreen>
                 ?.where((e) => e.status == 1)
                 .toList() ??
             [];
+
         final unapprovedProducts = state.productListModel.result?.items
                 ?.where((e) => e.status == 0)
                 .toList() ??
@@ -116,6 +118,7 @@ class _ProductScreenState extends State<ProductScreen>
             appBar: const CustomAppBar(title: "Products"),
             body: Column(
               children: [
+                /// ---------------- TAB BAR ----------------
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                   decoration: BoxDecoration(
@@ -137,53 +140,94 @@ class _ProductScreenState extends State<ProductScreen>
                     ],
                   ),
                 ),
+
+                /// ---------------- SEARCH BAR ----------------
+                Padding(
+                  padding:
+                      EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search products...",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                    onChanged: (value) {
+                      final status = _tabController.index == 0 ? "1" : "0";
+                      loadProduct(status: status, search: value.trim());
+                    },
+                  ),
+                ),
+
+                /// ---------------- PRODUCT LIST ----------------
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
+                      /// -------- APPROVED LIST --------
                       approvedProducts.isNotEmpty
                           ? ListView.builder(
                               itemCount: approvedProducts.length,
                               itemBuilder: (context, index) {
                                 final product = approvedProducts[index];
+
+                                final totalPrice = (product.variants != null &&
+                                        product.variants!.isNotEmpty)
+                                    ? product.variants!.first.totalAmount
+                                            ?.toString() ??
+                                        "0"
+                                    : "0";
+
                                 return GestureDetector(
                                   onTap: () {
                                     context.push('/products/details',
                                         extra: {'product': product}).then((_) {
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        refreshProducts(); // only reloads current tab
+                                        refreshProducts();
                                       });
                                     });
                                   },
                                   child: CustomImageListTile(
                                     imageUrl:
                                         "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
-                                    status: "Approved",
-                                    subtitle: product.outOfStock == 0
-                                        ? "Available"
-                                        : "Out of Stock",
-                                    subtitle1: product.createdAt ?? "",
+                                    status: product.outOfStock == 0
+                                        ? "Stock available"
+                                        : "Out of stock",
+                                    price: totalPrice,
+                                    quantity: product.quantity ?? "",
                                     title: product.name ?? "",
                                   ),
                                 );
                               },
                             )
-                          : const Center(
-                              child: Text("No approved products"),
-                            ),
+                          : const Center(child: Text("No approved products")),
+
+                      /// -------- UNAPPROVED LIST --------
                       unapprovedProducts.isNotEmpty
                           ? ListView.builder(
                               itemCount: unapprovedProducts.length,
                               itemBuilder: (context, index) {
                                 final product = unapprovedProducts[index];
+
+                                final totalPrice = (product.variants != null &&
+                                        product.variants!.isNotEmpty)
+                                    ? product.variants!.first.totalAmount
+                                            ?.toString() ??
+                                        "0"
+                                    : "0";
+
                                 return GestureDetector(
                                   onTap: () {
                                     context.push('/products/details',
                                         extra: {'product': product}).then((_) {
                                       WidgetsBinding.instance
                                           .addPostFrameCallback((_) {
-                                        refreshProducts(); // only reloads current tab
+                                        refreshProducts();
                                       });
                                     });
                                   },
@@ -191,21 +235,21 @@ class _ProductScreenState extends State<ProductScreen>
                                     imageUrl:
                                         "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
                                     status: "Pending",
-                                    subtitle: "Awaiting approval",
-                                    subtitle1: product.createdAt ?? "",
+                                    price: totalPrice,
+                                    quantity: product.createdAt ?? "",
                                     title: product.name ?? "",
                                   ),
                                 );
                               },
                             )
-                          : const Center(
-                              child: Text("No unapproved products"),
-                            ),
+                          : const Center(child: Text("No unapproved products")),
                     ],
                   ),
                 ),
               ],
             ),
+
+            /// ---------------- ADD PRODUCT BUTTON ----------------
             bottomNavigationBar: SafeArea(
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
@@ -226,12 +270,21 @@ class _ProductScreenState extends State<ProductScreen>
                         .categoryResponse
                         .result
                         ?.menus;
+
                     final units = context
                         .read<ProductCategoryCubit>()
                         .state
                         .categoryResponse
                         .result
                         ?.units;
+
+                    final processing = context
+                        .read<StoreDefaultsCubit>()
+                        .state
+                        .storeDefaultModel
+                        .appSettings!
+                        .processingFee
+                        .toString();
 
                     if (menus == null || menus.isEmpty) {
                       Fluttertoast.showToast(msg: "Please create a menu first");
@@ -243,11 +296,12 @@ class _ProductScreenState extends State<ProductScreen>
                       "menu": menus,
                       "units": units,
                       "storeId": storeId,
-                      "sellerId": sharedPreferenceHelper.getSellerId
+                      "sellerId": sharedPreferenceHelper.getSellerId,
+                      'processingfee': processing
                     });
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      refreshProducts(); // ✅ reload after coming back
+                      refreshProducts();
                     });
                   },
                 ),

@@ -22,6 +22,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_cr
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/remove_video_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubit.dart';
@@ -60,22 +61,20 @@ import 'package:logger/logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
-      appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
-      messagingSenderId: "989733009995",
-      projectId: "bringessedeliverypartner",
-      storageBucket: "bringessedeliverypartner.firebasestorage.app",
-    ),
-  );
-  print("🔔 Handling a background message: ${message.messageId}");
+  await Firebase.initializeApp();
+
+  print("Handling a background message: ${message.messageId}");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 1️⃣ Register background handler FIRST
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 2️⃣ Initialize Firebase
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
@@ -86,10 +85,13 @@ void main() async {
     ),
   );
 
+  // 3️⃣ Life cycle observer
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // 4️⃣ Init local notifications + FCM
   await NotificationService().init();
 
+  // 5️⃣ Location + remote config
   final RemoteConfigService remoteConfigService = RemoteConfigService();
   bool granted = await LocationPermissionHelper.isLocationGranted();
   if (!granted) {
@@ -97,6 +99,7 @@ void main() async {
   }
   await remoteConfigService.init();
 
+  // 6️⃣ Run app
   runApp(MyApp(remoteConfigService: remoteConfigService));
 }
 
@@ -119,7 +122,7 @@ class MyApp extends StatelessWidget {
         "Accept": "application/json",
       },
       connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 100),
     ));
 
     dio.interceptors.add(LoggerInterceptor());
@@ -259,6 +262,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<RemoveVideoCubit>(
               create: (repoContext) =>
                   RemoveVideoCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<ReviewCubit>(
+              create: (repoContext) =>
+                  ReviewCubit(authRepository: AuthRepository(apiService))),
           BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
         ],
         child: ScreenUtilInit(

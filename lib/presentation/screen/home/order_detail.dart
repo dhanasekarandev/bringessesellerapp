@@ -30,7 +30,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   void initState() {
-
     super.initState();
     currentStatus = widget.order.status ?? "pending";
   }
@@ -45,9 +44,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   void moveToNextStage() {
     final currentIndex = orderStages.indexOf(currentStatus);
 
-    if (currentStatus == "Delivered" || currentStatus == "Cancelled") {
-      return;
-    }
+    if (currentStatus == "Delivered" || currentStatus == "Cancelled") return;
 
     if (currentIndex < orderStages.length - 2) {
       updateStatus(orderStages[currentIndex + 1]);
@@ -59,19 +56,20 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final order = widget.order;
-
     final currentStep = orderStages.indexOf(currentStatus);
 
     return Scaffold(
       appBar: CustomAppBar(
         title: "Order #${order.uniqueId}",
       ),
+
+      // BODY
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🧾 Order Info
+            /// ORDER INFO CARD
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
@@ -82,20 +80,25 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Customer: ${order.userDetails!.name}",
+                    Text("Customer: ${order.userDetails?.name ?? ''}",
                         style: TextStyle(
                             fontSize: 16.sp, fontWeight: FontWeight.w600)),
                     SizedBox(height: 5.h),
                     Text("Price: ${order.currencySymbol}${order.price}"),
                     Text(
-                        "Date: ${DateFormat().format(DateTime.parse(order.createdAt.toString()))}"),
-                    Text("Address: ${order.deliveryAddress!.address}"),
+                      "Date: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(order.createdAt.toString()))}",
+                    ),
+                    Text("Address: ${order.deliveryAddress?.address ?? ''}"),
                     SizedBox(height: 10.h),
+
+                    /// STATUS ROW
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text("Current Status:",
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        const Text(
+                          "Current Status:",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         Container(
                           padding: EdgeInsets.symmetric(
                               horizontal: 10.w, vertical: 4.h),
@@ -106,8 +109,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           child: Text(
                             currentStatus,
                             style: const TextStyle(
-                                color: Colors.blueAccent,
-                                fontWeight: FontWeight.w600),
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -117,107 +121,118 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
             ),
 
-            SizedBox(height: 16.h),
-
-            // 🛍 Product List
-            Text("Items Ordered",
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-            SizedBox(height: 8.h),
-            // ...products.((item) {
-            //   return ListTile(
-            //     title: Text(item["name"]),
-            //     subtitle: Text("Qty: ${item["qty"]}"),
-            //     trailing: Text("₹${item["price"]}"),
-            //   );
-            // }).toList(),
-
             SizedBox(height: 20.h),
 
-            // 🚀 Stepper Section
-            Text("Order Progress",
-                style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87)),
-            SizedBox(height: 10.h),
+            /// STEPPER
+            // Text(
+            //   "Order Progress",
+            //   style: TextStyle(
+            //       fontSize: 16.sp,
+            //       fontWeight: FontWeight.bold,
+            //       color: Colors.black87),
+            // ),
+            // SizedBox(height: 10.h),
 
-            Theme(
-              data: Theme.of(context).copyWith(
-                colorScheme: const ColorScheme.light(
-                  primary: Colors.blueAccent,
-                ),
-              ),
-              child: Stepper(
-                currentStep: currentStep,
-                type: StepperType.vertical,
-                steps: orderStages
-                    .where((stage) => stage != "Cancelled")
-                    .map((stage) {
-                  final index = orderStages.indexOf(stage);
-                  final isLastStep = stage == "Delivered";
+            // Theme(
+            //   data: Theme.of(context).copyWith(
+            //     colorScheme:
+            //         const ColorScheme.light(primary: Colors.blueAccent),
+            //   ),
+            //   child: Stepper(
+            //     currentStep: currentStep,
+            //     type: StepperType.vertical,
+            //     steps: orderStages
+            //         .where((stage) => stage != "Cancelled")
+            //         .map((stage) {
+            //       final index = orderStages.indexOf(stage);
+            //       final isLastStep = stage == "Delivered";
 
-                  return Step(
-                    title: Text(
-                      stage,
-                      style: TextStyle(
-                        color: index <= currentStep
-                            ? Colors.green
-                            : Colors.grey.shade700,
-                      ),
-                    ),
-                    content: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (index == currentStep)
-                          Text(
-                            "Currently in $stage stage.",
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                        SizedBox(
-                          height: 10.h,
-                        ),
-                        if (index == currentStep && !isLastStep)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CustomButton(
-                                title: 'Move to Next Step',
-                                onPressed: moveToNextStage,
-                              ),
-                              if (currentStatus == "pending") ...[
-                                SizedBox(height: 10.h),
-                                CustomButton(
-                                  title: 'Cancel Order',
-                                  backgroundColor: Colors.redAccent,
-                                  onPressed: () {
-                                    showCustomConfirmationDialog(
-                                      title: 'Cancel Order',
-                                      content:
-                                          'Are you sure you want to cancel this order?',
-                                      context: context,
-                                      onConfirm: () {
-                                        Navigator.pop(context);
-                                        updateStatus("Cancelled");
-                                      },
-                                    );
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
-                      ],
-                    ),
-                    isActive: index <= currentStep,
-                    state: index < currentStep
-                        ? StepState.complete
-                        : (index == currentStep
-                            ? StepState.editing
-                            : StepState.indexed),
-                  );
-                }).toList(),
-                controlsBuilder: (context, details) => const SizedBox.shrink(),
+            //       return Step(
+            //         title: Text(
+            //           stage,
+            //           style: TextStyle(
+            //             color: index <= currentStep
+            //                 ? Colors.green
+            //                 : Colors.grey.shade700,
+            //           ),
+            //         ),
+            //         content: Column(
+            //           crossAxisAlignment: CrossAxisAlignment.start,
+            //           children: [
+            //             if (index == currentStep)
+            //               Text(
+            //                 "Currently in $stage stage.",
+            //                 style: Theme.of(context).textTheme.titleMedium,
+            //               ),
+            //             SizedBox(height: 10.h),
+            //             if (index == currentStep && !isLastStep)
+            //               Column(
+            //                 crossAxisAlignment: CrossAxisAlignment.start,
+            //                 children: [
+            //                   CustomButton(
+            //                     title: 'Move to Next Step',
+            //                     onPressed: moveToNextStage,
+            //                   ),
+            //                   if (currentStatus == "pending") ...[
+            //                     SizedBox(height: 10.h),
+            //                     CustomButton(
+            //                       title: 'Cancel Order',
+            //                       backgroundColor: Colors.redAccent,
+            //                       onPressed: () {
+            //                         showCustomConfirmationDialog(
+            //                           title: 'Cancel Order',
+            //                           content:
+            //                               'Are you sure you want to cancel this order?',
+            //                           context: context,
+            //                           onConfirm: () {
+            //                             Navigator.pop(context);
+            //                             updateStatus("Cancelled");
+            //                           },
+            //                         );
+            //                       },
+            //                     ),
+            //                   ],
+            //                 ],
+            //               ),
+            //           ],
+            //         ),
+            //         isActive: index <= currentStep,
+            //         state: index < currentStep
+            //             ? StepState.complete
+            //             : (index == currentStep
+            //                 ? StepState.editing
+            //                 : StepState.indexed),
+            //       );
+            //     }).toList(),
+            //     controlsBuilder: (context, details) =>
+            //         const SizedBox.shrink(), // Hide default buttons
+            //   ),
+            // )
+          ],
+        ),
+      ),
+
+      /// BOTTOM BUTTONS
+      bottomSheet: Container(
+        color: Colors.white,
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+        child: Row(
+          children: [
+            Expanded(
+              child: CustomButton(
+                backgroundColor: Colors.green,
+                title: "Accept",
+                onPressed: () {},
               ),
             ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: CustomButton(
+                title: "Decline",
+                backgroundColor: Colors.red,
+                onPressed: () {},
+              ),
+            )
           ],
         ),
       ),

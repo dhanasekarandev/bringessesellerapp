@@ -39,6 +39,7 @@ import 'package:image_picker/image_picker.dart';
 
 class AddProductScreen extends StatefulWidget {
   final String? catname;
+  final String? processingfee;
   final List<Menu>? menuList;
   final List<Unit>? units;
   final String? storeId;
@@ -55,6 +56,7 @@ class AddProductScreen extends StatefulWidget {
     this.sellerId,
     this.editProduct,
     this.subcat,
+    this.processingfee,
   });
 
   @override
@@ -121,10 +123,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
       for (var v in product.variants!) {
         final gstController =
             TextEditingController(text: v.gst?.toString() ?? "0");
+
         final cgstController =
             TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
+
         final sgstController =
             TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
+
         gstController.addListener(() {
           double gstValue = double.tryParse(gstController.text) ?? 0;
           double split = gstValue / 2;
@@ -132,10 +137,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
           sgstController.text = split.toStringAsFixed(2);
           setState(() {});
         });
+
         if (product.variants != null && product.variants!.isNotEmpty) {
           for (var v in product.variants!) {
-            final gstValue =
-                v.price ?? 0; // Assuming product variant has gst field
+            final gstValue = v.gst ?? 0; // ✅ FIXED
             final splitValue = gstValue / 2;
 
             variantList.add({
@@ -159,6 +164,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
+  String? _gstError;
   _remove() async {
     context
         .read<RemoveVideoCubit>()
@@ -214,6 +220,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       'count': TextEditingController(),
       'price': TextEditingController(),
       'offerPrice': TextEditingController(),
+      'gst': TextEditingController(),
       'selectedUnit': null,
       'selectedOffer': null,
     });
@@ -232,8 +239,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
     for (var variant in variantList) {
       double price = double.tryParse(variant['price'].text) ?? 0;
       double offerPrice = double.tryParse(variant['offerPrice'].text) ?? 0;
-      double gstPercent = double.tryParse(_gst.text) ?? 0;
-      double processingFeePercent = 5; // Example: 5% processing fee
+
+      // ⬇️ now GST is taken from each variant
+      double gstPercent = double.tryParse(variant['gst'].text) ?? 0;
+
+      double processingFeePercent =
+          double.tryParse(widget.processingfee.toString()) ?? 0;
       bool isOffer = variant['selectedOffer'] == "Yes";
 
       final result = calculateFinalPrice(
@@ -360,9 +371,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       height: 40.h,
                       onPressed: () {
                         Navigator.pop(context);
-                        _save(); // call your actual save function
+                        _save();
                       },
-                      title: "Add product",
+                      title: widget.editProduct == null
+                          ? 'Add product'
+                          : "Edit product",
                     ),
                   ),
                 ],
@@ -379,16 +392,45 @@ class _AddProductScreenState extends State<AddProductScreen> {
     setState(() => load = true);
 
     final variants = variantList.map((v) {
+      double price = double.tryParse(v['price'].text) ?? 0;
+      double offerPrice = double.tryParse(v['offerPrice'].text) ?? 0;
+      double gstPercent = double.tryParse(v['gst'].text) ?? 0;
+
+      bool isOffer = v['selectedOffer'] == "Yes";
+
+      double sellingPrice = isOffer ? offerPrice : price;
+
+      // GST calculations
+      double cgstPercent = gstPercent / 2;
+      double sgstPercent = gstPercent / 2;
+
+      double cgstAmount = sellingPrice * (cgstPercent / 100);
+      double sgstAmount = sellingPrice * (sgstPercent / 100);
+
+      double totalAmount = sellingPrice + cgstAmount + sgstAmount;
+
       return Variant(
         name: v['count'].text,
-        price: double.tryParse(v['price'].text) ?? 0,
-        offerAvailable: (v['selectedOffer'] == "Yes").toString(),
-        offerPrice: double.tryParse(v['offerPrice'].text) ?? 0,
+        price: price,
+        offerAvailable: isOffer.toString(),
+        offerPrice: offerPrice,
         unit: v['selectedUnit'] ?? "",
+
+        // Percent Values
+        gst: gstPercent,
+        cGstInPercent: cgstPercent,
+        sGstInPercent: sgstPercent,
+
+        // Amount Values
+        cGstInAmount: cgstAmount,
+        sGstInAmount: sgstAmount,
+
+        // Final Total
+        totalAmount: totalAmount,
       );
     }).toList();
 
-    // Separate local files & existing images
+    // Separate new image files & existing images
     final newFiles = _productMedia.whereType<File>().toList();
     final existingImages = _productMedia
         .whereType<String>()
@@ -398,17 +440,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     try {
       if (widget.editProduct == null) {
         final req = ProductCreateReqModel(
-            sellerId: widget.sellerId,
-            storeId: widget.storeId,
-            name: _name.text,
-            sku: _sku.text,
-            menuId: selectedMenuId,
-            variants: variants,
-            description: _des.text,
-            comboOffer: isCombo,
-            quantity: _stock.text,
-            productImages: newFiles,
-            videoUrl: uploadvideoUrl);
+          sellerId: widget.sellerId,
+          storeId: widget.storeId,
+          name: _name.text,
+          sku: _sku.text,
+          menuId: selectedMenuId,
+          variants: variants,
+          description: _des.text,
+          comboOffer: isCombo,
+          quantity: _stock.text,
+          productImages: newFiles,
+          videoUrl: uploadvideoUrl,
+        );
+
         context.read<ProductCreateCubit>().login(req);
       } else {
         final req = ProductUpdateReqModel(
@@ -426,6 +470,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           productImages: newFiles,
           existingImages: existingImages,
         );
+
         context.read<ProductUpdateCubit>().login(req);
       }
     } catch (e) {
@@ -456,6 +501,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("sljdfgbs${widget.processingfee}");
     final unitOptions = widget.units?.map((e) => e.name ?? '').toList() ?? [];
 
     return MultiBlocListener(
@@ -618,7 +664,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         // CASE 1: Prefilled network video (Edit mode)
                         if (widget.editProduct != null &&
                             _productVideo == null &&
-                            widget.editProduct!.videoUrl != null)
+                            widget.editProduct!.videoUrl != null &&
+                            widget.editProduct!.videoUrl != '')
                           Stack(
                             alignment: Alignment.topRight,
                             children: [
@@ -738,13 +785,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SubTitleText(title: "Name"),
+                        const SubTitleText(
+                          title: "Name",
+                          isMandatory: true,
+                        ),
                         CustomTextField(
                           hintText: "Name",
                           controller: _name,
                         ),
                         vericalSpaceMedium,
-                        const SubTitleText(title: "Menu"),
+                        const SubTitleText(
+                          title: "Menu",
+                          isMandatory: true,
+                        ),
                         vericalSpaceMedium,
                         DropdownButtonFormField<String>(
                           value: selectedMenu,
@@ -773,14 +826,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           },
                         ),
                         vericalSpaceMedium,
-                        const SubTitleText(title: "Category name"),
+                        const SubTitleText(
+                          title: "Category name",
+                          isMandatory: true,
+                        ),
                         CustomTextField(
                           controller: _cat,
                           hintText: "Category name",
                           readOnly: true,
                         ),
                         vericalSpaceMedium,
-                        const SubTitleText(title: "Sub category name"),
+                        const SubTitleText(
+                          title: "Sub category name",
+                          isMandatory: true,
+                        ),
                         CustomTextField(
                           controller: _sub,
                           hintText: "Sub category name",
@@ -793,13 +852,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           controller: _sku,
                         ),
                         vericalSpaceMedium,
-                        const SubTitleText(title: "Stock Quantity"),
+                        const SubTitleText(
+                          title: "Stock Quantity",
+                          isMandatory: true,
+                        ),
                         CustomTextField(
                             hintText: "",
                             controller: _stock,
                             keyboardType: TextInputType.number),
                         vericalSpaceMedium,
-                        const SubTitleText(title: "Description"),
+                        const SubTitleText(
+                          title: "Description",
+                          isMandatory: true,
+                        ),
                         CustomTextField(
                           hintText: "Description",
                           controller: _des,
@@ -831,22 +896,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       ],
                     ),
                   ),
-                  CustomCard(
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            const TitleText(title: "GST"),
-                            horizontalSpaceMedium,
-                            GestureDetector(
-                              onTap: _showComboInfoDialog,
-                              child: const Icon(Icons.info_outline_rounded),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
 
                   /// ---- Variant Section ----
                   CustomCard(
@@ -855,7 +904,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       children: [
                         Row(
                           children: [
-                            const TitleText(title: "Variants"),
+                            const TitleText(
+                              title: "Variants",
+                            ),
                             const Spacer(),
                             CustomOutlineButton(
                               title: "Add",
@@ -889,14 +940,20 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                       ),
                                   ],
                                 ),
-                                const SubTitleText(title: "Count"),
+                                const SubTitleText(
+                                  title: "Count",
+                                  isMandatory: true,
+                                ),
                                 CustomTextField(
                                   controller: variant['count'],
                                   hintText: "",
                                   keyboardType: TextInputType.number,
                                 ),
                                 vericalSpaceMedium,
-                                const SubTitleText(title: "Select Unit"),
+                                const SubTitleText(
+                                  title: "Select Unit",
+                                  isMandatory: true,
+                                ),
                                 DropdownButtonFormField<String>(
                                   value: unitOptions
                                           .contains(variant['selectedUnit'])
@@ -923,42 +980,68 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   },
                                 ),
                                 vericalSpaceMedium,
-                                const SubTitleText(title: "GST"),
+                                const SubTitleText(
+                                  title: "GST(%)",
+                                  isMandatory: true,
+                                ),
+
                                 CustomTextField(
-                                  controller: _gst,
-                                  //variant['gst'],
+                                  controller: variant['gst'],
                                   hintText: "",
                                   keyboardType: TextInputType.number,
                                   onChanged: (value) {
                                     double gstValue =
                                         double.tryParse(value) ?? 0;
-                                    double split = gstValue / 2;
 
-                                    // Update CGST & SGST controllers
-                                    _cgst.text = split.toStringAsFixed(2);
-                                    _sgst.text = split.toStringAsFixed(2);
+                                    if (gstValue > 28) {
+                                      variant['gstError'] =
+                                          "GST cannot be more than 28%";
+                                    } else {
+                                      variant['gstError'] = null;
 
-                                    setState(() {}); // Refresh UI
+                                      double split = gstValue / 2;
+                                      variant['cgst']!.text =
+                                          split.toStringAsFixed(2);
+                                      variant['sgst']!.text =
+                                          split.toStringAsFixed(2);
+                                    }
+
+                                    setState(() {});
                                   },
                                 ),
+
+// Show error only for this variant
+                                if (variant['gstError'] != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 5),
+                                    child: Text(
+                                      variant['gstError'],
+                                      style: const TextStyle(
+                                          color: Colors.red, fontSize: 12),
+                                    ),
+                                  ),
+
+//                                 vericalSpaceMedium,
+//                                 const SubTitleText(title: "CGST(%)"),
+//                                 CustomTextField(
+//                                   controller: _cgst,
+//                                   hintText: "",
+//                                   keyboardType: TextInputType.number,
+// //  enabled: false, // Auto-filled
+//                                 ),
+//                                 vericalSpaceMedium,
+//                                 const SubTitleText(title: "SGST(%)"),
+//                                 CustomTextField(
+//                                   controller: _sgst,
+//                                   hintText: "",
+//                                   keyboardType: TextInputType.number,
+//                                   // enabled: false, // Auto-filled
+//                                 ),
                                 vericalSpaceMedium,
-                                const SubTitleText(title: "CGST"),
-                                CustomTextField(
-                                  controller: _cgst,
-                                  hintText: "",
-                                  keyboardType: TextInputType.number,
-//  enabled: false, // Auto-filled
+                                const SubTitleText(
+                                  title: "Price",
+                                  isMandatory: true,
                                 ),
-                                vericalSpaceMedium,
-                                const SubTitleText(title: "SGST"),
-                                CustomTextField(
-                                  controller: _sgst,
-                                  hintText: "",
-                                  keyboardType: TextInputType.number,
-                                  // enabled: false, // Auto-filled
-                                ),
-                                vericalSpaceMedium,
-                                const SubTitleText(title: "Price"),
                                 CustomTextField(
                                   controller: variant['price'],
                                   hintText: "",
@@ -1020,7 +1103,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       : widget.editProduct != null
                           ? "Update Product"
                           : "Save Product",
-                  onPressed: _showCalculation,
+                  onPressed: () {
+                    if (_validateForm()) {
+                      _showCalculation(); // open bottom sheet
+                    }
+                  },
                 ),
               ),
             ),
@@ -1030,6 +1117,70 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
+  bool _validateForm() {
+    // Product basic fields
+    if (_name.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter product name");
+      return false;
+    }
+
+    if (_stock.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter stock");
+      return false;
+    }
+
+    if (variantList.isEmpty) {
+      Fluttertoast.showToast(msg: "Add at least one variant");
+      return false;
+    }
+
+    // Validate each variant
+    for (var v in variantList) {
+      String name = v['count'].text.trim();
+      double price = double.tryParse(v['price'].text) ?? 0;
+      double offerPrice = double.tryParse(v['offerPrice'].text) ?? 0;
+      double gst = double.tryParse(v['gst'].text) ?? 0;
+
+      if (name.isEmpty) {
+        Fluttertoast.showToast(msg: "Enter variant name");
+        return false;
+      }
+
+      if (price <= 0) {
+        Fluttertoast.showToast(msg: "Enter valid price for $name");
+        return false;
+      }
+
+      if (v['selectedOffer'] == "Yes" && offerPrice <= 0) {
+        Fluttertoast.showToast(msg: "Enter offer price for $name");
+        return false;
+      }
+
+      if (offerPrice > price) {
+        Fluttertoast.showToast(msg: "Offer price cannot be more than price");
+        return false;
+      }
+
+      if (gst < 0 || gst > 28) {
+        Fluttertoast.showToast(msg: "GST must be between 0% and 28%");
+        return false;
+      }
+
+      if (v['selectedUnit'] == null || v['selectedUnit'].toString().isEmpty) {
+        Fluttertoast.showToast(msg: "Select unit for $name");
+        return false;
+      }
+    }
+
+    // Images must be added (optional)
+    if (_productMedia.isEmpty) {
+      Fluttertoast.showToast(msg: "Add at least one product image");
+      return false;
+    }
+
+    return true;
+  }
+
   Map<String, double> calculateFinalPrice({
     required double price,
     required double offerPrice,
@@ -1037,26 +1188,31 @@ class _AddProductScreenState extends State<AddProductScreen> {
     required double processingFeePercent,
     required bool isOffer,
   }) {
-    final sellingPrice = isOffer ? offerPrice : price;
+    // Step 1: Determine selling price
+    double sellingPrice = isOffer ? offerPrice : price;
 
-    double cgst = gstPercent / 2;
-    double sgst = gstPercent / 2;
-    double gstAmount = sellingPrice * gstPercent / 100;
+    // Step 2: Calculate GST split
+    double halfGstPercent = gstPercent / 2;
 
-    double processingFeeAmount = sellingPrice * processingFeePercent / 100;
+    double cgst = sellingPrice * (halfGstPercent / 100);
+    double sgst = sellingPrice * (halfGstPercent / 100);
 
-    double finalPrice = sellingPrice + gstAmount + processingFeeAmount;
+    // Step 3: Processing fee
+    double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
 
-    double earningAmount = finalPrice - processingFeeAmount;
+    // Step 4: Final price (customer pays)
+    double finalPrice = sellingPrice + cgst + sgst;
+
+    // Step 5: Earning (your profit)
+    double earningAmount = sellingPrice - processingFeeAmount;
 
     return {
-      'sellingPrice': sellingPrice,
-      'cgst': sellingPrice * cgst / 100,
-      'sgst': sellingPrice * sgst / 100,
-      'gstAmount': gstAmount,
-      'processingFeeAmount': processingFeeAmount,
-      'finalPrice': finalPrice,
-      'earningAmount': earningAmount
+      "sellingPrice": sellingPrice,
+      "cgst": cgst,
+      "sgst": sgst,
+      "processingFeeAmount": processingFeeAmount,
+      "finalPrice": finalPrice,
+      "earningAmount": earningAmount,
     };
   }
 }

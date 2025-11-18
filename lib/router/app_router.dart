@@ -154,6 +154,7 @@ final GoRouter appRouter = GoRouter(
                 sellerId: args['sellerId'],
                 editProduct: args['edit'],
                 subcat: args['subcat'],
+                processingfee: args['processingfee'],
               );
             },
           ),

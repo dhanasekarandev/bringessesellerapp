@@ -108,6 +108,7 @@ class _ShopScreenState extends State<ShopScreen> {
     context.read<GetStoreCubit>().login();
   }
 
+  bool _isfood = false;
   TimeOfDay? _openTime;
   TimeOfDay? _closeTime;
   String? _storeImg;
@@ -236,6 +237,7 @@ class _ShopScreenState extends State<ShopScreen> {
         closetime: _formatTime(_closeTime),
         image: newImageFile,
         documents: newDocuments,
+        isfood: _isfood,
         lat: (selectedLat ??
                 double.tryParse(sharedPreferenceHelper.getSearchLat) ??
                 0.0)
@@ -250,6 +252,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final storeUpdate = StoreUpdateReq(
         sellerId: sharedPreferenceHelper.getSellerId,
         storeId: _storeId,
+        isfood: _isfood,
         name: _name.text.trim(),
         contactNo: _phone.text.trim(),
         categoryId: selectedOption ?? _catId,
@@ -842,6 +845,23 @@ class _ShopScreenState extends State<ShopScreen> {
                                 ],
                               );
                             }).toList(),
+                          ),
+                          vericalSpaceMedium,
+                          Row(
+                            children: [
+                              const SubTitleText(
+                                title: "Food Product",
+                              ),
+                              Spacer(),
+                              Switch(
+                                value: _isfood,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isfood = value;
+                                  });
+                                },
+                              )
+                            ],
                           ),
                           vericalSpaceMedium,
                           const SubTitleText(

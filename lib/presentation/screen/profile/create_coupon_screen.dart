@@ -3,7 +3,7 @@ import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart'
 import 'package:bringessesellerapp/model/request/coupon_update_req_model.dart';
 import 'package:bringessesellerapp/model/request/create_coupon_req.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
-import 'package:bringessesellerapp/model/response/coupon_res_model.dart';
+
 import 'package:bringessesellerapp/model/response/get_coupon_res_model.dart';
 import 'package:bringessesellerapp/model/response/product_list_response_model.dart';
 
@@ -228,7 +228,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     /// Coupon Code
-                    const SubTitleText(title: "Coupon Code"),
+                    const SubTitleText(
+                      title: "Coupon Code",
+                      isMandatory: true,
+                    ),
                     CustomTextField(
                       controller: _couponCodeController,
                       hintText: "Enter Coupon Code",
@@ -247,7 +250,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                     vericalSpaceMedium,
 
                     /// Coupon Name
-                    const SubTitleText(title: "Coupon Name"),
+                    const SubTitleText(
+                      title: "Coupon Name",
+                      isMandatory: true,
+                    ),
                     CustomTextField(
                       controller: _couponNameController,
                       hintText: "Enter Coupon Name",
@@ -257,7 +263,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                     vericalSpaceMedium,
 
                     /// Max Coupons
-                    const SubTitleText(title: "Max Coupons"),
+                    const SubTitleText(
+                      title: "Max Coupons",
+                      isMandatory: true,
+                    ),
                     CustomTextField(
                       controller: _maxCouponsController,
                       hintText: "Enter maximum number",
@@ -268,7 +277,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                     vericalSpaceMedium,
 
                     /// Valid From
-                    const SubTitleText(title: "Valid From"),
+                    const SubTitleText(
+                      title: "Valid From",
+                      isMandatory: true,
+                    ),
                     GestureDetector(
                       onTap: () => _pickDate(_validFromController),
                       child: AbsorbPointer(
@@ -283,7 +295,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                     vericalSpaceMedium,
 
                     /// Valid Till
-                    const SubTitleText(title: "Valid Till"),
+                    const SubTitleText(
+                      title: "Valid Till",
+                      isMandatory: true,
+                    ),
                     GestureDetector(
                       onTap: () => _pickDate(_validTillController),
                       child: AbsorbPointer(
@@ -298,7 +313,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                     vericalSpaceMedium,
 
                     /// Coupon Type
-                    const SubTitleText(title: "Coupon Type"),
+                    const SubTitleText(
+                      title: "Coupon Type",
+                      isMandatory: true,
+                    ),
                     DropdownButtonFormField<String>(
                       value: selectedCouponType,
                       hint: const Text("Select coupon type"),
@@ -315,56 +333,11 @@ class _CreateCouponState extends State<CreateCoupon> {
                           v == null ? "Please select coupon type" : null,
                     ),
                     vericalSpaceMedium,
-
-                    /// Discount Type
-                    const SubTitleText(title: "Discount Type"),
-                    DropdownButtonFormField<String>(
-                      value: selectedDiscountType,
-                      hint: const Text("Select discount type"),
-                      items: discountTypes
-                          .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() => selectedDiscountType = v);
-                      },
-                      decoration:
-                          const InputDecoration(border: OutlineInputBorder()),
-                      validator: (v) =>
-                          v == null ? "Please select discount type" : null,
-                    ),
-                    vericalSpaceMedium,
-
-                    /// Discount Value
-                    if (selectedDiscountType != null) ...[
-                      SubTitleText(
-                        title: selectedDiscountType == 'percentage'
-                            ? "Percentage (1–100)"
-                            : "Flat Amount (₹)",
-                      ),
-                      CustomTextField(
-                        controller: _priceValueController,
-                        hintText: selectedDiscountType == 'percentage'
-                            ? "Enter percentage"
-                            : "Enter flat discount",
-                        keyboardType: TextInputType.number,
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return "Required";
-                          final val = num.tryParse(v);
-                          if (val == null) return "Invalid number";
-                          if (selectedDiscountType == 'percentage' &&
-                              (val < 1 || val > 100)) {
-                            return "Percentage must be 1–100";
-                          }
-                          return null;
-                        },
-                      ),
-                      vericalSpaceMedium,
-                    ],
-
-                    /// Product List
                     if (selectedCouponType == 'product') ...[
-                      const SubTitleText(title: "Select Product"),
+                      const SubTitleText(
+                        title: "Select Product",
+                        isMandatory: true,
+                      ),
                       vericalSpaceSmall,
                       BlocBuilder<ProductListCubit, ProductListState>(
                         builder: (context, productState) {
@@ -394,6 +367,57 @@ class _CreateCouponState extends State<CreateCoupon> {
                         },
                       ),
                     ],
+                    vericalSpaceSmall,
+                    const SubTitleText(
+                      title: "Discount Type",
+                      isMandatory: true,
+                    ),
+                    DropdownButtonFormField<String>(
+                      value: selectedDiscountType,
+                      hint: const Text("Select discount type"),
+                      items: discountTypes
+                          .map(
+                              (e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (v) {
+                        setState(() => selectedDiscountType = v);
+                      },
+                      decoration:
+                          const InputDecoration(border: OutlineInputBorder()),
+                      validator: (v) =>
+                          v == null ? "Please select discount type" : null,
+                    ),
+                    vericalSpaceMedium,
+
+                    /// Discount Value
+                    if (selectedDiscountType != null) ...[
+                      SubTitleText(
+                        title: selectedDiscountType == 'percentage'
+                            ? "Percentage (1–100)"
+                            : "Flat Amount (₹)",
+                        isMandatory: true,
+                      ),
+                      CustomTextField(
+                        controller: _priceValueController,
+                        hintText: selectedDiscountType == 'percentage'
+                            ? "Enter percentage"
+                            : "Enter flat discount",
+                        keyboardType: TextInputType.number,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return "Required";
+                          final val = num.tryParse(v);
+                          if (val == null) return "Invalid number";
+                          if (selectedDiscountType == 'percentage' &&
+                              (val < 1 || val > 100)) {
+                            return "Percentage must be 1–100";
+                          }
+                          return null;
+                        },
+                      ),
+                      vericalSpaceMedium,
+                    ],
+
+                    /// Product List
                   ],
                 ),
               ),

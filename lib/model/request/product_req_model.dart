@@ -37,7 +37,7 @@ class ProductCreateReqModel {
       'name': name,
       'SKU': sku,
       'videoUrl': videoUrl,
-      'quantity':quantity,
+      'quantity': quantity,
       'menuId': menuId,
       'variants': variants?.map((v) => v.toJson()).toList(),
       'description': description,
@@ -53,7 +53,7 @@ class ProductCreateReqModel {
       'name': name,
       'SKU': sku,
       'videoUrl': videoUrl,
-      'quantity':quantity,
+      'quantity': quantity,
       'menuId': menuId,
       'variants': variants != null
           ? jsonEncode(variants!.map((v) => v.toJson()).toList())
@@ -80,14 +80,25 @@ class Variant {
   String? offerAvailable;
   double? offerPrice;
   String? unit;
+  num? gst;
+  num? cGstInPercent;
+  num? cGstInAmount;
+  num? sGstInAmount;
+  num? sGstInPercent;
+  num? totalAmount;
 
-  Variant({
-    this.name,
-    this.price,
-    this.offerAvailable,
-    this.offerPrice,
-    this.unit,
-  });
+  Variant(
+      {this.name,
+      this.price,
+      this.offerAvailable,
+      this.offerPrice,
+      this.unit,
+      this.gst,
+      this.cGstInPercent,
+      this.cGstInAmount,
+      this.sGstInAmount,
+      this.sGstInPercent,
+      this.totalAmount});
 
   Map<String, dynamic> toJson() {
     return {
@@ -96,6 +107,12 @@ class Variant {
       'offer_available': offerAvailable,
       'offer_price': offerPrice,
       'unit': unit,
+      'gst': gst,
+      'cGstInPercent': cGstInPercent,
+      'cGstInAmount': cGstInAmount,
+      'sGstInAmount': sGstInAmount,
+      'sGstInPercent': sGstInPercent,
+      'totalAmount': totalAmount
     };
   }
 }

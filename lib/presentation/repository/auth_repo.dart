@@ -22,6 +22,7 @@ import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
 import 'package:bringessesellerapp/model/request/remove_video_req_model.dart';
+import 'package:bringessesellerapp/model/request/review_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/request/store_req_model.dart';
@@ -52,6 +53,7 @@ import 'package:bringessesellerapp/model/response/product_list_response_model.da
 import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
+import 'package:bringessesellerapp/model/response/review_res_model.dart';
 import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
 import 'package:bringessesellerapp/model/response/store_upload_model.dart';
@@ -664,6 +666,26 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, ProductListResponseModel());
+    }
+  }
+
+  Future<dynamic> reviewList(ReviewReqModel reqmodel) async {
+    try {
+      var response =
+          await apiService.post(ApiConstant.reviewlist, reqmodel, false);
+      print("asldfnd${response.data}");
+      if (response.data['status_code'] == 200) {
+        var responseData = response.data;
+        return (true, ReviewResponseModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.data['status_code']}');
+        return (false, ReviewResponseModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, ReviewResponseModel());
     }
   }
 
