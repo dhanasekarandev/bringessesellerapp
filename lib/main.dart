@@ -38,6 +38,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/logout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/payout_account_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/privacy_policy_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
@@ -63,7 +64,6 @@ import 'package:logger/logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
-@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
@@ -272,6 +272,10 @@ class MyApp extends StatelessWidget {
           BlocProvider<RevenueGraphCubit>(
               create: (repoContext) => RevenueGraphCubit(
                   authRepository: AuthRepository(apiService))),
+          BlocProvider<PrivacyPolicyCubit>(
+            create: (repoContext) =>
+                PrivacyPolicyCubit(authRepository: authRepository),
+          ),
           BlocProvider<OderStatusUpdateCubit>(
               create: (repoContext) => OderStatusUpdateCubit(
                   authRepository: AuthRepository(apiService))),

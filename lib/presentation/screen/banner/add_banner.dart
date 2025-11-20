@@ -26,6 +26,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class AddBannerScreen extends StatefulWidget {
   final List<Section>? sections;
@@ -61,17 +62,26 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
     super.initState();
   }
 
-  Future<void> _selectDate(TextEditingController controller) async {
+  Future<void> _selectDate(TextEditingController controller,
+      {TextEditingController? startController}) async {
     DateTime initialDate = DateTime.now();
+
+    DateTime firstDate =
+        startController != null && startController.text.isNotEmpty
+            ? DateFormat('dd-MMM-yyyy').parse(startController.text)
+            : initialDate;
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
+      initialDate: firstDate,
+      firstDate: firstDate,
       lastDate: DateTime(2100),
     );
 
     if (picked != null) {
-      controller.text = "${picked.toLocal()}".split(' ')[0];
+      // Format as 12/Feb/2025
+      String formattedDate = DateFormat('dd-MMM-yyyy').format(picked);
+      controller.text = formattedDate;
     }
   }
 
@@ -390,7 +400,8 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                               ),
                               suffixIcon: const Icon(Icons.calendar_today),
                             ),
-                            onTap: () => _selectDate(_endDateController),
+                            onTap: () => _selectDate(_endDateController,
+                                startController: _startDateController),
                           ),
                           vericalSpaceSmall,
                         ],

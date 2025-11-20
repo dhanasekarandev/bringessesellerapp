@@ -399,7 +399,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       bool isOffer = v['selectedOffer'] == "Yes";
 
       double sellingPrice = isOffer ? offerPrice : price;
-
+      double processingFeePercent =
+          double.tryParse(widget.processingfee.toString()) ?? 0;
       // GST calculations
       double cgstPercent = gstPercent / 2;
       double sgstPercent = gstPercent / 2;
@@ -407,8 +408,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
       double cgstAmount = sellingPrice * (cgstPercent / 100);
       double sgstAmount = sellingPrice * (sgstPercent / 100);
 
-      double totalAmount = sellingPrice + cgstAmount + sgstAmount;
-
+      double totalAmount =
+          sellingPrice + cgstAmount + sgstAmount + processingFeePercent;
+      print("dsdfsdf$totalAmount");
       return Variant(
         name: v['count'].text,
         price: price,
@@ -1201,10 +1203,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
     double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
 
     // Step 4: Final price (customer pays)
-    double finalPrice = sellingPrice + cgst + sgst;
+    double finalPrice = sellingPrice + cgst + sgst + processingFeeAmount;
 
     // Step 5: Earning (your profit)
-    double earningAmount = sellingPrice - processingFeeAmount;
+    double earningAmount = finalPrice - processingFeeAmount;
 
     return {
       "sellingPrice": sellingPrice,

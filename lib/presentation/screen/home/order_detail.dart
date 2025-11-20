@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/update_order_req_model.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/update_order_state.dart';
+
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
@@ -11,6 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 
 class OrderDetailsScreen extends StatefulWidget {
   final OrderDetails order;
@@ -62,7 +69,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           UpdateOrderStatusReqModel(
               sellerId: widget.order.storeId,
               orderId: widget.order.orderId,
-              status: newStatus, 
+              status: newStatus,
               userId: widget.order.userDetails!.id,
               otp: otp),
         );
@@ -81,6 +88,41 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   /// Cancel Order
   void declineOrder() => updateStatus("cancel");
+  Future<void> downloadInvoice(String orderId) async {
+    try {
+      final url = "https://bringesse.com:3002/order/download/$orderId";
+
+      final response = await http.post(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+
+        final dir = await getTemporaryDirectory();
+        final filePath = "${dir.path}/invoice_$orderId.pdf";
+        final file = File(filePath);
+
+        await file.writeAsBytes(bytes);
+
+        print("Invoice saved at $filePath");
+
+        await OpenFilex.open(filePath); // Opens PDF
+      } else {
+        print("Download failed: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error downloading invoice: $e");
+    }
+  }
+
+  Future<void> printInvoice(String orderId) async {
+    final url = "https://your_api/invoice/print/$orderId";
+
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    } else {
+      debugPrint("Could not open print invoice");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +153,40 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       },
       builder: (context, state) {
         return Scaffold(
-          appBar: CustomAppBar(title: "Order #${order.uniqueId}"),
+          appBar: CustomAppBar(
+            title: "Order #${order.uniqueId}",
+            actions: [
+              PopupMenuButton<String>(
+                onSelected: (value) async {
+                  if (value == 'download') {
+                    downloadInvoice(order.orderId.toString());
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'download',
+                    child: Row(
+                      children: const [
+                        Icon(Icons.file_download_rounded, size: 20),
+                        SizedBox(width: 10),
+                        Text("Download Invoice"),
+                      ],
+                    ),
+                  ),
+                  // PopupMenuItem(
+                  //   value: 'download',
+                  //   child: Row(
+                  //     children: const [
+                  //       Icon(Icons.file_download, size: 20),
+                  //       SizedBox(width: 10),
+                  //       Text("Download Invoice"),
+                  //     ],
+                  //   ),
+                  // ),
+                ],
+              ),
+            ],
+          ),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Column(

@@ -423,16 +423,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   extra: {'subs': subscriptionData});
                             },
                           ),
-                          // CustomListTile(
-                          //   title: "Privacy Policy",
-                          //   leadingIcon: Icons.policy_outlined,
-                          //   trailing: const Icon(Icons.arrow_forward_ios),
-                          //   onTap: () {
-                          //     context.push(
-                          //       '/profile/privacy',
-                          //     );
-                          //   },
-                          // ),
+                          CustomListTile(
+                            title: "Privacy Policy",
+                            leadingIcon: Icons.policy_outlined,
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              context.push(
+                                '/profile/privacy',
+                              );
+                            },
+                          ),
                           CustomListTile(
                             title: "Version",
                             leadingIcon: Icons.info_outline,

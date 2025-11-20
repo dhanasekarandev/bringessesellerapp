@@ -38,6 +38,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -292,6 +293,14 @@ class _ShopScreenState extends State<ShopScreen> {
   final List<String> storeSizes = ['Small', 'Medium', 'Large'];
   final List<String> servicetype = ['Subscription', 'Partnership'];
   final Set<String> selectedMethods = {};
+  final List<String> options = [
+    "Own Delivery",
+    "Courier",
+    "Store Pickup",
+    "Bringesse Delivery"
+  ];
+
+  List<String> selectedOptions = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -361,7 +370,7 @@ class _ShopScreenState extends State<ShopScreen> {
             BlocListener<GetStoreCubit, GetStoreState>(
               listener: (context, state) async {
                 if (state.networkStatusEnum == NetworkStatusEnum.initial) {
-                  CircularProgressIndicator();
+                  const CircularProgressIndicator();
                 }
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.getStoreModel.status == 'true') {
@@ -557,21 +566,27 @@ class _ShopScreenState extends State<ShopScreen> {
                             },
                             child: Center(
                                 child: CircleAvatar(
-                              radius: 60.r,
-                              backgroundColor: Theme.of(context).cardColor,
-                              backgroundImage: _selectedImage != null
-                                  ? FileImage(_selectedImage!)
-                                  : (_storeImg != null && _storeImg!.isNotEmpty
-                                      ? NetworkImage(_storeImg!)
-                                      : null),
-                              child: _selectedImage == null &&
-                                      (_storeImg == null || _storeImg!.isEmpty)
-                                  ? Icon(
-                                      Icons.person_2_outlined,
-                                      color: Colors.grey,
-                                      size: 40.sp,
-                                    )
-                                  : null,
+                              radius: 63.r,
+                              backgroundColor: AppTheme.primaryColor,
+                              child: CircleAvatar(
+                                radius: 60.r,
+                                backgroundColor: Theme.of(context).cardColor,
+                                backgroundImage: _selectedImage != null
+                                    ? FileImage(_selectedImage!)
+                                    : (_storeImg != null &&
+                                            _storeImg!.isNotEmpty
+                                        ? NetworkImage(_storeImg!)
+                                        : null),
+                                child: _selectedImage == null &&
+                                        (_storeImg == null ||
+                                            _storeImg!.isEmpty)
+                                    ? Icon(
+                                        Icons.person_2_outlined,
+                                        color: Colors.grey,
+                                        size: 40.sp,
+                                      )
+                                    : null,
+                              ),
                             )),
                           ),
                           vericalSpaceMedium,
@@ -711,11 +726,6 @@ class _ShopScreenState extends State<ShopScreen> {
                                     _openTime == null
                                         ? "Select open time"
                                         : _formatTime(_openTime!),
-                                    style: TextStyle(
-                                        // color: _openTime == null
-                                        //     ? Colors.grey
-                                        //     : Colors.black,
-                                        ),
                                   ),
                                   const Icon(Icons.access_time,
                                       color: Colors.grey),
@@ -747,11 +757,6 @@ class _ShopScreenState extends State<ShopScreen> {
                                     _closeTime == null
                                         ? "Select close time"
                                         : _formatTime(_closeTime!),
-                                    style: TextStyle(
-                                        // color: _closeTime == null
-                                        //     ? Colors.grey
-                                        //     : Colors.black,
-                                        ),
                                   ),
                                   const Icon(Icons.access_time,
                                       color: Colors.grey),
@@ -872,23 +877,72 @@ class _ShopScreenState extends State<ShopScreen> {
                             hintText: 'add your return days',
                             controller: _return,
                           ),
+                          vericalSpaceMedium,
+                          const SubTitleText(
+                            title: "Select Delivery",
+                          ),
+
+// Delivery Chips
+                          Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: options.map((option) {
+                              final isSelected =
+                                  selectedOptions.contains(option);
+
+                              return FilterChip(
+                                showCheckmark: true,
+                                checkmarkColor: Colors.white,
+                                label: Text(
+                                  option,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                selectedColor: AppTheme.primaryColor,
+                                backgroundColor: Theme.of(context).cardColor,
+                                onSelected: (bool selected) {
+                                  setState(() {
+                                    if (selected) {
+                                      selectedOptions.add(option);
+                                    } else {
+                                      selectedOptions.remove(option);
+                                    }
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+
+// CONDITION: Show subtitle ONLY when OWN delivery is selected
                           vericalSpaceSmall,
-                          // const SubTitleText(
-                          //   title:
-                          //       '(To manage deliveries, get our Delivery Partner App)',
-                          // ),
-                          // if (isOwnDelivery) ...[
-                          //   const SizedBox(height: 8),
-                          //   GestureDetector(
-                          //     child: Center(
-                          //       child: CachedNetworkImage(
-                          //         imageUrl:
-                          //             'https://upload.wikimedia.org/wikipedia/commons/2/29/Google_Play_Store_badge_NL_%28New%29_and_Apple_App_Store_badge.png',
-                          //         height: 50,
-                          //       ),
-                          //     ),
-                          //   ),
-                          // ],
+
+                          if (selectedOptions
+                              .any((e) => e == "Own Delivery")) ...[
+                            const SubTitleText(
+                              title:
+                                  '(To manage deliveries, get our Delivery Partner App)',
+                            ),
+                            const SizedBox(height: 8),
+
+                            // App store banner
+                            GestureDetector(
+                              onTap: () {
+                                launchUrl(Uri.parse(
+                                    'https://play.google.com/store/apps/details?id=com.app.bringessedeliverypartner'));
+                              },
+                              child: Center(
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                      'https://www.einpresswire.com/image/large/741945/google-play-logo.png',
+                                  height: 50,
+                                ),
+                              ),
+                            ),
+                          ],
                           vericalSpaceMedium,
                           const SubTitleText(title: "Add document"),
                           vericalSpaceMedium,

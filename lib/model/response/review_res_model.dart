@@ -256,7 +256,7 @@ class StoreDetailsModel {
   String? image;
   int? status;
   int? featured;
-  int? rating;
+  double? rating;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -304,9 +304,8 @@ class StoreDetailsModel {
     contactNo = json['contactNo'];
     sellerId = json['sellerId'];
     categoryId = json['categoryId'];
-    documents = json['documents'] != null
-        ? List<String>.from(json['documents'])
-        : null;
+    documents =
+        json['documents'] != null ? List<String>.from(json['documents']) : null;
     image = json['image'];
     status = json['status'];
     featured = json['featured'];

@@ -8,6 +8,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dar
 import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_list.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
@@ -243,14 +244,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
 
                       // Revenue
-                      CustomCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SubTitleText(title: "Total Revenue"),
-                            TitleText(title: "${model.totalRevenue ?? '0'}"),
-                            // Image.asset('assets/icons/money icon.png')
-                          ],
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomCard(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RevenueScreen(),
+                                ));
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SubTitleText(title: "Total Revenue"),
+                              TitleText(title: "${model.totalRevenue ?? '0'}"),
+                            ],
+                          ),
                         ),
                       ),
 

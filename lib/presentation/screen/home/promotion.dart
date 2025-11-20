@@ -48,6 +48,7 @@ class _PromotionScreenState extends State<PromotionScreen> {
   String? storeId;
   @override
   Widget build(BuildContext context) {
+    storeId = sharedPreferenceHelper.getStoreId;
     return BlocConsumer<PromotionBeforeDataCubit, PromotionBeforeState>(
       listener: (context, state) {
         storeId = sharedPreferenceHelper.getStoreId;
@@ -58,159 +59,181 @@ class _PromotionScreenState extends State<PromotionScreen> {
               title: "Promotion",
               showLeading: false,
             ),
-            body: Padding(
-              padding: EdgeInsets.all(10.w),
-              child: Column(
-                children: [
-                  const Row(
+            body: BlocConsumer<PromotionBeforeDataCubit, PromotionBeforeState>(
+              listener: (context, state) {
+                storeId = sharedPreferenceHelper.getStoreId;
+              },
+              builder: (context, state) {
+                return Padding(
+                  padding: EdgeInsets.all(10.w),
+                  child: Column(
                     children: [
-                      TitleText(title: "Banner history"),
-                    ],
-                  ),
-                  vericalSpaceMedium,
-                  Expanded(
-                    child: BlocBuilder<ViewPromotionCubit, ViewPromotionState>(
-                      builder: (context, state) {
-                        if (state.networkStatusEnum ==
-                            NetworkStatusEnum.initial) {
-                          const Center(
-                            child: Text("No promotions found"),
-                          );
-                        }
-                        if (state.networkStatusEnum ==
-                            NetworkStatusEnum.loading) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (state.networkStatusEnum ==
-                                NetworkStatusEnum.loaded &&
-                            state.promotionpreRes.status == "true") {
-                          final promotions = state.promotionpreRes.banners;
-                          if (promotions == null || promotions.isEmpty) {
-                            return const Center(
-                              child: Text("No promotions found"),
-                            );
-                          }
+                      const Row(
+                        children: [
+                          TitleText(title: "Banner history"),
+                        ],
+                      ),
+                      vericalSpaceMedium,
+                      Expanded(
+                        child:
+                            BlocBuilder<ViewPromotionCubit, ViewPromotionState>(
+                          builder: (context, state) {
+                            if (state.networkStatusEnum ==
+                                NetworkStatusEnum.initial) {
+                              const Center(
+                                child: Text("No promotions found"),
+                              );
+                            }
+                            if (state.networkStatusEnum ==
+                                NetworkStatusEnum.loading) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (state.networkStatusEnum ==
+                                    NetworkStatusEnum.loaded &&
+                                state.promotionpreRes.status == "true") {
+                              final promotions = state.promotionpreRes.banners;
+                              if (promotions == null || promotions.isEmpty) {
+                                return const Center(
+                                  child: Text("No promotions found"),
+                                );
+                              }
 
-                          return ListView.builder(
-                            itemCount: promotions.length,
-                            itemBuilder: (context, index) {
-                              final promo = promotions[index];
-                              return Card(
-                                margin: EdgeInsets.symmetric(vertical: 6.h),
-                                child: Padding(
-                                  padding: EdgeInsets.all(8.w),
-                                  child: Row(
-                                    children: [
-                                      // App Banner Image
-                                      CachedNetworkImage(
-                                        imageUrl:
-                                            "${ApiConstant.imageUrl}/public/media/promotions/${promo.appImage}",
-                                        height: 100.h,
-                                        width: 100.w,
-                                      ),
+                              return ListView.builder(
+                                itemCount: promotions.length,
+                                itemBuilder: (context, index) {
+                                  final promo = promotions[index];
+                                  return Card(
+                                    margin: EdgeInsets.symmetric(vertical: 6.h),
+                                    child: Padding(
+                                      padding: EdgeInsets.all(8.w),
+                                      child: Row(
+                                        children: [
+                                          // App Banner Image
+                                          CachedNetworkImage(
+                                            imageUrl:
+                                                "${ApiConstant.imageUrl}/public/media/promotions/${promo.appImage}",
+                                            height: 100.h,
+                                            width: 100.w,
+                                          ),
 
-                                      SizedBox(width: 10.w),
-                                      // Details Column
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              "Sections: ${promo.displaySection?.join(', ') ?? '-'}",
-                                              style: const TextStyle(
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                            Text(
-                                              "Type: ${promo.type ?? '-'}",
-                                            ),
-                                            Row(
+                                          SizedBox(width: 10.w),
+                                          // Details Column
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
                                               children: [
-                                                Container(
-                                                  width: 10.w,
-                                                  height: 10.h,
-                                                  decoration: BoxDecoration(
-                                                    color: promo.status == 3
-                                                        ? Colors.orange
-                                                        : Colors.green,
-                                                    shape: BoxShape.circle,
-                                                  ),
+                                                Text(
+                                                  "Sections: ${promo.displaySection?.join(', ') ?? '-'}",
+                                                  style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w500),
                                                 ),
-                                                SizedBox(width: 5.w),
-                                                Text(promo.status == 3
-                                                    ? "Pending"
-                                                    : 'Active'),
+                                                Text(
+                                                  "Type: ${promo.type ?? '-'}",
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      width: 10.w,
+                                                      height: 10.h,
+                                                      decoration: BoxDecoration(
+                                                        color: promo.status == 1
+                                                            ? Colors.green
+                                                            : promo.status == 2
+                                                                ? Colors.orange
+                                                                : promo.status ==
+                                                                        3
+                                                                    ? Colors
+                                                                        .grey
+                                                                    : Colors
+                                                                        .red,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    ),
+                                                    SizedBox(width: 5.w),
+                                                    Text(promo.status == 1
+                                                        ? "Pending"
+                                                        : promo.status == 2
+                                                            ? "Active"
+                                                            : promo.status == 3
+                                                                ? "Expired"
+                                                                : "false"),
+                                                  ],
+                                                ),
                                               ],
                                             ),
-                                          ],
-                                        ),
-                                      ),
-                                      // Status & Actions
-                                      Column(
-                                        children: [
-                                          SizedBox(height: 5.h),
-                                          Row(
+                                          ),
+                                          // Status & Actions
+                                          Column(
                                             children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  showCustomConfirmationDialog(
-                                                    content:
-                                                        "Are you sure, you want to delete this banner ?",
-                                                    context: context,
-                                                    title: "Delete",
-                                                    onConfirm: () {
-                                                      _delete(promo.id);
-                                                      Fluttertoast.showToast(
-                                                        msg:
-                                                            "Banner deleted successfully",
-                                                        toastLength:
-                                                            Toast.LENGTH_SHORT,
-                                                      );
+                                              SizedBox(height: 5.h),
+                                              Row(
+                                                children: [
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      showCustomConfirmationDialog(
+                                                        content:
+                                                            "Are you sure, you want to delete this banner ?",
+                                                        context: context,
+                                                        title: "Delete",
+                                                        onConfirm: () {
+                                                          _delete(promo.id);
+                                                          Fluttertoast
+                                                              .showToast(
+                                                            msg:
+                                                                "Banner deleted successfully",
+                                                            toastLength: Toast
+                                                                .LENGTH_SHORT,
+                                                          );
 
-                                                      final storeId =
-                                                          sharedPreferenceHelper
-                                                              .getStoreId;
-                                                      if (storeId != null &&
-                                                          storeId.isNotEmpty) {
-                                                        context
-                                                            .read<
-                                                                ViewPromotionCubit>()
-                                                            .login(
-                                                                StoreIdReqmodel(
+                                                          final storeId =
+                                                              sharedPreferenceHelper
+                                                                  .getStoreId;
+                                                          if (storeId != null &&
+                                                              storeId
+                                                                  .isNotEmpty) {
+                                                            context
+                                                                .read<
+                                                                    ViewPromotionCubit>()
+                                                                .login(StoreIdReqmodel(
                                                                     storeId:
                                                                         storeId));
-                                                      }
+                                                          }
+                                                        },
+                                                        cancelText: "No",
+                                                        confirmText: "Yes",
+                                                      );
                                                     },
-                                                    cancelText: "No",
-                                                    confirmText: "Yes",
-                                                  );
-                                                },
-                                                icon: const Icon(Icons.delete),
+                                                    icon: const Icon(
+                                                        Icons.delete),
+                                                  ),
+                                                ],
                                               ),
                                             ],
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  ),
-                                ),
+                                    ),
+                                  );
+                                },
                               );
-                            },
-                          );
-                        } else if (state.networkStatusEnum ==
-                            NetworkStatusEnum.initial) {
-                          return const Center(
-                            child: Text("No data"),
-                          );
-                        } else {
-                          return const SizedBox();
-                        }
-                      },
-                    ),
+                            } else if (state.networkStatusEnum ==
+                                NetworkStatusEnum.initial) {
+                              return const Center(
+                                child: Text("No data"),
+                              );
+                            } else {
+                              return const SizedBox();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             bottomNavigationBar: SafeArea(
               child: Container(

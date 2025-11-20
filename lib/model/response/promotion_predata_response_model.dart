@@ -4,7 +4,8 @@ class PromotionPredataResponseModel {
   List<Section>? sections;
   AppData? appData;
 
-  PromotionPredataResponseModel({this.status, this.stores, this.sections, this.appData});
+  PromotionPredataResponseModel(
+      {this.status, this.stores, this.sections, this.appData});
 
   PromotionPredataResponseModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
@@ -20,7 +21,8 @@ class PromotionPredataResponseModel {
         sections!.add(Section.fromJson(v));
       });
     }
-    appData = json['appData'] != null ? AppData.fromJson(json['appData']) : null;
+    appData =
+        json['appData'] != null ? AppData.fromJson(json['appData']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -56,7 +58,7 @@ class Store {
   int? packingCharge;
   int? status;
   int? featured;
-  int? rating;
+  // double? rating;
   String? createdAt;
   String? updatedAt;
   int? v;
@@ -78,20 +80,22 @@ class Store {
       this.packingCharge,
       this.status,
       this.featured,
-      this.rating,
+      // this.rating,
       this.createdAt,
       this.updatedAt,
       this.v});
 
   Store.fromJson(Map<String, dynamic> json) {
-    location = json['location'] != null ? Location.fromJson(json['location']) : null;
+    location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
     id = json['_id'];
     name = json['name'];
     contactNo = json['contactNo'];
     sellerId = json['sellerId'];
     categoryId = json['categoryId'];
     address = json['address'];
-    documents = json['documents'] != null ? List<String>.from(json['documents']) : [];
+    documents =
+        json['documents'] != null ? List<String>.from(json['documents']) : [];
     image = json['image'];
     description = json['description'];
     openingTime = json['openingTime'];
@@ -100,7 +104,7 @@ class Store {
     packingCharge = json['packingCharge'];
     status = json['status'];
     featured = json['featured'];
-    rating = json['rating'];
+    // rating = json['rating'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
@@ -126,7 +130,7 @@ class Store {
     data['packingCharge'] = packingCharge;
     data['status'] = status;
     data['featured'] = featured;
-    data['rating'] = rating;
+    // data['rating'] = rating;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
     data['__v'] = v;
@@ -164,7 +168,14 @@ class Section {
   String? updatedAt;
   int? v;
 
-  Section({this.id, this.type, this.price, this.status, this.createdAt, this.updatedAt, this.v});
+  Section(
+      {this.id,
+      this.type,
+      this.price,
+      this.status,
+      this.createdAt,
+      this.updatedAt,
+      this.v});
 
   Section.fromJson(Map<String, dynamic> json) {
     id = json['_id'];

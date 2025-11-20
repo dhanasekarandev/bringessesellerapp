@@ -3,157 +3,198 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
+/// ------------------------------------------------------
+///  BACKGROUND FCM HANDLER
+/// ------------------------------------------------------
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-
-   await Firebase.initializeApp();
+  await Firebase.initializeApp();
 
   if (kDebugMode) {
-    print("📩 Background FCM received");
-    print("Data: ${message.data}");
+    print("📩 BACKGROUND FCM RECEIVED");
+    print("➡ Data: ${message.data}");
   }
 
   await NotificationService().showBackgroundNotification(
-    message.data['scope'] ?? 'General',
-    message.data['message'] ?? 'No message body',
+    message.data['scope'] ?? 'Notification',
+    message.data['message'] ?? '',
   );
 }
 
+/// ------------------------------------------------------
+///  NOTIFICATION SERVICE SINGLETON
+/// ------------------------------------------------------
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
 
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin _local =
       FlutterLocalNotificationsPlugin();
 
-  /// Initialize Firebase Messaging and Local Notifications
+  static const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    "high_importance",
+    "High Importance Notifications",
+    description: "Shows important notifications",
+    importance: Importance.max,
+  );
+
+  /// ------------------------------------------------------
+  ///  INIT METHOD (CALL IN main.dart)
+  /// ------------------------------------------------------
   Future<void> init() async {
-    // Register background handler
+    // Background handler must be registered first
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    await _initLocalNotifications();
-    await _requestNotificationPermission();
-    await _getToken();
-    _setupMessageHandlers();
+    await _initializeLocalNotifications();
+    await _requestPermissions();
+    await _printToken();
+
+    _setupForegroundHandler();
+    _setupOnMessageOpenedApp();
+    _setupInitialMessage();
   }
 
-  /// Request permission (important for iOS)
-  Future<void> _requestNotificationPermission() async {
-    NotificationSettings settings = await _messaging.requestPermission(
+  /// ------------------------------------------------------
+  ///  REQUEST PERMISSION (iOS only, Android auto-granted)
+  /// ------------------------------------------------------
+  Future<void> _requestPermissions() async {
+    final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
+
     if (kDebugMode) {
-      print("🔐 Notification permission: ${settings.authorizationStatus}");
+      print("🔐 Permission Status → ${settings.authorizationStatus}");
     }
   }
 
-  /// Get FCM token
-  Future<void> _getToken() async {
-    String? token = await _messaging.getToken();
-    if (kDebugMode) {
-      print("📱 FCM Token: $token");
-    }
+  /// ------------------------------------------------------
+  ///  FETCH AND PRINT DEVICE FCM TOKEN
+  /// ------------------------------------------------------
+  Future<void> _printToken() async {
+    final token = await _messaging.getToken();
+    if (kDebugMode) print("📱 FCM TOKEN → $token");
   }
 
-  /// Local notification initialization
-  Future<void> _initLocalNotifications() async {
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+  /// ------------------------------------------------------
+  ///  LOCAL NOTIFICATION INIT
+  /// ------------------------------------------------------
+  Future<void> _initializeLocalNotifications() async {
+    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
+    const iosInit = DarwinInitializationSettings();
 
-    const InitializationSettings initSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
 
-    await _localNotificationsPlugin.initialize(
+    await _local.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      onDidReceiveNotificationResponse: (response) {
         if (kDebugMode) {
-          print("🚀 Notification tapped: ${response.payload}");
+          print("👉 Notification tapped: ${response.payload}");
         }
-        // Add navigation handling here if needed
       },
     );
+
+    // Create Android notification channel
+    await _local
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
   }
 
-  /// Show notification in foreground
-  Future<void> _showLocalNotification(RemoteMessage message) async {
-    final data = message.data;
-    final String title = data['scope'] ?? 'Notification';
-    final String body = data['message'] ?? 'No message';
+  /// ------------------------------------------------------
+  ///  FOREGROUND FCM HANDLER
+  /// ------------------------------------------------------
+  void _setupForegroundHandler() {
+    print("sdfsdf");
+    FirebaseMessaging.onMessage.listen((message) {
+      if (kDebugMode) {
+        print("💥 FOREGROUND MESSAGE");
+        print("➡ Data: ${message}");
+      }
+      showForegroundNotification(message);
+    });
+  }
 
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
-      channelDescription: 'Used for important notifications',
+  /// ------------------------------------------------------
+  ///  FOREGROUND LOCAL NOTIFICATION
+  /// ------------------------------------------------------
+  Future<void> showForegroundNotification(RemoteMessage message) async {
+    final data = message.data;
+
+    final String title = data['scope'] ?? "Notification";
+    final String body = data['message'] ?? "";
+
+    const androidDetails = AndroidNotificationDetails(
+      "high_importance",
+      "High Importance Notifications",
+      channelDescription: "This channel is used for important notifications",
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
     );
 
-    const NotificationDetails platformDetails =
-        NotificationDetails(android: androidDetails);
+    const details = NotificationDetails(android: androidDetails);
 
-    await _localNotificationsPlugin.show(
+    await _local.show(
       message.hashCode,
       title,
       body,
-      platformDetails,
-      payload: title,
+      details,
+      payload: body,
     );
   }
 
-  /// Show notification in background or terminated
+  /// ------------------------------------------------------
+  ///  BACKGROUND / TERMINATED NOTIFICATION
+  /// ------------------------------------------------------
   Future<void> showBackgroundNotification(String title, String body) async {
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      'high_importance_channel',
-      'High Importance Notifications',
-      channelDescription: 'Used for important notifications',
+    const androidDetails = AndroidNotificationDetails(
+      "high_importance",
+      "High Importance Notifications",
+      channelDescription: "This channel is used for important notifications",
       importance: Importance.max,
       priority: Priority.high,
       playSound: true,
     );
 
-    const NotificationDetails notificationDetails =
-        NotificationDetails(android: androidDetails);
+    const platformDetails = NotificationDetails(android: androidDetails);
 
-    await _localNotificationsPlugin.show(
+    await _local.show(
       DateTime.now().millisecondsSinceEpoch ~/ 1000,
       title,
       body,
-      notificationDetails,
-      payload: title,
+      platformDetails,
     );
   }
 
-  /// Foreground / Background message handling
-  void _setupMessageHandlers() {
-    // Foreground
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  /// ------------------------------------------------------
+  ///  WHEN USER TAPS NOTIFICATION (APP IN BACKGROUND)
+  /// ------------------------------------------------------
+  void _setupOnMessageOpenedApp() {
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
       if (kDebugMode) {
-        print("💥 Foreground message received: ${message.data}");
-      }
-      _showLocalNotification(message);
-    });
-
-    // Background tap
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        print("🚀 Notification opened from background: ${message.data}");
+        print("🚀 Notification opened from background");
+        print("➡ ${message.data}");
       }
     });
+  }
 
-    // Terminated state
-    _messaging.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null && kDebugMode) {
-        print("🟢 App opened from killed state: ${message.data}");
+  /// ------------------------------------------------------
+  ///  APP OPENED FROM TERMINATED STATE
+  /// ------------------------------------------------------
+  void _setupInitialMessage() {
+    _messaging.getInitialMessage().then((message) {
+      if (message != null) {
+        if (kDebugMode) {
+          print("🟢 App launched from TERMINATED by tapping the notification");
+          print("➡ ${message.data}");
+        }
       }
     });
   }

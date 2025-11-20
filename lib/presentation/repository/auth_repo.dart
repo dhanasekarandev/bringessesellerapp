@@ -50,6 +50,7 @@ import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/model/response/order_update_res_model.dart';
 import 'package:bringessesellerapp/model/response/payou_error_response_model.dart';
 import 'package:bringessesellerapp/model/response/payout_response_model.dart';
+import 'package:bringessesellerapp/model/response/privacy_policy_res_model.dart';
 import 'package:bringessesellerapp/model/response/product_by_id_response_model.dart';
 import 'package:bringessesellerapp/model/response/product_list_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
@@ -195,6 +196,25 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, SubscriptionResponseModel());
+    }
+  }
+
+  Future<dynamic> privacyPolicy() async {
+    try {
+      var response = await apiService.get(ApiConstant.privacyPolicy, false);
+      if (response.data['status_code'] == 200) {
+        log("Subcrition defaults:${response.data}");
+        var responseData = response.data;
+        return (true, TermsResponseModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, TermsResponseModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, TermsResponseModel());
     }
   }
 
@@ -956,7 +976,6 @@ class AuthRepository {
           return (false, OrderUpdateResponseModel());
         }
       } else {
-       
         return (
           false,
           OrderUpdateResponseModel(
