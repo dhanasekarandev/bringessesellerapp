@@ -7,6 +7,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
@@ -16,7 +17,7 @@ import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_listile.dart';
 import 'package:bringessesellerapp/presentation/widget/graph_widget.dart';
-
+import 'package:bringessesellerapp/presentation/screen/home/bottom_layout.dart';
 import 'package:bringessesellerapp/presentation/widget/payment_detail_card.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
@@ -221,10 +222,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               title: "${model.successfulOrders ?? '0'}",
                               subtitle: "Successful orders",
                             ),
-                            CustomListTile(
-                              leadingIcon: Icons.pending_actions_outlined,
-                              title: "${model.unSuccessfulOrders ?? '0'}",
-                              subtitle: "Pending orders",
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const OrderScreen(
+                                        from: 'dash',
+                                      ),
+                                    ));
+                              },
+                              child: CustomListTile(
+                                leadingIcon: Icons.pending_actions_outlined,
+                                title: "${model.unSuccessfulOrders ?? '0'}",
+                                subtitle: "Pending orders",
+                              ),
                             ),
                           ],
                         ),

@@ -1,29 +1,31 @@
 import 'package:bringessesellerapp/presentation/repository/auth_repo.dart';
-import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_state.dart';
+
+import 'package:bringessesellerapp/presentation/screen/home/bloc/update_order_state.dart';
+
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class NotificationCubit extends Cubit<NotificationState> {
+class OderStatusUpdateCubit extends Cubit<UpdateOrderState> {
   AuthRepository authRepository;
 
-  NotificationCubit({required this.authRepository})
-      : super(NotificationState.initial());
+  OderStatusUpdateCubit({required this.authRepository})
+      : super(UpdateOrderState.initial());
 
-  void login(notificationReq) async {
+  void login(productupdatereq) async {
     emit(state.copyWith(networkStatusEnum: NetworkStatusEnum.loading));
 
     (bool, dynamic) response =
-        await authRepository.notificationList(notificationReq);
+        await authRepository.orderUpdateStatus(productupdatereq);
 
     if (response.$1 == true) {
       emit(state.copyWith(
         networkStatusEnum: NetworkStatusEnum.loaded,
-        notificationResponseModel: response.$2,
+        reviewResponseModel: response.$2,
       ));
     } else {
       emit(state.copyWith(
           networkStatusEnum: NetworkStatusEnum.failed,
-          notificationResponseModel: response.$2));
+          reviewResponseModel: response.$2));
     }
   }
 }

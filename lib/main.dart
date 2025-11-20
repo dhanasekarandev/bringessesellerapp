@@ -22,9 +22,11 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_cr
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/remove_video_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/revenue_graph_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
@@ -92,21 +94,23 @@ void main() async {
   await NotificationService().init();
 
   // 5️⃣ Location + remote config
-  final RemoteConfigService remoteConfigService = RemoteConfigService();
+  // final RemoteConfigService remoteConfigService = RemoteConfigService();
   bool granted = await LocationPermissionHelper.isLocationGranted();
   if (!granted) {
     await LocationPermissionHelper.requestLocationPermission();
   }
-  await remoteConfigService.init();
+  // await remoteConfigService.init();
 
   // 6️⃣ Run app
-  runApp(MyApp(remoteConfigService: remoteConfigService));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final RemoteConfigService remoteConfigService;
+  // final RemoteConfigService remoteConfigService;
 
-  MyApp({super.key, required this.remoteConfigService});
+  MyApp({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -265,6 +269,12 @@ class MyApp extends StatelessWidget {
           BlocProvider<ReviewCubit>(
               create: (repoContext) =>
                   ReviewCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<RevenueGraphCubit>(
+              create: (repoContext) => RevenueGraphCubit(
+                  authRepository: AuthRepository(apiService))),
+          BlocProvider<OderStatusUpdateCubit>(
+              create: (repoContext) => OderStatusUpdateCubit(
+                  authRepository: AuthRepository(apiService))),
           BlocProvider<ThemeCubit>(create: (repoContext) => ThemeCubit()),
         ],
         child: ScreenUtilInit(

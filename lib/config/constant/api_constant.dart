@@ -85,6 +85,7 @@ class ApiConstant {
   static const String transcationPromotion = 'promotions/transaction';
   static const String viewPromotion = 'promotions/views';
   static const String order = 'orders/lists';
+  static const String updateOrderstatus = 'orders/changeStatus';
   static const String menuUpdate = 'menus/update';
   static const String productUploadvideo = 'upload-video';
   static const String productvideoremove = 'remove-video';
@@ -104,4 +105,5 @@ class ApiConstant {
   static String deleteCoupon(String couponId) => 'coupon/delete/$couponId';
   static String updateCoupon(String couponId) => 'coupon/update/$couponId';
   static const String reviewlist = 'reviews/lists';
+  static String revenuegraph(String storeId) => 'chart/$storeId';
 }

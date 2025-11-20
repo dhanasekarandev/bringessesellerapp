@@ -14,6 +14,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/change_pasword_sc
 import 'package:bringessesellerapp/presentation/screen/profile/coupon_screeen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/create_coupon_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/payout_prefs.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/privacy_policy.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/profile_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/subcription_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/register/approval_screen.dart';
@@ -106,6 +107,12 @@ final GoRouter appRouter = GoRouter(
               return SubcriptionScreen(
                 data: args['subs'],
               );
+            },
+          ),
+          GoRoute(
+            path: '/privacy',
+            builder: (context, state) {
+              return const PrivacyPolicy();
             },
           ),
           GoRoute(

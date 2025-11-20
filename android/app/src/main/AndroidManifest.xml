@@ -28,7 +28,7 @@
         android:icon="@mipmap/ic_launcher"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true">
-
+        
         <!-- ✅ Main Activity -->
         <activity
             android:name=".MainActivity"

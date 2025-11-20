@@ -20,6 +20,7 @@ import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,15 +61,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _saveProfile() {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String contact = _contactController.text.trim();
+
+// Basic validation
+    if (name.isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Please enter your name",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    if (email.isEmpty) {
+      Fluttertoast.showToast(
+        msg: "Please enter your email",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+// Simple email validation
+    if (!RegExp(r"^[\w-.]+@([\w-]+.)+[\w-]{2,4}$").hasMatch(email)) {
+      showAppToast(message: "Please enter a valid email", isError: true);
+      return;
+    }
+
+    if (contact.isEmpty) {
+      showAppToast(message: "Please enter your contact number", isError: true);
+      return;
+    }
+
+// Simple contact number validation (10 digits)
+    if (!RegExp(r'^\d{10}$').hasMatch(contact)) {
+      showAppToast(
+          message: "Please enter a valid 10-digit contact number",
+          isError: true);
+      return;
+    }
+
+// If all validations pass, update the profile
     context.read<EditProfileCubit>().login(EditProfileRequestModel(
-        contactNo: _contactController.text,
-        email: _emailController.text,
-        name: _nameController.text,
-        liveStatus: true,
-        sellerId: sellerId ?? sharedPreferenceHelper.getSellerId));
+          contactNo: contact,
+          email: email,
+          name: name,
+          liveStatus: true,
+          sellerId: sellerId ?? sharedPreferenceHelper.getSellerId,
+        ));
+
     Fluttertoast.showToast(
       msg: "Profile data updated",
-      backgroundColor: Colors.green,
       textColor: Colors.white,
       toastLength: Toast.LENGTH_SHORT,
     );
@@ -378,7 +423,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   extra: {'subs': subscriptionData});
                             },
                           ),
-
+                          // CustomListTile(
+                          //   title: "Privacy Policy",
+                          //   leadingIcon: Icons.policy_outlined,
+                          //   trailing: const Icon(Icons.arrow_forward_ios),
+                          //   onTap: () {
+                          //     context.push(
+                          //       '/profile/privacy',
+                          //     );
+                          //   },
+                          // ),
                           CustomListTile(
                             title: "Version",
                             leadingIcon: Icons.info_outline,

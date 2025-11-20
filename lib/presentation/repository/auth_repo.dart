@@ -29,6 +29,7 @@ import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/transaction_request_model.dart';
+import 'package:bringessesellerapp/model/request/update_order_req_model.dart';
 import 'package:bringessesellerapp/model/request/upload_video_req_model.dart';
 import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
@@ -46,6 +47,7 @@ import 'package:bringessesellerapp/model/response/menu_create_res_model.dart';
 import 'package:bringessesellerapp/model/response/menu_list_response_model.dart';
 import 'package:bringessesellerapp/model/response/notification_model.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
+import 'package:bringessesellerapp/model/response/order_update_res_model.dart';
 import 'package:bringessesellerapp/model/response/payou_error_response_model.dart';
 import 'package:bringessesellerapp/model/response/payout_response_model.dart';
 import 'package:bringessesellerapp/model/response/product_by_id_response_model.dart';
@@ -53,6 +55,7 @@ import 'package:bringessesellerapp/model/response/product_list_response_model.da
 import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
+import 'package:bringessesellerapp/model/response/revenue_graph_res_model.dart';
 import 'package:bringessesellerapp/model/response/review_res_model.dart';
 import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
@@ -233,7 +236,12 @@ class AuthRepository {
     } catch (e, stacktrace) {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
-      return (false, DashboardModel(status: "false",));
+      return (
+        false,
+        DashboardModel(
+          status: "false",
+        )
+      );
     }
   }
 
@@ -689,6 +697,27 @@ class AuthRepository {
     }
   }
 
+  Future<dynamic> revenueGraph() async {
+    try {
+      final storeId = sharedPreferenceHelper?.getStoreId;
+      var response =
+          await apiService.get(ApiConstant.revenuegraph(storeId!), false);
+      print("asldfnd${response.data}");
+      if (response.statusCode == 200) {
+        var responseData = response.data;
+        return (true, RevenueGraphResModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.data['status_code']}');
+        return (false, RevenueGraphResModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, RevenueGraphResModel());
+    }
+  }
+
   Future<dynamic> productUpdate(
       ProductUpdateReqModel productupdateModel) async {
     try {
@@ -901,6 +930,45 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace: $stacktrace');
       return (false, CommonSuccessResModel());
+    }
+  }
+
+  Future<dynamic> orderUpdateStatus(
+      UpdateOrderStatusReqModel uploadvideoreq) async {
+    try {
+      print("Store request: $uploadvideoreq");
+
+      var response = await apiService.patch(
+        ApiConstant.updateOrderstatus,
+        uploadvideoreq,
+        false,
+        isFormData: false,
+      );
+
+      log("API response: $response");
+
+      if (response.statusCode == 200) {
+        if (response.data['status'] == "true") {
+          var responseData = response.data;
+          return (true, OrderUpdateResponseModel.fromJson(responseData));
+        } else {
+          print('Unexpected statusss: ${response.data['message']}');
+          return (false, OrderUpdateResponseModel());
+        }
+      } else {
+       
+        return (
+          false,
+          OrderUpdateResponseModel(
+            message: response.data['message'],
+            status: 'false',
+          )
+        );
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace: $stacktrace');
+      return (false, OrderUpdateResponseModel());
     }
   }
 

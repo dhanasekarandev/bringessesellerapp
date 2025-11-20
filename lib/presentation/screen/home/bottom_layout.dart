@@ -25,6 +25,10 @@ class BottomNavBar extends StatefulWidget {
 
 class _BottomNavBarState extends State<BottomNavBar> {
   int _selectedIndex = 0;
+  static _BottomNavBarState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_BottomNavBarState>();
+  }
+
   late SharedPreferenceHelper sharedPreferenceHelper;
   @override
   void initState() {

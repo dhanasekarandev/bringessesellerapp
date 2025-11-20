@@ -397,6 +397,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         _catId = data!.categoryId;
                         print("${data.image}");
                         _name.text = data.name ?? '';
+
                         _phone.text = data.contactNo?.toString() ?? '';
                         selectedOption = data.categoryId;
                         _des.text = data.description ?? "";

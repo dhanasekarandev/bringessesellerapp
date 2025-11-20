@@ -11,9 +11,11 @@ import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 class OrderScreen extends StatefulWidget {
-  const OrderScreen({super.key});
+  final String? from;
+  const OrderScreen({super.key, this.from});
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -32,12 +34,12 @@ class _OrderScreenState extends State<OrderScreen>
 
     _tabController = TabController(length: 2, vsync: this);
 
-    _loadOrder(status: "");
+    _loadOrder(status: "pending");
 
     // Change tab listener
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-      final status = _tabController.index == 0 ? "" : "";
+      final status = _tabController.index == 0 ? "pending" : "completed";
       _loadOrder(status: status);
     });
   }
@@ -46,7 +48,7 @@ class _OrderScreenState extends State<OrderScreen>
     context.read<OderListCubit>().login(
           OderListReqModel(
             storeId: sharedPreferenceHelper.getStoreId,
-            status: "",
+            status: status,
             pageId: "0",
             searchKey: "",
           ),
@@ -69,14 +71,21 @@ class _OrderScreenState extends State<OrderScreen>
 
         if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
           final orders = state.orderlistresponse.result?.orders ?? [];
-          pendingOrders =
-              orders.where((e) => e.status?.toString() == "pending").toList();
+          pendingOrders = orders
+              .where((e) =>
+                  e.status?.toString() == "pending" ||
+                  e.status?.toString() == "shipped" ||
+                  e.status?.toString() == "processing" ||
+                  e.status?.toString() == "ready")
+              .toList();
           completedOrders =
               orders.where((e) => e.status?.toString() == "completed").toList();
         }
 
         return Scaffold(
-          appBar: const CustomAppBar(title: "Orders", showLeading: false),
+          appBar: CustomAppBar(
+              title: "Orders",
+              showLeading: widget.from == 'dash' ? true : false),
           body: Column(
             children: [
               // Tab section
@@ -154,7 +163,7 @@ class _OrderScreenState extends State<OrderScreen>
   Widget _buildOrderCard(OrderDetails order, {required bool isPending}) {
     final uniqueId = order.uniqueId ?? "";
     final name = order.userDetails?.name ?? "Unknown";
-    final price = order.price?.toStringAsFixed(2) ?? "0.00";
+    final price = order.total?.toStringAsFixed(2) ?? "0.00";
     final symbol = order.currencySymbol ?? "₹";
     final date = order.createdAt ?? "-";
 
@@ -166,11 +175,11 @@ class _OrderScreenState extends State<OrderScreen>
             ? Colors.grey.shade900
             : Colors.white,
         borderRadius: BorderRadius.circular(10.r),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -209,7 +218,13 @@ class _OrderScreenState extends State<OrderScreen>
             ],
           ),
           SizedBox(height: 8.h),
-          Text("Customer: $name", style: TextStyle(fontSize: 14.sp)),
+          Text(
+            "Customer: $name",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15.sp,
+            ),
+          ),
           SizedBox(height: 4.h),
           Text(
             "Price: $symbol$price",
@@ -220,8 +235,11 @@ class _OrderScreenState extends State<OrderScreen>
           ),
           SizedBox(height: 4.h),
           Text(
-            "Date: $date",
-            style: TextStyle(fontSize: 13.sp, color: Colors.grey.shade600),
+            "Date: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))}",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15.sp,
+            ),
           ),
         ],
       ),
