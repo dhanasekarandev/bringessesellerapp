@@ -115,7 +115,9 @@ class _ShopScreenState extends State<ShopScreen> {
   String? _storeImg;
   String? _storeId;
   String? _catId;
+  String selectedPlan = "Subscription";
 
+  final List<String> plans = ["Subscription", "Partnership"];
   Future<void> _pickTime({required bool isOpenTime}) async {
     final picked = await showTimePicker(
       context: context,
@@ -286,6 +288,7 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
+  String selectedSubPlan = "";
   final List<String> paymentMethods = ["Cash on Delivery", "Online payment"];
   String selectedSize = 'Small';
   String selectedService = 'Subscription';
@@ -877,12 +880,39 @@ class _ShopScreenState extends State<ShopScreen> {
                             hintText: 'add your return days',
                             controller: _return,
                           ),
+
+                          vericalSpaceMedium,
+                          const SubTitleText(
+                            title: "Select Option",
+                          ),
+                          Wrap(
+                            spacing: 12,
+                            children: plans.map((plan) {
+                              return ChoiceChip(
+                                checkmarkColor: Colors.white,
+                                label: Text(plan),
+                                selected: selectedPlan == plan,
+                                selectedColor: AppTheme.primaryColor,
+                                labelStyle: TextStyle(
+                                  color: selectedPlan == plan
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                                onSelected: (_) {
+                                  setState(() {
+                                    selectedPlan = plan;
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          vericalSpaceMedium,
+                          if (selectedPlan == "Subscription")
+                            subscriptionPlanWidgets(),
                           vericalSpaceMedium,
                           const SubTitleText(
                             title: "Select Delivery",
                           ),
-
-// Delivery Chips
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
@@ -1011,6 +1041,70 @@ class _ShopScreenState extends State<ShopScreen> {
             },
           ),
         ));
+  }
+
+  Widget subscriptionPlanWidgets() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Subscription Plans",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(child: planCard("Basic", "₹199 / month")),
+            const SizedBox(width: 10),
+            Expanded(child: planCard("Standard", "₹399 / month")),
+            const SizedBox(width: 10),
+            Expanded(child: planCard("Premium", "₹699 / month")),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget planCard(String title, String subtitle) {
+    bool isSelected = selectedSubPlan == title;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          selectedSubPlan = title;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? Colors.blueGrey : Colors.grey.shade300,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: isSelected ? Colors.white70 : Colors.grey[600],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _openDocument(String fileName) async {

@@ -27,7 +27,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_cub
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_update_cubit.dart';
-import 'package:bringessesellerapp/presentation/screen/home/bloc/order_list_cubit.dart';
+
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
@@ -64,10 +64,15 @@ import 'package:logger/logger.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
+@pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   print("Handling a background message: ${message.messageId}");
+  await NotificationService().showBackgroundNotification(
+    message.data['scope'] ?? 'Notification',
+    message.data['message'] ?? '',
+  );
 }
 
 void main() async {

@@ -76,7 +76,8 @@ class _OrderScreenState extends State<OrderScreen>
                   e.status?.toString() == "pending" ||
                   e.status?.toString() == "shipped" ||
                   e.status?.toString() == "processing" ||
-                  e.status?.toString() == "ready")
+                  e.status?.toString() == "ready" ||
+                  e.status?.toString() == 'accept')
               .toList();
           completedOrders =
               orders.where((e) => e.status?.toString() == "completed").toList();
@@ -206,7 +207,7 @@ class _OrderScreenState extends State<OrderScreen>
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: Text(
-                  isPending ? "Pending" : "Completed",
+                  "${order.status == 'accept' ? 'ready' : order.status}",
                   style: TextStyle(
                     color: isPending
                         ? Colors.orange.shade800

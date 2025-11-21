@@ -177,9 +177,10 @@ class _ProductScreenState extends State<ProductScreen>
 
                                 final totalPrice = (product.variants != null &&
                                         product.variants!.isNotEmpty)
-                                    ? product.variants!.first.totalAmount
-                                            ?.toString() ??
-                                        "0"
+                                    ? ((product.variants!.first.totalAmount ??
+                                            0)
+                                        .toDouble()
+                                        .toStringAsFixed(2))
                                     : "0";
 
                                 return GestureDetector(

@@ -223,6 +223,10 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                       promotionId: state.promotionResponseModel.promotionId,
                     ),
                   );
+            } else if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.promotionResponseModel.status == 'false') {
+              showAppToast(
+                  message: state.promotionResponseModel.message.toString());
             }
           },
           builder: (context, state) {

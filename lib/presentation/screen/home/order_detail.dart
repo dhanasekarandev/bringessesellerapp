@@ -49,16 +49,17 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
   @override
   void initState() {
-    print("sljdfbhskdj${widget.order.status}");
     super.initState();
     sharedPreferenceHelper = SharedPreferenceHelper();
     sharedPreferenceHelper.init();
 
-    currentStatus = widget.order.status ?? "pending";
+    currentStatus = widget.order.status == 'accept'
+        ? 'ready'
+        : widget.order.status ?? "pending";
   }
 
   String? tempStatus;
-  String? otp;
+  String? localOTP;
 
   /// =========================
   /// UPDATE STATUS (API CALL)
@@ -135,10 +136,21 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     return BlocConsumer<OderStatusUpdateCubit, UpdateOrderState>(
       listener: (context, state) {
-        print("slkdhfn${state.reviewResponseModel.status}");
         if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
             state.reviewResponseModel.status == 'true') {
-          otp = state.reviewResponseModel.data!.otp.toString();
+          //
+          if (state.reviewResponseModel.data!.status == 'processing') {
+            final otp = state.reviewResponseModel.data!.otp.toString();
+            final orderId = widget.order.orderId.toString();
+
+            sharedPreferenceHelper.saveOrderOtp(orderId, otp);
+
+            // store in local variable
+            localOTP = otp;
+
+            print("Local OTP: $localOTP");
+          }
+
           showAppToast(
               message: "Status changed to ${state.reviewResponseModel.status}");
           setState(() {
@@ -298,7 +310,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
                             // ⭐ OTP UI when status = shipped
                             if (index == currentStep &&
-                                currentStatus == "shipped") ...[
+                                currentStatus == "ready") ...[
                               Text(
                                 "Enter Delivery OTP",
                                 style: TextStyle(
@@ -320,13 +332,19 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               SizedBox(height: 10.h),
                               CustomButton(
                                 title: "Verify OTP & Shipped",
-                                onPressed: () {
-                                  if (otpController.text == otp) {
+                                onPressed: () async {
+                                  final orderId =
+                                      widget.order.orderId.toString();
+
+                                  final savedOtp = await sharedPreferenceHelper
+                                      .getOrderOtp(orderId);
+
+                                  print("Stored OTP for $orderId = $savedOtp");
+
+                                  if (otpController.text == savedOtp) {
                                     updateStatus("shipped",
                                         otp: otpController.text);
-                                    showAppToast(
-                                        message:
-                                            "OTP Verified: ${otpController.text}");
+                                    showAppToast(message: "OTP Verified");
                                   } else {
                                     showAppToast(
                                         message:

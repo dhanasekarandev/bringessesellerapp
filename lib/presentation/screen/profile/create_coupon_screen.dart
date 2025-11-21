@@ -1,5 +1,6 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/coupon_update_req_model.dart';
 import 'package:bringessesellerapp/model/request/create_coupon_req.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
@@ -107,13 +108,19 @@ class _CreateCouponState extends State<CreateCoupon> {
         );
   }
 
-  Future<void> _pickDate(TextEditingController controller) async {
+  DateTime? minEndDate;
+
+  Future<void> _pickDate(
+    TextEditingController controller, {
+    DateTime? minDate,
+  }) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2024),
+      initialDate: minDate ?? DateTime.now(),
+      firstDate: minDate ?? DateTime.now(),
       lastDate: DateTime(2030),
     );
+
     if (pickedDate != null) {
       controller.text = DateFormat('dd/MM/yyyy').format(pickedDate);
     }
@@ -300,7 +307,16 @@ class _CreateCouponState extends State<CreateCoupon> {
                       isMandatory: true,
                     ),
                     GestureDetector(
-                      onTap: () => _pickDate(_validTillController),
+                      onTap: () {
+                        DateTime? minEndDate;
+
+                        if (_validFromController.text.isNotEmpty) {
+                          minEndDate = DateFormat('dd/MM/yyyy')
+                              .parse(_validFromController.text);
+                        }
+
+                        _pickDate(_validTillController, minDate: minEndDate);
+                      },
                       child: AbsorbPointer(
                         child: CustomTextField(
                           controller: _validTillController,
@@ -317,22 +333,33 @@ class _CreateCouponState extends State<CreateCoupon> {
                       title: "Coupon Type",
                       isMandatory: true,
                     ),
-                    DropdownButtonFormField<String>(
-                      value: selectedCouponType,
-                      hint: const Text("Select coupon type"),
-                      items: couponTypes
-                          .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() => selectedCouponType = v);
-                      },
-                      decoration:
-                          const InputDecoration(border: OutlineInputBorder()),
-                      validator: (v) =>
-                          v == null ? "Please select coupon type" : null,
+                    vericalSpaceSmall,
+
+// Coupon Type Chips
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: couponTypes.map((type) {
+                        final isSelected = selectedCouponType == type;
+
+                        return ChoiceChip(
+                          checkmarkColor: Colors.white,
+                          label: Text(type),
+                          selected: isSelected,
+                          selectedColor: AppTheme.primaryColor,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                          onSelected: (_) {
+                            setState(() => selectedCouponType = type);
+                          },
+                        );
+                      }).toList(),
                     ),
+
                     vericalSpaceMedium,
+
+// Show Product Section only when product selected
                     if (selectedCouponType == 'product') ...[
                       const SubTitleText(
                         title: "Select Product",
@@ -346,8 +373,10 @@ class _CreateCouponState extends State<CreateCoupon> {
                             return const Center(
                                 child: CircularProgressIndicator());
                           }
+
                           final list =
                               productState.productListModel.result?.items ?? [];
+
                           return DropdownButtonFormField<ProductItem>(
                             value: selectedProduct,
                             items: list
@@ -368,28 +397,38 @@ class _CreateCouponState extends State<CreateCoupon> {
                       ),
                     ],
                     vericalSpaceSmall,
+
                     const SubTitleText(
                       title: "Discount Type",
                       isMandatory: true,
                     ),
-                    DropdownButtonFormField<String>(
-                      value: selectedDiscountType,
-                      hint: const Text("Select discount type"),
-                      items: discountTypes
-                          .map(
-                              (e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() => selectedDiscountType = v);
-                      },
-                      decoration:
-                          const InputDecoration(border: OutlineInputBorder()),
-                      validator: (v) =>
-                          v == null ? "Please select discount type" : null,
+
+                    vericalSpaceSmall,
+
+// Discount Type Chips
+                    Wrap(
+                      spacing: 10,
+                      children: discountTypes.map((type) {
+                        final isSelected = selectedDiscountType == type;
+
+                        return ChoiceChip(
+                          label: Text(type),
+                          checkmarkColor: Colors.white,
+                          selected: isSelected,
+                          selectedColor: AppTheme.primaryColor,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black,
+                          ),
+                          onSelected: (_) {
+                            setState(() => selectedDiscountType = type);
+                          },
+                        );
+                      }).toList(),
                     ),
+
                     vericalSpaceMedium,
 
-                    /// Discount Value
+// Discount Value Field
                     if (selectedDiscountType != null) ...[
                       SubTitleText(
                         title: selectedDiscountType == 'percentage'
@@ -407,6 +446,7 @@ class _CreateCouponState extends State<CreateCoupon> {
                           if (v == null || v.isEmpty) return "Required";
                           final val = num.tryParse(v);
                           if (val == null) return "Invalid number";
+
                           if (selectedDiscountType == 'percentage' &&
                               (val < 1 || val > 100)) {
                             return "Percentage must be 1–100";

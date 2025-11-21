@@ -8,7 +8,7 @@ class RevenueScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: CustomAppBar(
+      appBar:  CustomAppBar(
         title: "Revenue",
       ),
       body: ListView(

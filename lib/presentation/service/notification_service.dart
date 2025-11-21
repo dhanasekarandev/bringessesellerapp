@@ -63,6 +63,7 @@ class NotificationService {
       alert: true,
       badge: true,
       sound: true,
+
     );
 
     if (kDebugMode) {
@@ -174,7 +175,7 @@ class NotificationService {
   }
 
   /// ------------------------------------------------------
-  ///  WHEN USER TAPS NOTIFICATION (APP IN BACKGROUND)
+  ///  WHEN USER TAPS NOTIFICATION (APP IN BACKGROUND)  
   /// ------------------------------------------------------
   void _setupOnMessageOpenedApp() {
     FirebaseMessaging.onMessageOpenedApp.listen((message) {

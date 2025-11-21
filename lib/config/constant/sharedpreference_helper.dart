@@ -1,5 +1,7 @@
 // import 'package:bizzol/src/config/model/site_setting_model.dart';
 
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SharedPreferenceHelper {
@@ -15,6 +17,38 @@ class SharedPreferenceHelper {
 
   Future<void> saveUserID(String? authToken) async {
     await _sharedPreferences?.setString(PrefKeys.user_id, authToken ?? "");
+  }
+
+  Future<void> saveOrderOtp(String orderId, String otp) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // get existing map
+    Map<String, dynamic> otpMap = {};
+
+    final stored = prefs.getString("orderOtpMap");
+    if (stored != null) {
+      otpMap = Map<String, dynamic>.from(jsonDecode(stored));
+    }
+
+    // update
+    otpMap[orderId] = otp;
+
+    // save back
+    await prefs.setString("orderOtpMap", jsonEncode(otpMap));
+  }
+
+  Future<String?> getOrderOtp(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString("orderOtpMap");
+
+    if (stored == null) return null;
+
+    final otpMap = Map<String, dynamic>.from(jsonDecode(stored));
+    return otpMap[orderId]?.toString();
+  }
+
+  Future<void> saveorderOTP(String? orderId) async {
+    await _sharedPreferences?.setString(PrefKeys.otp, orderId ?? "");
   }
 
   Future<void> saveSellerId(String? authToken) async {
@@ -107,6 +141,10 @@ class SharedPreferenceHelper {
     return _sharedPreferences?.getString(PrefKeys.user_id) ?? '';
   }
 
+  String get getOrderOTP {
+    return _sharedPreferences?.getString(PrefKeys.otp) ?? '';
+  }
+
   String get getSellerId {
     return _sharedPreferences?.getString(PrefKeys.seller_id) ?? '';
   }
@@ -197,6 +235,7 @@ class SharedPreferenceHelper {
 
 mixin PrefKeys {
   static const String user_id = "userID";
+  static const String otp = "otp";
   static const String siturl = 'siturl';
   static const String logo = 'logo';
   static const String version = 'version';

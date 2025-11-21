@@ -85,7 +85,7 @@ class ProductItem {
 
     images = json['images'] != null ? List<String>.from(json['images']) : [];
 
-    // variants 
+    // variants
     if (json['variants'] != null) {
       variants = <ProductVariant>[];
       json['variants'].forEach((v) {
@@ -120,12 +120,12 @@ class ProductVariant {
   String? offerAvailable;
   int? offerPrice;
   String? unit;
-  int? gst;
+  double? gst;
   double? cGstInPercent;
   double? cGstInAmount;
   double? sGstInPercent;
   double? sGstInAmount;
-  int? totalAmount;
+  double? totalAmount;
 
   ProductVariant(
       {this.name,
@@ -146,12 +146,12 @@ class ProductVariant {
     offerAvailable = json['offer_available'];
     offerPrice = json['offer_price'];
     unit = json['unit'];
-    gst = json['gst'];
+    gst = (json['gst'] ?? 0).toDouble();
     cGstInPercent = (json['cGstInPercent'] ?? 0).toDouble();
     cGstInAmount = (json['cGstInAmount'] ?? 0).toDouble();
     sGstInPercent = (json['sGstInPercent'] ?? 0).toDouble();
     sGstInAmount = (json['sGstInAmount'] ?? 0).toDouble();
-    totalAmount = json['totalAmount'];
+    totalAmount = (json['totalAmount'] ?? 0).toDouble();
   }
 
   Map<String, dynamic> toJson() {

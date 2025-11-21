@@ -549,7 +549,7 @@ class AuthRepository {
         return (true, PromotionResponseModel.fromJson(responseData));
       } else {
         print('Unexpected status code: ${response.statusCode}');
-        return (false, PromotionResponseModel());
+        return (false, PromotionResponseModel(message: response.data['message'],));
       }
     } catch (e, stacktrace) {
       print('Exception occurred: $e');

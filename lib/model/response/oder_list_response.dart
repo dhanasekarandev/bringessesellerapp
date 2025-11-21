@@ -8,7 +8,8 @@ class OrderListResponse {
   OrderListResponse.fromJson(Map<String, dynamic> json) {
     statusCode = json['status_code'];
     status = json['status'];
-    result = json['result'] != null ? OrderResult.fromJson(json['result']) : null;
+    result =
+        json['result'] != null ? OrderResult.fromJson(json['result']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -154,7 +155,8 @@ class OrderDetails {
     data['delivery_type'] = deliveryType;
     data['createdAt'] = createdAt;
     data['updatedAt'] = updatedAt;
-    if (vehicles != null) data['vehicles'] = vehicles!.map((v) => v.toJson()).toList();
+    if (vehicles != null)
+      data['vehicles'] = vehicles!.map((v) => v.toJson()).toList();
     return data;
   }
 }
@@ -167,7 +169,13 @@ class UserDetails {
   String? image;
   List<Address>? address;
 
-  UserDetails({this.id, this.contactNo, this.email, this.name, this.image, this.address});
+  UserDetails(
+      {this.id,
+      this.contactNo,
+      this.email,
+      this.name,
+      this.image,
+      this.address});
 
   UserDetails.fromJson(Map<String, dynamic> json) {
     id = json['_id'];
@@ -176,9 +184,8 @@ class UserDetails {
     name = json['name'];
     image = json['image'];
     if (json['address'] != null) {
-      address = (json['address'] as List)
-          .map((v) => Address.fromJson(v))
-          .toList();
+      address =
+          (json['address'] as List).map((v) => Address.fromJson(v)).toList();
     }
   }
 
@@ -286,8 +293,9 @@ class StoreLocation {
   StoreLocation.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     if (json['coordinates'] != null) {
-      coordinates =
-          (json['coordinates'] as List).map((e) => (e as num).toDouble()).toList();
+      coordinates = (json['coordinates'] as List)
+          .map((e) => (e as num).toDouble())
+          .toList();
     }
   }
 
@@ -300,16 +308,60 @@ class StoreLocation {
 }
 
 class DeliveryAddress {
+  double? lat;
+  double? lon;
   String? address;
+  String? location;
+  String? addressType;
+  String? flatNo;
+  String? note;
+  String? isDefault;
+  int? id;
 
-  DeliveryAddress({this.address});
+  DeliveryAddress({
+    this.lat,
+    this.lon,
+    this.address,
+    this.location,
+    this.addressType,
+    this.flatNo,
+    this.note,
+    this.isDefault,
+    this.id,
+  });
 
   DeliveryAddress.fromJson(Map<String, dynamic> json) {
-    address = json['address'];
+    // CASE 1 → full object
+    if (json['address'] is Map) {
+      final addr = json['address'];
+      lat = (addr['lat'] as num?)?.toDouble();
+      lon = (addr['lon'] as num?)?.toDouble();
+      address = addr['address'];
+      location = addr['location'];
+      addressType = addr['address_type'];
+      flatNo = addr['flat_no'];
+      note = addr['note'];
+      isDefault = addr['is_default'];
+      id = addr['id'];
+    }
+    // CASE 2 → just a string
+    else if (json['address'] is String) {
+      address = json['address'];
+    }
   }
 
   Map<String, dynamic> toJson() {
-    return {'address': address};
+    final data = <String, dynamic>{};
+    data['lat'] = lat;
+    data['lon'] = lon;
+    data['address'] = address;
+    data['location'] = location;
+    data['address_type'] = addressType;
+    data['flat_no'] = flatNo;
+    data['note'] = note;
+    data['is_default'] = isDefault;
+    data['id'] = id;
+    return data;
   }
 }
 
