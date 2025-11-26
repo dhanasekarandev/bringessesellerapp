@@ -14,6 +14,8 @@ class ProductUpdateReqModel {
   bool? outOfStock;
   bool? comboOffer;
   String? description;
+  String? isRefund;
+  String? noOfDaysToReturn;
   List<Variant>? variants;
 
   /// New images from gallery
@@ -40,6 +42,8 @@ class ProductUpdateReqModel {
     this.productImages,
     this.existingImages,
     this.deletedImages,
+    this.noOfDaysToReturn,
+    this.isRefund,
   });
 
   /// Normal JSON (useful for debugging)
@@ -58,6 +62,8 @@ class ProductUpdateReqModel {
       'variants': variants?.map((v) => v.toJson()).toList(),
       'existingImages': existingImages,
       'deletedImages': deletedImages,
+      'isRefund': isRefund,
+      'noOfDaysToReturn': noOfDaysToReturn,
     };
   }
 
@@ -74,6 +80,8 @@ class ProductUpdateReqModel {
       'outOfStock': outOfStock,
       'comboOffer': comboOffer,
       'description': description,
+      'noOfDaysToReturn': noOfDaysToReturn,
+      'isRefund': isRefund,
       'variants': variants != null
           ? jsonEncode(variants!.map((v) => v.toJson()).toList())
           : null,

@@ -5,8 +5,16 @@ import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart'
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
+import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
+import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
 
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
+import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
+import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_state.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_transaction_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/get_store_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/get_store_state.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_default_state.dart';
@@ -20,10 +28,11 @@ import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
-import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
+
 import 'package:bringessesellerapp/presentation/widget/medium_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
-import 'package:bringessesellerapp/presentation/widget/title_text.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:http/http.dart' as http;
 import 'package:bringessesellerapp/utils/enums.dart';
@@ -103,6 +112,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   void _loadShop() {
     context.read<StoreDefaultsCubit>().login();
+    context.read<SubscriptionDefaultCubit>().login();
   }
 
   void _loadShopdata() {
@@ -302,6 +312,24 @@ class _ShopScreenState extends State<ShopScreen> {
     "Store Pickup",
     "Bringesse Delivery"
   ];
+  bool isLoading = false;
+  String? selectedplanId;
+  int? selectedplanPrice;
+  void _checkout({String? subsId, double? subsPrice}) {
+    print("slkdfns${subsPrice},${subsId}");
+    context.read<SubscriptionCheckoutCubit>().login(
+        SubscriptionCheckoutReqModel(
+            subscriptionId: subsId,
+            subscriptionPrice: subsPrice,
+            sellerId: sharedPreferenceHelper.getSellerId));
+  }
+
+  void _paymentSuccess(
+      {String? orderId, String? paymentId, String? signature}) {
+    context.read<SubscriptionTransactionCubit>().login(
+        SubscriptionTransactionReq(
+            orderId: orderId, paymentId: paymentId, signature: signature));
+  }
 
   List<String> selectedOptions = [];
   @override
@@ -313,6 +341,47 @@ class _ShopScreenState extends State<ShopScreen> {
         ),
         body: MultiBlocListener(
           listeners: [
+            BlocListener<SubscriptionCheckoutCubit, SubscriptionCheckoutState>(
+              listener: (context, state) {
+                if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                    state.editProfile.statusCode == 200) {
+                  final paymentRepo = PaymentRepository();
+
+                  // 1️⃣ Initialize Razorpay handlers
+                  paymentRepo.init(
+                    onSuccess: (paymentId) {
+                      // 3️⃣ Payment success → Confirm subscription
+                      _paymentSuccess(
+                          orderId: paymentId.orderId,
+                          paymentId: paymentId.paymentId,
+                          signature: paymentId.signature);
+
+                      showAppToast(message: "Payment Success: $paymentId");
+                    },
+                    onError: (response) {
+                      setState(() => isLoading = false);
+                      showAppToast(
+                          message: "Payment Failed: ${response.message}");
+                    },
+                    onExternalWallet: (response) {},
+                  );
+
+                  // 2️⃣ Open Razorpay Payment Gateway
+                  paymentRepo.openCheckout(
+                    key: 'rzp_live_Rfez9k50NZmj77',
+                    amount:
+                        ((double.tryParse(selectedplanPrice.toString()) ?? 0) *
+                                100)
+                            .toInt(), // Must be in paise
+                    name: "Subscription Payment",
+                    description: "Subscription Payment",
+                    orderId: state
+                        .editProfile.orderId, // Required for Razorpay signature
+                    email: "seller@example.com",
+                  );
+                }
+              },
+            ),
             BlocListener<StoreUploadCubit, StoreUploadState>(
               listener: (context, state) {
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
@@ -405,8 +474,8 @@ class _ShopScreenState extends State<ShopScreen> {
 
                     if (data != null) {
                       setState(() {
-                        _storeId = data!.storeId;
-                        _catId = data!.categoryId;
+                        _storeId = data.storeId;
+                        _catId = data.categoryId;
                         print("${data.image}");
                         _name.text = data.name ?? '';
 
@@ -417,7 +486,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         if (data.storeType != null &&
                             data.storeType!.isNotEmpty) {
                           selectedSize =
-                              data.storeType!; // e.g. "small" → "Small"
+                              data.storeType!; 
                         }
                         _packingtime.text = data.packingTime.toString();
                         _packingchrg.text = data.packingCharge.toString();
@@ -882,33 +951,31 @@ class _ShopScreenState extends State<ShopScreen> {
                           ),
 
                           vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Select Option",
-                          ),
-                          Wrap(
-                            spacing: 12,
-                            children: plans.map((plan) {
-                              return ChoiceChip(
-                                checkmarkColor: Colors.white,
-                                label: Text(plan),
-                                selected: selectedPlan == plan,
-                                selectedColor: AppTheme.primaryColor,
-                                labelStyle: TextStyle(
-                                  color: selectedPlan == plan
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                                onSelected: (_) {
-                                  setState(() {
-                                    selectedPlan = plan;
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                          vericalSpaceMedium,
-                          if (selectedPlan == "Subscription")
-                            subscriptionPlanWidgets(),
+
+                          // Wrap(
+                          //   spacing: 12,
+                          //   children: plans.map((plan) {
+                          //     return ChoiceChip(
+                          //       checkmarkColor: Colors.white,
+                          //       label: Text(plan),
+                          //       selected: selectedPlan == plan,
+                          //       selectedColor: AppTheme.primaryColor,
+                          //       labelStyle: TextStyle(
+                          //         color: selectedPlan == plan
+                          //             ? Colors.white
+                          //             : Colors.black,
+                          //       ),
+                          //       onSelected: (_) {
+                          //         setState(() {
+                          //           selectedPlan = plan;
+                          //         });
+                          //       },
+                          //     );
+                          //   }).toList(),
+                          // ),
+
+                          // if (selectedPlan == "Subscription")
+                          subscriptionPlanWidgets(),
                           vericalSpaceMedium,
                           const SubTitleText(
                             title: "Select Delivery",
@@ -1044,43 +1111,80 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   Widget subscriptionPlanWidgets() {
+    final subscriptionData =
+        context.read<SubscriptionDefaultCubit>().state.viewProfile.result;
+
+    if (subscriptionData == null || subscriptionData.isEmpty) {
+      return const Text("No subscription plans available");
+    }
+
+    // Take only first two plans for display
+    final firstTwoPlans = subscriptionData.take(2).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Subscription Plans",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+        const SubTitleText(title: "Subscription Plans"),
         const SizedBox(height: 10),
+
+        // ---- FIRST TWO PLANS ----
         Row(
-          children: [
-            Expanded(child: planCard("Basic", "₹199 / month")),
-            const SizedBox(width: 10),
-            Expanded(child: planCard("Standard", "₹399 / month")),
-            const SizedBox(width: 10),
-            Expanded(child: planCard("Premium", "₹699 / month")),
-          ],
+          children: List.generate(firstTwoPlans.length, (index) {
+            final plan = firstTwoPlans[index];
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: index == firstTwoPlans.length - 1 ? 0 : 10,
+                ),
+                child: planCard(plan.name!.toUpperCase() ?? "",
+                    "₹${plan.price} / ${plan.duration}", subscriptionData),
+              ),
+            );
+          }),
         ),
+
+        const SizedBox(height: 10),
+
+        // ---- SHOW MORE ----
+        if (subscriptionData.length > 2)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: GestureDetector(
+              onTap: () {
+                showSubscriptionBottomSheet(subscriptionData);
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  "Show more",
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget planCard(String title, String subtitle) {
+  Widget planCard(String title, String subtitle,
+      List<SubscriptionModel>? subscriptionData) {
     bool isSelected = selectedSubPlan == title;
 
     return GestureDetector(
       onTap: () {
-        setState(() {
-          selectedSubPlan = title;
-        });
+        showSubscriptionBottomSheet(subscriptionData);
       },
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+          color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? Colors.blueGrey : Colors.grey.shade300,
+            color: Colors.grey.shade300,
             width: 2,
           ),
         ),
@@ -1092,18 +1196,186 @@ class _ShopScreenState extends State<ShopScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: isSelected ? Colors.white : Colors.black,
               ),
             ),
             Text(
               subtitle,
-              style: TextStyle(
-                color: isSelected ? Colors.white70 : Colors.grey[600],
-              ),
+              style: TextStyle(),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void showSubscriptionBottomSheet(List<SubscriptionModel>? plans) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      builder: (context) {
+        String selectedPlanId = "";
+        SubscriptionModel? selectedPlan; // <<< ADDED
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  const Text(
+                    "Choose Subscription Plan",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // -------------------------
+                  // Dynamic Plan List
+                  // -------------------------
+                  ...plans!.map((plan) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedPlanId = plan.id.toString();
+
+                          selectedPlan = plan; // <<< FIXED
+                        });
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 15),
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: selectedPlanId == plan.id.toString()
+                                ? Colors.black
+                                : Colors.grey.shade300,
+                            width: 2,
+                          ),
+                          color: Colors.grey.shade100,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    plan.name!.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    "₹${plan.price} / ${plan.duration}",
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    plan.description ?? "",
+                                    style: const TextStyle(color: Colors.grey),
+                                  )
+                                ],
+                              ),
+                            ),
+
+                            // Radio button
+                            Radio(
+                              value: plan.id.toString(),
+                              groupValue: selectedPlanId,
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedPlanId = val!;
+                                  selectedPlan = plan; // <<< FIXED
+                                });
+                              },
+                              activeColor: Colors.black,
+                            )
+                          ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+
+                  const SizedBox(height: 20),
+
+                  // -------------------------
+                  // SELECT BUTTON
+                  // -------------------------
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (selectedPlanId.isEmpty || selectedPlan == null) {
+                          showAppToast(message: "Select a plan");
+                          return;
+                        }
+
+                        //  Navigator.pop(context);
+                        setState(() {
+                          selectedplanId = selectedPlanId;
+                          selectedplanPrice = selectedPlan!.price; // <<< FIXED
+                        });
+                        showAppToast(
+                          message: "Processing your subscription...",
+                        );
+
+                        _checkout(
+                          subsId: selectedPlanId,
+                          subsPrice:
+                              double.tryParse(selectedPlan!.price.toString()) ??
+                                  0.0,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        "Select Plan",
+                        style: TextStyle(fontSize: 17, color: Colors.white),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

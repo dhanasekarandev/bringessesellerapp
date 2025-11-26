@@ -1,11 +1,13 @@
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
+import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,7 +15,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 class SubcriptionScreen extends StatefulWidget {
   final List<SubscriptionModel>? data;
-  const SubcriptionScreen({super.key, required this.data});
+  final String razorkey;
+  const SubcriptionScreen(
+      {super.key, required this.data, required this.razorkey});
 
   @override
   State<SubcriptionScreen> createState() => _SubcriptionScreenState();
@@ -38,6 +42,7 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
             sellerId: sharedPreferenceHelper.getSellerId));
   }
 
+  bool isLoading = false;
   @override
   Widget build(BuildContext context) {
     final subscriptions = widget.data ?? [];
@@ -46,10 +51,45 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
       listener: (context, state) {
         if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
             state.editProfile.statusCode == 200) {
-          Fluttertoast.showToast(
-            msg: "Order Created Successfully",
-            toastLength: Toast.LENGTH_SHORT,
+          final selected = widget.data?[selectedIndex];
+          final paymentRepo = PaymentRepository();
+          paymentRepo.init(
+            onSuccess: (paymentId) {
+              // On payment success → confirm subscription
+              _checkout(
+                subsId: selected?.id,
+                subsPrice: double.parse(selected?.price.toString() ?? "0"),
+              );
+              setState(() {
+                isLoading = false;
+              });
+              Fluttertoast.showToast(msg: "Payment Success: $paymentId");
+            },
+            onError: (response) {
+              setState(() {
+                isLoading = false;
+              });
+              showAppToast(message: 'Payment failed ${response.message}');
+            },
+            onExternalWallet: (response) {
+              // ScaffoldMessenger.of(context).showSnackBar(
+              //   SnackBar(
+              //       content: Text("External wallet: ${response.walletName}")),
+              // );
+            },
           );
+          paymentRepo.openCheckout(
+            key: widget.razorkey,
+            amount: selected?.price! ?? 0,
+            name: "Subcription Payment",
+            description: "Subcription Payment",
+            orderId: state.editProfile.orderId, // Required for signature
+            email: "seller@example.com",
+          );
+          // Fluttertoast.showToast(
+          //   msg: "Order Created Successfully",
+          //   toastLength: Toast.LENGTH_SHORT,
+          // );
         }
       },
       builder: (context, state) {
@@ -137,23 +177,34 @@ class _SubcriptionScreenState extends State<SubcriptionScreen> {
           bottomNavigationBar: SafeArea(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.w),
-              child: CustomButton(
-                title: "Save",
-                onPressed: () {
-                  if (selectedIndex != -1) {
-                    final selectedSubscription = subscriptions[selectedIndex];
-                    _checkout(
-                        subsId: selectedSubscription.id,
-                        subsPrice: double.parse(
-                            selectedSubscription.price.toString()));
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text("Please select a subscription")),
-                    );
-                  }
-                },
-              ),
+              child: isLoading
+                  ? CustomButton(
+                      title: "Loading",
+                      onPressed: () {},
+                      isLoading: true,
+                    )
+                  : CustomButton(
+                      isLoading: false,
+                      title: "Save",
+                      onPressed: () {
+                        if (selectedIndex != -1) {
+                          setState(() {
+                            isLoading = true;
+                          });
+                          final selectedSubscription =
+                              subscriptions[selectedIndex];
+                          _checkout(
+                              subsId: selectedSubscription.id,
+                              subsPrice: double.parse(
+                                  selectedSubscription.price.toString()));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Please select a subscription")),
+                          );
+                        }
+                      },
+                    ),
             ),
           ),
         );

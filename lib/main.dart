@@ -42,6 +42,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/privacy_poli
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_transaction_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/update_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/verify_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
@@ -280,6 +281,10 @@ class MyApp extends StatelessWidget {
           BlocProvider<PrivacyPolicyCubit>(
             create: (repoContext) =>
                 PrivacyPolicyCubit(authRepository: authRepository),
+          ),
+          BlocProvider<SubscriptionTransactionCubit>(
+            create: (repoContext) =>
+                SubscriptionTransactionCubit(authRepository: authRepository),
           ),
           BlocProvider<OderStatusUpdateCubit>(
               create: (repoContext) => OderStatusUpdateCubit(

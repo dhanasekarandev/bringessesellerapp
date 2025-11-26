@@ -2,6 +2,7 @@ import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 
 import 'package:bringessesellerapp/presentation/repository/api_class.dart';
+import 'package:bringessesellerapp/presentation/service/referral_services.dart';
 
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
@@ -26,6 +27,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _couponController = TextEditingController();
+  final TextEditingController _refferController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -38,6 +40,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  String? refCode;
+  Future<void> getReferral() async {
+    final code = await ReferrerService.getReferralCode();
+    _refferController.text = code!;
+    setState(() {
+      refCode = code;
+    });
   }
 
   void _submitForm() async {
@@ -80,6 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("lfsdkjgbdj${refCode}");
     final theme = Theme.of(context);
     return Scaffold(
       appBar: const CustomAppBar(title: "SignUp"),
@@ -155,6 +167,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _couponController,
                       hintText: "Enter your Coupon",
                       prefixIcon: Icons.apps_sharp,
+                    ),
+                    SubTitleText(title: "Reffer"),
+                    CustomTextField(
+                      controller: _refferController,
+                      hintText: "Enter your refferer",
+                      prefixIcon: Icons.link_sharp,
                     ),
                     SubTitleText(title: "Password"),
                     CustomTextField(

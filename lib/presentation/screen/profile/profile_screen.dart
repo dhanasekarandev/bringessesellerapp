@@ -11,11 +11,13 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/otp_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_listile.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_textfeild.dart';
+import 'package:bringessesellerapp/presentation/widget/reffer_widget.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 
@@ -55,6 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? currentVersion;
   void _loadProfile() async {
     context.read<ViewProfileCubit>().login();
+    context.read<StoreDefaultsCubit>().login();
     context.read<SubscriptionDefaultCubit>().login();
     final packageInfo = await PackageInfo.fromPlatform();
     currentVersion = packageInfo.version;
@@ -410,19 +413,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             },
                           ),
                           CustomListTile(
-                            title: "Subscription Plans",
-                            leadingIcon: Icons.shield_outlined,
+                            title: "share delivery partner",
+                            leadingIcon: Icons.share_outlined,
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
-                              final subscriptionData = context
-                                  .read<SubscriptionDefaultCubit>()
-                                  .state
-                                  .viewProfile
-                                  .result;
-                              context.push('/profile/subs',
-                                  extra: {'subs': subscriptionData});
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DriverRefferal(
+                                      storeId: state
+                                          .viewProfile.result!.storeDetails!.id,
+                                    ),
+                                  ));
                             },
                           ),
+                          // CustomListTile(
+                          //   title: "Subscription Plans",
+                          //   leadingIcon: Icons.shield_outlined,
+                          //   trailing: const Icon(Icons.arrow_forward_ios),
+                          //   onTap: () {
+                          //     final subscriptionData = context
+                          //         .read<SubscriptionDefaultCubit>()
+                          //         .state
+                          //         .viewProfile
+                          //         .result;
+                          //     final razorKey = context
+                          //         .read<StoreDefaultsCubit>()
+                          //         .state
+                          //         .storeDefaultModel
+                          //         .appSettings!
+                          //         .razorKey;
+                          //     context.push('/profile/subs', extra: {
+                          //       'subs': subscriptionData,
+                          //       'razorKey': razorKey
+                          //     });
+                          //   },
+                          // ),
                           CustomListTile(
                             title: "Privacy Policy",
                             leadingIcon: Icons.policy_outlined,

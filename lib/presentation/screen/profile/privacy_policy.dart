@@ -5,7 +5,7 @@ import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:html/parser.dart' as html_parser;
+import 'package:flutter_html/flutter_html.dart';
 
 class PrivacyPolicy extends StatefulWidget {
   const PrivacyPolicy({super.key});
@@ -23,14 +23,6 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
 
   void _loadPrivacy() {
     context.read<PrivacyPolicyCubit>().login();
-  }
-
-  // Helper function to decode escaped unicode HTML
-  String decodeUnicodeHtml(String data) {
-    return data
-        .replaceAll(r'\u003C', '<')
-        .replaceAll(r'\u003E', '>')
-        .replaceAll(r'\u0026', '&');
   }
 
   @override
@@ -58,21 +50,19 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
               return const Center(child: Text("No Data Found"));
             }
 
-            // Get the HTML text from API
             final rawHtml = model.result!.first.description ?? "";
-
-            // STEP 1: Decode unicode escaped HTML
-            final decodedHtml = decodeUnicodeHtml(rawHtml);
-
-            // STEP 2: Remove HTML tags -> convert to plain text
-            final document = html_parser.parse(decodedHtml);
-            final String cleanText = document.body?.text ?? "";
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
-              child: Text(
-                cleanText,
-                style: const TextStyle(fontSize: 15, height: 1.5),
+              child: Html(
+                data: rawHtml, // Directly render HTML
+                style: {
+                  "body": Style(
+                    fontSize: FontSize(15),
+                    lineHeight: LineHeight(1.5),
+                    color: Colors.black87,
+                  ),
+                },
               ),
             );
           }

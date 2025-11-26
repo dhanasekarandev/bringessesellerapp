@@ -1,4 +1,4 @@
-import 'package:bringessesellerapp/model/response/change_password_model.dart';
+
 import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:equatable/equatable.dart';

@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
         appBar: const CustomAppBar(title: "Login"),
         body: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) async {
-            print("${state}");
+      
 
             if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
                 state.login.status == 'true') {
@@ -154,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SubTitleText(title: "Email"),
+                      const SubTitleText(title: "Email"),
                         CustomTextField(
                           controller: _emailController,
                           hintText: "Enter your Email",

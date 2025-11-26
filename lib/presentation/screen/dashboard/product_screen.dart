@@ -54,7 +54,7 @@ class _ProductScreenState extends State<ProductScreen>
   void loadProduct({required String status, String search = ""}) {
     final storeId = sharedPreferenceHelper.getStoreId;
 
-    if (storeId == null || storeId.isEmpty) {
+    if (storeId == 'err' || storeId.isEmpty) {
       Fluttertoast.showToast(msg: "Please create a store first");
       return;
     }
@@ -76,7 +76,7 @@ class _ProductScreenState extends State<ProductScreen>
 
   Future<void> refreshProducts() async {
     final storeId = sharedPreferenceHelper.getStoreId;
-    if (storeId == null || storeId.isEmpty) return;
+    if (storeId == 'err' || storeId.isEmpty) return;
 
     final currentStatus = _tabController.index == 0 ? "1" : "0";
 
@@ -259,7 +259,7 @@ class _ProductScreenState extends State<ProductScreen>
                   onPressed: () async {
                     final storeId = sharedPreferenceHelper.getStoreId;
 
-                    if (storeId == null || storeId.isEmpty) {
+                    if (storeId == 'err' || storeId.isEmpty) {
                       Fluttertoast.showToast(
                           msg: "Please create a store first");
                       return;

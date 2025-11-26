@@ -1,5 +1,5 @@
 import 'package:bringessesellerapp/model/response/menu_create_res_model.dart';
-import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
+
 
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:equatable/equatable.dart';

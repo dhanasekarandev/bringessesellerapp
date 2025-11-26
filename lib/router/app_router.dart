@@ -106,6 +106,7 @@ final GoRouter appRouter = GoRouter(
               var args = state.extra as Map;
               return SubcriptionScreen(
                 data: args['subs'],
+                razorkey: args['razorKey'],
               );
             },
           ),

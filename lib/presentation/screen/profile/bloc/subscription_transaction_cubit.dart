@@ -1,31 +1,29 @@
 import 'package:bringessesellerapp/presentation/repository/auth_repo.dart';
-
-import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_state.dart';
-
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_transaction_state.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-class GetAccountDetailCubit extends Cubit<GetAccountDetailState> {
+class SubscriptionTransactionCubit extends Cubit<SubscriptionTransactionState> {
   AuthRepository authRepository;
 
-  GetAccountDetailCubit({required this.authRepository})
-      : super(GetAccountDetailState.initial());
+  SubscriptionTransactionCubit({required this.authRepository})
+      : super(SubscriptionTransactionState.initial());
 
-  void login(getAccountReq) async {
+  void login(EditProfileRequestModel) async {
     emit(state.copyWith(networkStatusEnum: NetworkStatusEnum.loading));
 
     (bool, dynamic) response =
-        await authRepository.getAccountDetails(getAccountReq);
+        await authRepository.subscriptionTransaction(EditProfileRequestModel);
 
     if (response.$1 == true) {
       emit(state.copyWith(
         networkStatusEnum: NetworkStatusEnum.loaded,
-        accountDetailModel: response.$2,
+        editProfile: response.$2,
       ));
     } else {
       emit(state.copyWith(
           networkStatusEnum: NetworkStatusEnum.failed,
-          accountDetailModel: response.$2));
+          editProfile: response.$2));
     }
   }
 }

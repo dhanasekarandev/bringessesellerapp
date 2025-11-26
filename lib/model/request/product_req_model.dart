@@ -13,6 +13,8 @@ class ProductCreateReqModel {
   String? videoUrl;
   String? quantity;
   bool? comboOffer;
+  String? isRefund;
+  String? noOfDaysToReturn;
   List<File>? productImages;
 
   ProductCreateReqModel({
@@ -26,7 +28,9 @@ class ProductCreateReqModel {
     this.variants,
     this.description,
     this.comboOffer,
+    this.noOfDaysToReturn,
     this.productImages,
+    this.isRefund,
   });
 
   /// Normal JSON (for non-file usage)
@@ -41,7 +45,9 @@ class ProductCreateReqModel {
       'menuId': menuId,
       'variants': variants?.map((v) => v.toJson()).toList(),
       'description': description,
+      'noOfDaysToReturn': noOfDaysToReturn,
       'comboOffer': comboOffer,
+      'isRefund': isRefund,
     };
   }
 
@@ -60,6 +66,8 @@ class ProductCreateReqModel {
           : null,
       'description': description,
       'comboOffer': comboOffer,
+      'noOfDaysToReturn': noOfDaysToReturn,
+      'isRefund': isRefund
     };
 
     if (productImages != null && productImages!.isNotEmpty) {

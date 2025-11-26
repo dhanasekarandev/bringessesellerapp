@@ -25,9 +25,9 @@ import 'package:bringessesellerapp/model/request/remove_video_req_model.dart';
 import 'package:bringessesellerapp/model/request/review_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
-import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
+import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
 import 'package:bringessesellerapp/model/request/transaction_request_model.dart';
 import 'package:bringessesellerapp/model/request/update_order_req_model.dart';
 import 'package:bringessesellerapp/model/request/upload_video_req_model.dart';
@@ -70,10 +70,9 @@ import 'package:bringessesellerapp/model/response/view_profile_model.dart';
 import 'package:bringessesellerapp/model/response/view_transaction_response_model.dart';
 
 import 'package:bringessesellerapp/presentation/service/api_service.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRepository {
-  final Dio _dio = Dio();
   final ApiService apiService;
   SharedPreferenceHelper sharedPreferenceHelper = SharedPreferenceHelper();
   AuthRepository(this.apiService);
@@ -136,10 +135,10 @@ class AuthRepository {
 
   Future<dynamic> validateUserViewProfile() async {
     try {
-      final sellerId = sharedPreferenceHelper?.getSellerId;
+      final sellerId = sharedPreferenceHelper.getSellerId;
 
       var response = await apiService.getprofile(
-          ApiConstant.userViewProfile(sellerId!), true);
+          ApiConstant.userViewProfile(sellerId), true);
       if (response.data['status_code'] == 200) {
         log("ProfileViewData:${response.data}");
         var responseData = response.data;
@@ -164,7 +163,10 @@ class AuthRepository {
               var responseData = retryResponse.data;
               return (true, ViewProfileModel.fromJson(responseData));
             } else {
-              print('Failed again after refresh: ${retryResponse.statusCode}');
+              if (kDebugMode) {
+                print(
+                    'Failed again after refresh: ${retryResponse.statusCode}');
+              }
               return (false, ViewProfileModel());
             }
           }
@@ -174,8 +176,12 @@ class AuthRepository {
         return (false, ViewProfileModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, ViewProfileModel());
     }
   }
@@ -189,12 +195,18 @@ class AuthRepository {
         return (true, SubscriptionResponseModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, SubscriptionResponseModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, SubscriptionResponseModel());
     }
   }
@@ -208,12 +220,18 @@ class AuthRepository {
         return (true, TermsResponseModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, TermsResponseModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, TermsResponseModel());
     }
   }
@@ -229,33 +247,45 @@ class AuthRepository {
         return (true, AccountDetailModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, AccountDetailModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, AccountDetailModel());
     }
   }
 
   Future<dynamic> getDashboarddata() async {
     try {
-      final storeId = sharedPreferenceHelper?.getStoreId;
+      final storeId = sharedPreferenceHelper.getStoreId;
 
       var response =
-          await apiService.get(ApiConstant.dashboardreq(storeId!), false);
+          await apiService.get(ApiConstant.dashboardreq(storeId), false);
       if (response.statusCode == 200) {
         log("Dashboard Data:${response.data}");
         var responseData = response.data;
         return (true, DashboardModel.fromJson(responseData));
       } else {
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, DashboardModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (
         false,
         DashboardModel(
@@ -267,13 +297,13 @@ class AuthRepository {
 
   Future<dynamic> getCouponList({int? limit, int? page}) async {
     try {
-      final storeId = sharedPreferenceHelper?.getStoreId;
-      final sellerId = sharedPreferenceHelper?.getSellerId;
+      final storeId = sharedPreferenceHelper.getStoreId;
+      final sellerId = sharedPreferenceHelper.getSellerId;
 
       var response = await apiService.get(
           ApiConstant.getCouponList(
-            storeId!,
-            sellerId!,
+            storeId,
+            sellerId,
           ),
           false);
       if (response.statusCode == 200) {
@@ -281,12 +311,18 @@ class AuthRepository {
         var responseData = response.data;
         return (true, CouponListResponse.fromJson(responseData));
       } else {
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, CouponListResponse());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, CouponListResponse());
     }
   }
@@ -294,7 +330,9 @@ class AuthRepository {
   Future<dynamic> validateUserEditProfile(
       EditProfileRequestModel editProfileRequestModel) async {
     try {
-      print("Editreq:${editProfileRequestModel}");
+      if (kDebugMode) {
+        print("Editreq:${editProfileRequestModel}");
+      }
       var response = await apiService.patch(
           ApiConstant.userEditProfile, editProfileRequestModel, false);
       log(" asda${response}");
@@ -303,12 +341,18 @@ class AuthRepository {
         return (true, EditProfileModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, EditProfileModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, EditProfileModel());
     }
   }
@@ -323,12 +367,18 @@ class AuthRepository {
         return (true, ChangePasswordModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (false, ChangePasswordModel());
       }
     } catch (e, stacktrace) {
-      print('Exception occurred: $e');
-      print('Stacktrace${stacktrace}');
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
       return (false, ChangePasswordModel());
     }
   }
@@ -361,7 +411,9 @@ class AuthRepository {
         return (true, SendOtpResModel.fromJson(responseData));
       } else {
         // Handle other status codes
-        print('Unexpected status code: ${response.statusCode}');
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
         return (
           false,
           SendOtpResModel(
@@ -442,9 +494,8 @@ class AuthRepository {
 
   Future<dynamic> getStoreDetails() async {
     try {
-      final storeId = sharedPreferenceHelper?.getStoreId;
-      var response =
-          await apiService.get(ApiConstant.storeget(storeId!), false);
+      final storeId = sharedPreferenceHelper.getStoreId;
+      var response = await apiService.get(ApiConstant.storeget(storeId), false);
 
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
@@ -471,7 +522,6 @@ class AuthRepository {
         var responseData = response.data;
         return (true, SubscriptionCheckoutResponse.fromJson(responseData));
       } else {
-        // Handle other status codes
         print('Unexpected status code: ${response.statusCode}');
         return (false, SubscriptionCheckoutResponse());
       }
@@ -479,6 +529,27 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, SubscriptionCheckoutResponse());
+    }
+  }
+
+  Future<dynamic> subscriptionTransaction(
+      SubscriptionTransactionReq editProfileRequestModel) async {
+    try {
+      var response = await apiService.post(
+          ApiConstant.subscriptionTranscation, editProfileRequestModel, false);
+
+      if (response.data['status_code'] == 200) {
+        var responseData = response.data;
+        return (true, ChangePasswordModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, ChangePasswordModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, ChangePasswordModel());
     }
   }
 
@@ -549,7 +620,12 @@ class AuthRepository {
         return (true, PromotionResponseModel.fromJson(responseData));
       } else {
         print('Unexpected status code: ${response.statusCode}');
-        return (false, PromotionResponseModel(message: response.data['message'],));
+        return (
+          false,
+          PromotionResponseModel(
+            message: response.data['message'],
+          )
+        );
       }
     } catch (e, stacktrace) {
       print('Exception occurred: $e');
@@ -719,10 +795,12 @@ class AuthRepository {
 
   Future<dynamic> revenueGraph() async {
     try {
-      final storeId = sharedPreferenceHelper?.getStoreId;
+      final storeId = sharedPreferenceHelper.getStoreId;
       var response =
-          await apiService.get(ApiConstant.revenuegraph(storeId!), false);
-      print("asldfnd${response.data}");
+          await apiService.get(ApiConstant.revenuegraph(storeId), false);
+      if (kDebugMode) {
+        print("asldfnd${response.data}");
+      }
       if (response.statusCode == 200) {
         var responseData = response.data;
         return (true, RevenueGraphResModel.fromJson(responseData));

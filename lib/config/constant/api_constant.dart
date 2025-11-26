@@ -94,6 +94,7 @@ class ApiConstant {
   static String deleteMenu(String menuId) => 'menus/delete/$menuId';
   static String productbyId(String productId) => 'items/list/$productId';
   static const String subscriptionCheckout = 'subscriptions/checkout';
+  static const String subscriptionTranscation = 'subscriptions/transaction';
   static const String verifyOtp = 'accounts/verifyotp';
   static const String sendOtp = 'accounts/sendotp';
   static const String refreshToken = 'refreshtoken';

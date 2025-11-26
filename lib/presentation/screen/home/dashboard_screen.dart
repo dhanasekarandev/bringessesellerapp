@@ -7,6 +7,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/home/invite_ref.dart';
 import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_list.dart';
 
@@ -18,7 +19,7 @@ import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_listile.dart';
 import 'package:bringessesellerapp/presentation/widget/graph_widget.dart';
-import 'package:bringessesellerapp/presentation/screen/home/bottom_layout.dart';
+
 import 'package:bringessesellerapp/presentation/widget/payment_detail_card.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
@@ -81,7 +82,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final token = sharedPreferenceHelper?.getRefreshToken;
+    final token = sharedPreferenceHelper.getRefreshToken;
     log("sdjfbs$token");
     return MultiBlocListener(
       listeners: [
@@ -115,6 +116,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           title: "Dashboard",
           showLeading: false,
           actions: [
+            InkWell(
+                onTap: () {
+                  print(
+                      'sjkldghbslj${context.read<ViewProfileCubit>().state.viewProfile.result!.referralCode}');
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => InviteReferre(
+                          refId: context
+                              .read<ViewProfileCubit>()
+                              .state
+                              .viewProfile
+                              .result!
+                              .referralCode,
+                        ),
+                      ));
+                },
+                child: Icon(Icons.ios_share_outlined)),
             InkWell(
               onTap: () => context.push("/profile"),
               child: Padding(

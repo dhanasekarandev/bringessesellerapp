@@ -1,6 +1,5 @@
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
-import 'package:bringessesellerapp/model/response/dashboard_model.dart';
-import 'package:bringessesellerapp/model/response/view_profile_model.dart';
+
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:equatable/equatable.dart';
 

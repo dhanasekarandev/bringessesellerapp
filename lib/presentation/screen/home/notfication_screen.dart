@@ -43,7 +43,7 @@ class _NotficationScreenState extends State<NotficationScreen> {
       body: BlocConsumer<NotificationCubit, NotificationState>(
         listener: (context, state) {
           if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
-            final data = state.notificationResponseModel.result;
+           
             if (state.notificationResponseModel.status == 'true' ||
                 state.notificationResponseModel.status == true) {
               showAppToast(

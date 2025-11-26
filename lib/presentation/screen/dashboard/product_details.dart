@@ -170,13 +170,19 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 10.h),
                   if (product.videoUrl != null && product.videoUrl != '')
-                    SizedBox(
-                      height: 150.h,
-                      child: VideoPlayerWidget(
-                        videoUrl: product.videoUrl,
-                      ),
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 100, // moderate width
+                          height: 200, // moderate height, adjust to your taste
+                          child: VideoPlayerWidget(
+                            playButtonSize: 20,
+                            videoUrl: product.videoUrl,
+                          ),
+                        ),
+                      ],
                     ),
                   Text(
                     product.name ?? "",

@@ -7,11 +7,13 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 class VideoPlayerWidget extends StatefulWidget {
   final File? videoFile;
   final String? videoUrl;
+  final double playButtonSize; // NEW PARAMETER
 
   const VideoPlayerWidget({
     super.key,
     this.videoFile,
     this.videoUrl,
+    this.playButtonSize = 40, // default size
   });
 
   @override
@@ -32,19 +34,15 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   Future<void> _initializeVideo() async {
     try {
       if (widget.videoFile != null) {
-        // Play from local file
         _controller = VideoPlayerController.file(widget.videoFile!);
       } else if (widget.videoUrl != null) {
-        // Check cache for this video
         final fileInfo =
             await DefaultCacheManager().getFileFromCache(widget.videoUrl!);
 
         File file;
         if (fileInfo != null && fileInfo.file.existsSync()) {
-          // Cached file exists
           file = fileInfo.file;
         } else {
-          // Download and cache video
           file = await DefaultCacheManager().getSingleFile(widget.videoUrl!);
         }
 
@@ -59,7 +57,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
         videoPlayerController: _controller,
         autoPlay: false,
         looping: false,
-        showControls: false, // hide default controls
+        showControls: false,
       );
 
       setState(() => _isLoading = false);
@@ -93,8 +91,6 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           aspectRatio: _controller.value.aspectRatio,
           child: VideoPlayer(_controller),
         ),
-
-        // Custom Play / Pause button
         GestureDetector(
           onTap: () {
             setState(() {
@@ -114,7 +110,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             child: Icon(
               _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
               color: Colors.white,
-              size: 40,
+              size: widget.playButtonSize, // USE PARAMETER HERE
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:bringessesellerapp/config/themes.dart';
@@ -41,7 +42,7 @@ class CustomButton extends StatelessWidget {
       width: width ?? double.infinity,
       height: height ?? 50.h,
       child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
+        onPressed: isLoading ? () {} : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: backgroundColor ?? AppTheme.primaryColor,
           foregroundColor: textColor ?? AppTheme.whiteColor,
@@ -52,13 +53,27 @@ class CustomButton extends StatelessWidget {
           elevation: 2,
         ),
         child: isLoading
-            ? SizedBox(
-                height: 20.h,
-                width: 20.h,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Colors.white,
-                ),
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    height: 18.h,
+                    width: 18.h,
+                    child: const CupertinoActivityIndicator(
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    "Loading...",
+                    style: TextStyle(
+                      color: textColor ?? AppTheme.whiteColor,
+                      fontSize: fontSize ?? 16.sp,
+                      fontWeight: fontWeight ?? FontWeight.w600,
+                    ),
+                  ),
+                ],
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,

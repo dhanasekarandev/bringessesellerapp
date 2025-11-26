@@ -1,9 +1,9 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
-import 'package:bringessesellerapp/config/themes.dart';
+
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';

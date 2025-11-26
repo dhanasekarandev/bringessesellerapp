@@ -72,18 +72,17 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   final TextEditingController _name = TextEditingController();
   final TextEditingController _sku = TextEditingController();
+  final TextEditingController _return = TextEditingController();
+  final TextEditingController _refund = TextEditingController();
   final TextEditingController _des = TextEditingController();
   final TextEditingController _cat = TextEditingController();
   final TextEditingController _sub = TextEditingController();
   final TextEditingController _stock = TextEditingController();
-  final TextEditingController _gst = TextEditingController();
-  final TextEditingController _cgst = TextEditingController();
-  final TextEditingController _sgst = TextEditingController();
+
   List<Map<String, dynamic>> variantList = [];
   final List<String> offerOptions = ['Yes', 'No'];
   File? _productVideo;
 
-  List<File> _productImages = []; // store picked images
   final ImagePicker _picker = ImagePicker();
   bool load = false;
   List<dynamic> _productMedia = [];
@@ -164,7 +163,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     }
   }
 
-  String? _gstError;
   _remove() async {
     context
         .read<RemoveVideoCubit>()
@@ -442,18 +440,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
     try {
       if (widget.editProduct == null) {
         final req = ProductCreateReqModel(
-          sellerId: widget.sellerId,
-          storeId: widget.storeId,
-          name: _name.text,
-          sku: _sku.text,
-          menuId: selectedMenuId,
-          variants: variants,
-          description: _des.text,
-          comboOffer: isCombo,
-          quantity: _stock.text,
-          productImages: newFiles,
-          videoUrl: uploadvideoUrl,
-        );
+            sellerId: widget.sellerId,
+            storeId: widget.storeId,
+            name: _name.text,
+            sku: _sku.text,
+            menuId: selectedMenuId,
+            variants: variants,
+            description: _des.text,
+            comboOffer: isCombo,
+            quantity: _stock.text,
+            productImages: newFiles,
+            videoUrl: uploadvideoUrl,
+            isRefund: isRefundEnabled ? 'true' : 'false',
+            noOfDaysToReturn: _return.text);
 
         context.read<ProductCreateCubit>().login(req);
       } else {
@@ -471,6 +470,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
           outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
           productImages: newFiles,
           existingImages: existingImages,
+           isRefund: isRefundEnabled ? 'true' : 'false',
+            noOfDaysToReturn: _return.text
         );
 
         context.read<ProductUpdateCubit>().login(req);
@@ -501,6 +502,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
     );
   }
 
+  bool isRefundEnabled = false;
+  bool isReturn = false;
   @override
   Widget build(BuildContext context) {
     print("sljdfgbs${widget.processingfee}");
@@ -862,6 +865,60 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             hintText: "",
                             controller: _stock,
                             keyboardType: TextInputType.number),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Refund Feature Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const SubTitleText(
+                                  title: "Refund feature",
+                                ),
+                                Switch(
+                                  value: isRefundEnabled,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isRefundEnabled = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            // Show text field when refund = true
+                            if (isRefundEnabled)
+                              CustomTextField(
+                                hintText: "Enter refund days",
+                                controller: _refund,
+                              ),
+                            vericalSpaceMedium,
+                            // Return Policy Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const SubTitleText(
+                                  title: "Return Policy",
+                                ),
+                                Switch(
+                                  value: isReturn,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      isReturn = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+
+                            // Show text field when return = true
+                            if (isReturn)
+                              CustomTextField(
+                                hintText: "Enter return days",
+                                controller: _return,
+                              ),
+                          ],
+                        ),
                         vericalSpaceMedium,
                         const SubTitleText(
                           title: "Description",
