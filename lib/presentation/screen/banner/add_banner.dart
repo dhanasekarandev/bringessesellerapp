@@ -5,7 +5,9 @@ import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/promotion_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/promotion_req_model.dart';
 import 'package:bringessesellerapp/model/request/transaction_request_model.dart';
+import 'package:bringessesellerapp/model/response/promotion_checkout_response_model.dart';
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
+import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
 import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/banner/bloc/promotion_checkout_state.dart';
@@ -25,6 +27,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hypersdkflutter/hypersdkflutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -55,6 +58,7 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
   final TextEditingController _url = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   late SharedPreferenceHelper sharedPreferenceHelper;
+  final hyperSDKInstance = HyperSDK();
   @override
   void initState() {
     sharedPreferenceHelper = SharedPreferenceHelper();
@@ -156,6 +160,41 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
     return numberOfDays * double.parse(selectedPrice.toString());
   }
 
+  Future<void> jusPayment(
+    BuildContext context,
+    SdkPayload? payload,
+  ) async {
+    final res = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentPageScreen(
+          hyperSDK: hyperSDKInstance,
+          payload: payload,
+        ),
+      ),
+    );
+
+    // Check if res is not null and contains success key
+    if (res != null && res['success'] == true) {
+      // Show toast BEFORE popping
+      showAppToast(message: 'Payment Successful');
+
+      // Pop the page
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop(); // standard Flutter pop
+      }
+
+      // Optional: call success callback
+      // onPaymentSuccess();
+      // isPaymentStatus.value = true;
+    } else {
+      print('Payment Failed or Aborted => $res');
+      // Optional: call failure callback
+      // onPaymentFailed();
+      // isPaymentStatus.value = false;
+    }
+  }
+
   double? totalAmount;
   String? promotionId;
   double? selectedPrice;
@@ -170,40 +209,45 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
             final orderId = checkoutState.promotionResponseModel.orderId ?? "";
             double totalAmount = calculateTotalPrice();
             int amountInPaise = (totalAmount * 100).toInt();
+            if (checkoutState.promotionResponseModel.gateway == 'Juspay') {
+              final payload =
+                  checkoutState.promotionResponseModel.session!.sdkPayload;
+              jusPayment(context, payload);
+            } else {
+              final paymentRepo = PaymentRepository();
+              paymentRepo.init(
+                onSuccess: (response) {
+                  showAppToast(message: 'Payment successful');
+                  context.read<PromotionTransctionCubit>().login(
+                        TransactionRequestModel(
+                          orderId: response.orderId,
+                          paymentId: response.paymentId,
+                          signature: response.signature,
+                          promotionId: promotionId,
+                        ),
+                      );
+                },
+                onError: (response) {
+                  showAppToast(message: 'Payment failed ${response.message}');
+                },
+                onExternalWallet: (response) {
+                  // ScaffoldMessenger.of(context).showSnackBar(
+                  //   SnackBar(
+                  //       content: Text("External wallet: ${response.walletName}")),
+                  // );
+                },
+              );
 
-            final paymentRepo = PaymentRepository();
-            paymentRepo.init(
-              onSuccess: (response) {
-                showAppToast(message: 'Payment successful');
-                context.read<PromotionTransctionCubit>().login(
-                      TransactionRequestModel(
-                        orderId: response.orderId,
-                        paymentId: response.paymentId,
-                        signature: response.signature,
-                        promotionId: promotionId,
-                      ),
-                    );
-              },
-              onError: (response) {
-                showAppToast(message: 'Payment failed ${response.message}');
-              },
-              onExternalWallet: (response) {
-                // ScaffoldMessenger.of(context).showSnackBar(
-                //   SnackBar(
-                //       content: Text("External wallet: ${response.walletName}")),
-                // );
-              },
-            );
-
-            // ✅ Open Razorpay checkout
-            paymentRepo.openCheckout(
-              key: widget.appData!.razorKey ?? "",
-              amount: amountInPaise,
-              name: "Bringesse Promotions",
-              description: "Promotion Payment",
-              orderId: orderId, // Required for signature
-              email: "seller@example.com",
-            );
+              // ✅ Open Razorpay checkout
+              paymentRepo.openCheckout(
+                key: checkoutState.promotionResponseModel.key ?? "",
+                amount: amountInPaise,
+                name: "Bringesse Promotions",
+                description: "Promotion Payment",
+                orderId: orderId, // Required for signature
+                email: "seller@example.com",
+              );
+            }
           }
         },
         child: BlocConsumer<PromotionCreateCubit, PromotionCreateState>(

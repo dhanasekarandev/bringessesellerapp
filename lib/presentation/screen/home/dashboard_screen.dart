@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
 
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_state.dart';
@@ -9,6 +10,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.
 import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/home/invite_ref.dart';
 import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/home/payment_test.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_list.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
@@ -26,10 +28,13 @@ import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 import 'package:bringessesellerapp/presentation/widget/toast_widget.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:async';
+
+import 'package:hypersdkflutter/hypersdkflutter.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -82,6 +87,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final hyperSDKInstance = HyperSDK();
     final token = sharedPreferenceHelper.getRefreshToken;
     log("sdjfbs$token");
     return MultiBlocListener(
@@ -116,6 +122,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
           title: "Dashboard",
           showLeading: false,
           actions: [
+            InkWell(
+                onTap: () async {
+                  final payload = {
+                    "requestId": "5a4c1536eed146fda181b2a996aa652c",
+                    "service": "in.juspay.hyperpay",
+                    "payload": {
+                      "clientId": "amigoways",
+                      "customerId": "68eca71c8e85a24b7c45a973",
+                      "orderId": "sub_1764237919999",
+                      "returnUrl": "https://yourdomain.com/payment-callback",
+                      "currency": "INR",
+                      "customerPhone": "9999999999",
+                      "service": "in.juspay.hyperpay",
+                      "environment": "sandbox",
+                      "merchantId": "amigoways",
+                      "amount": "1.0",
+                      "clientAuthTokenExpiry": "2025-11-27T10:20:20Z",
+                      "clientAuthToken": "tkn_aeb90c56a9ee4e67a039a341c16ca89b",
+                      "action": "paymentPage",
+                      "collectAvsInfo": false
+                    },
+                    "currTime": "2025-11-27T10:05:20Z",
+                    "xRoutingId": "undefined"
+                  };
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PaymentPageScreen(
+                        hyperSDK: hyperSDKInstance,
+                        payload: payload,
+                      ),
+                    ),
+                  );
+                },
+                child: Text("Pay")),
             InkWell(
                 onTap: () {
                   print(

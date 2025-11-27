@@ -9,7 +9,9 @@ import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.
 import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
 
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
+import 'package:bringessesellerapp/model/response/subcription_checkout_response.dart';
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
+import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
 import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_state.dart';
@@ -44,6 +46,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hypersdkflutter/hypersdkflutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
@@ -306,6 +309,7 @@ class _ShopScreenState extends State<ShopScreen> {
   final List<String> storeSizes = ['Small', 'Medium', 'Large'];
   final List<String> servicetype = ['Subscription', 'Partnership'];
   final Set<String> selectedMethods = {};
+  final hyperSDKInstance = HyperSDK();
   final List<String> options = [
     "Own Delivery",
     "Courier",
@@ -331,6 +335,41 @@ class _ShopScreenState extends State<ShopScreen> {
             orderId: orderId, paymentId: paymentId, signature: signature));
   }
 
+  Future<void> jusPayment(
+    BuildContext context,
+    SdkPayload? payload,
+  ) async {
+    final res = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentPageScreen(
+          hyperSDK: hyperSDKInstance,
+          payload: payload,
+        ),
+      ),
+    );
+
+    // Check if res is not null and contains success key
+    if (res != null && res['success'] == true) {
+      // Show toast BEFORE popping
+      showAppToast(message: 'Payment Successful');
+
+      // Pop the page
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop(); // standard Flutter pop
+      }
+
+      // Optional: call success callback
+      // onPaymentSuccess();
+      // isPaymentStatus.value = true;
+    } else {
+      print('Payment Failed or Aborted => $res');
+      // Optional: call failure callback
+      // onPaymentFailed();
+      // isPaymentStatus.value = false;
+    }
+  }
+
   List<String> selectedOptions = [];
   @override
   Widget build(BuildContext context) {
@@ -345,40 +384,43 @@ class _ShopScreenState extends State<ShopScreen> {
               listener: (context, state) {
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
                     state.editProfile.statusCode == 200) {
-                  final paymentRepo = PaymentRepository();
+                  if (state.editProfile.gateway == 'Juspay') {
+                    final payload = state.editProfile.session!.sdkPayload;
+                    jusPayment(context, payload);
+                  } else {
+                    final paymentRepo = PaymentRepository();
 
-                  // 1️⃣ Initialize Razorpay handlers
-                  paymentRepo.init(
-                    onSuccess: (paymentId) {
-                      // 3️⃣ Payment success → Confirm subscription
-                      _paymentSuccess(
-                          orderId: paymentId.orderId,
-                          paymentId: paymentId.paymentId,
-                          signature: paymentId.signature);
+                    paymentRepo.init(
+                      onSuccess: (paymentId) {
+                        // 3️⃣ Payment success → Confirm subscription
+                        _paymentSuccess(
+                            orderId: paymentId.orderId,
+                            paymentId: paymentId.paymentId,
+                            signature: paymentId.signature);
 
-                      showAppToast(message: "Payment Success: $paymentId");
-                    },
-                    onError: (response) {
-                      setState(() => isLoading = false);
-                      showAppToast(
-                          message: "Payment Failed: ${response.message}");
-                    },
-                    onExternalWallet: (response) {},
-                  );
+                        showAppToast(message: "Payment Success: $paymentId");
+                      },
+                      onError: (response) {
+                        setState(() => isLoading = false);
+                        showAppToast(
+                            message: "Payment Failed: ${response.message}");
+                      },
+                      onExternalWallet: (response) {},
+                    );
 
-                  // 2️⃣ Open Razorpay Payment Gateway
-                  paymentRepo.openCheckout(
-                    key: 'rzp_live_Rfez9k50NZmj77',
-                    amount:
-                        ((double.tryParse(selectedplanPrice.toString()) ?? 0) *
-                                100)
-                            .toInt(), // Must be in paise
-                    name: "Subscription Payment",
-                    description: "Subscription Payment",
-                    orderId: state
-                        .editProfile.orderId, // Required for Razorpay signature
-                    email: "seller@example.com",
-                  );
+                    // 2️⃣ Open Razorpay Payment Gateway
+                    paymentRepo.openCheckout(
+                      key: state.editProfile.key ?? '',
+                      amount: ((double.tryParse(selectedplanPrice.toString()) ??
+                                  0) *
+                              100)
+                          .toInt(),
+                      name: "Subscription Payment",
+                      description: "Subscription Payment",
+                      orderId: state.editProfile.orderId,
+                      email: "seller@example.com",
+                    );
+                  }
                 }
               },
             ),
@@ -485,8 +527,7 @@ class _ShopScreenState extends State<ShopScreen> {
                         _return.text = data.returnPolicy ?? '';
                         if (data.storeType != null &&
                             data.storeType!.isNotEmpty) {
-                          selectedSize =
-                              data.storeType!; 
+                          selectedSize = data.storeType!;
                         }
                         _packingtime.text = data.packingTime.toString();
                         _packingchrg.text = data.packingCharge.toString();

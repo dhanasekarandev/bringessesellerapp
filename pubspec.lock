@@ -792,6 +792,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  hypersdkflutter:
+    dependency: "direct main"
+    description:
+      name: hypersdkflutter
+      sha256: "5514c11a6972f7555afba1a3b67c5b4e4253d4d8bcd98473bfa31ad8a20b28c1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.35"
   image:
     dependency: transitive
     description:

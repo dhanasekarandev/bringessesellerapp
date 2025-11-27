@@ -1,8 +1,12 @@
 buildscript {
-    ext.kotlin_version = '2.0.21' 
+    ext {
+        kotlin_version = '2.0.21'
+        clientId = "amigoways"  // <-- THIS NAME IS IMPORTANT
+    }
     repositories {
         google()
         mavenCentral()
+        maven { url "https://maven.juspay.in/jp-build-packages/hyper-sdk/" } 
     }
     dependencies {
         classpath 'com.google.gms:google-services:4.4.0'
@@ -14,16 +18,14 @@ buildscript {
 allprojects {
     repositories {
         google()
-        mavenCentral()
+        mavenCentral()     
+        maven { url "https://maven.juspay.in/jp-build-packages/hyper-sdk/" } 
     }
 }
-
 
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 
