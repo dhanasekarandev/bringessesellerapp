@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:bringessesellerapp/config/constant/contsant.dart';
@@ -335,6 +336,30 @@ class _ShopScreenState extends State<ShopScreen> {
             orderId: orderId, paymentId: paymentId, signature: signature));
   }
 
+  void _juspaymentSuccess({
+    String? sessionId,
+    String? sessionStatus,
+    String? orderId,
+    String? subscriptionId,
+    String? sellerId,
+    double? subscriptionPrice,
+    String? currency,
+  }) {
+    context.read<SubscriptionTransactionCubit>().login(
+          SubscriptionTransactionReq(
+            price: selectedplanPrice,
+            gateway: 'juspay',
+            sessionId: sessionId,
+            sessionStatus: sessionStatus ?? "SUCCESS",
+            orderId: orderId,
+            subscriptionId: subscriptionId,
+            sellerId: sellerId,
+            subscriptionPrice: subscriptionPrice,
+            currency: currency ?? "INR",
+          ),
+        );
+  }
+
   Future<void> jusPayment(
     BuildContext context,
     SdkPayload? payload,
@@ -349,24 +374,28 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
     );
 
-    // Check if res is not null and contains success key
     if (res != null && res['success'] == true) {
-      // Show toast BEFORE popping
       showAppToast(message: 'Payment Successful');
-
-      // Pop the page
+      log("slkdjfhbskj${selectedplanId},${selectedplanPrice}");
+      _juspaymentSuccess(
+          currency: payload!.payload!.currency,
+          orderId: res['orderId'],
+          sellerId: sharedPreferenceHelper.getSellerId,
+          sessionId: payload.requestId,
+          sessionStatus: 'SUCCESS',
+          subscriptionId: selectedplanId,
+          subscriptionPrice: double.tryParse(selectedplanPrice.toString()));
       if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop(); // standard Flutter pop
+        Navigator.of(context).pop();
       }
-
-      // Optional: call success callback
-      // onPaymentSuccess();
-      // isPaymentStatus.value = true;
     } else {
       print('Payment Failed or Aborted => $res');
-      // Optional: call failure callback
-      // onPaymentFailed();
-      // isPaymentStatus.value = false;
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      Future.delayed(Duration(milliseconds: 50), () {
+        showAppToast(message: 'Payment Failed');
+      });
     }
   }
 
@@ -392,7 +421,6 @@ class _ShopScreenState extends State<ShopScreen> {
 
                     paymentRepo.init(
                       onSuccess: (paymentId) {
-                        // 3️⃣ Payment success → Confirm subscription
                         _paymentSuccess(
                             orderId: paymentId.orderId,
                             paymentId: paymentId.paymentId,
@@ -408,7 +436,6 @@ class _ShopScreenState extends State<ShopScreen> {
                       onExternalWallet: (response) {},
                     );
 
-                    // 2️⃣ Open Razorpay Payment Gateway
                     paymentRepo.openCheckout(
                       key: state.editProfile.key ?? '',
                       amount: ((double.tryParse(selectedplanPrice.toString()) ??

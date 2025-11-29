@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hypersdkflutter/hypersdkflutter.dart';
 
 class PaymentPageScreen extends StatefulWidget {
@@ -45,7 +46,11 @@ class _PaymentPageState extends State<PaymentPageScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         body: Center(
-          child: showLoader ? CupertinoActivityIndicator() : Container(),
+          child: showLoader
+              ? CupertinoActivityIndicator(
+                  radius: 30.r,
+                )
+              : Container(),
         ),
       ),
     );
@@ -89,9 +94,9 @@ class _PaymentPageState extends State<PaymentPageScreen> {
         final payload = args["payload"] ?? {};
         final String status = payload["status"] ?? "";
         final orderId = args["orderId"] ?? null;
-
-        print("Payment Status => $status");
-        print("Order ID => $orderId");
+      //  final amount = args['']
+        print("Payment Status => $args");
+        print("Order ID => $payload");
 
         if (status == "backpressed" || status == "user_aborted") {
           Navigator.pop(context, {

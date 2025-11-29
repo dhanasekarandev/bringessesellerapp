@@ -45,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? sellerId;
   late SharedPreferenceHelper sharedPreferenceHelper;
   bool loading = false;
+  bool phoneloading = false;
   @override
   void initState() {
     super.initState();
@@ -123,6 +124,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   bool phone = false;
+
   void _sendOtpPhone() {
     setState(() {
       phone = true;
@@ -177,6 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 setState(() {
                   phone = false;
                   loading = false;
+                  phoneloading = false;
                 });
               },
             );
@@ -303,44 +306,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SubTitleText(title: "Mobile number"),
                           CustomTextField(
                             controller: _contactController,
-                            hintText: "Mobilr number",
+                            hintText: "Mobile number",
                             suffixWidget: state
-                                        .viewProfile.result!.phoneVerified !=
+                                        .viewProfile.result!.phoneVerified ==
                                     true
-                                ? InkWell(
-                                    onTap: state.viewProfile.result!
-                                                .emailVerified !=
-                                            true
-                                        ? () {
-                                            _sendOtpPhone();
-                                          }
-                                        : null,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 15, vertical: 15),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(5),
-                                        decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(5.r),
-                                            border: Border.all(
-                                                color: AppTheme.primaryColor,
-                                                strokeAlign: 2)),
-                                        child: Text(
-                                          "Verify",
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall!
-                                              .copyWith(
-                                                  color: AppTheme.primaryColor),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : const Icon(
+                                ? const Icon(
                                     Icons.verified,
                                     color: Colors.green,
-                                  ),
+                                  )
+                                : phoneloading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CupertinoActivityIndicator(),
+                                      )
+                                    : InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            phoneloading = true;
+                                          });
+                                          _sendOtpPhone();
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 15,
+                                            vertical: 15,
+                                          ),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(5),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.r),
+                                              border: Border.all(
+                                                color: AppTheme.primaryColor,
+                                                strokeAlign: 2,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              "Verify",
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall!
+                                                  .copyWith(
+                                                      color: AppTheme
+                                                          .primaryColor),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                           ),
                         ],
                       ),

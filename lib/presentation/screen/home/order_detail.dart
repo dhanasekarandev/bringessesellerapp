@@ -5,6 +5,7 @@ import 'package:bringessesellerapp/model/request/update_order_req_model.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_update_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/update_order_state.dart';
+import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
 
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
@@ -378,7 +379,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           ),
           bottomSheet: currentStatus == "pending"
               ? Container(
-                  color: Colors.white,
                   padding:
                       EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
                   child: Row(
@@ -395,7 +395,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         child: CustomButton(
                           title: "Decline",
                           backgroundColor: Colors.red,
-                          onPressed: declineOrder,
+                          onPressed: () {
+                            showCustomConfirmationDialog(
+                              context: context,
+                              content: "Are you sure want to cancel this order",
+                              confirmText: "Yes",
+                              title: "Cencel Order",
+                              cancelText: "Cancel",
+                              onConfirm: () {
+                                declineOrder();
+                              },
+                            );
+                          },
                         ),
                       ),
                     ],

@@ -535,6 +535,7 @@ class AuthRepository {
   Future<dynamic> subscriptionTransaction(
       SubscriptionTransactionReq editProfileRequestModel) async {
     try {
+      print("sldjfb${editProfileRequestModel}");
       var response = await apiService.post(
           ApiConstant.subscriptionTranscation, editProfileRequestModel, false);
 

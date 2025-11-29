@@ -23,6 +23,7 @@ import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -89,7 +90,11 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
     }
   }
 
+  bool? isloading = false;
   void _save() {
+    setState(() {
+      isloading = true;
+    });
     final sectionIds = selectedSections
         .where((e) => e.id != null && e.id!.isNotEmpty)
         .map((e) => e.id!)
@@ -183,15 +188,17 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop(); // standard Flutter pop
       }
-
-      // Optional: call success callback
-      // onPaymentSuccess();
-      // isPaymentStatus.value = true;
+      setState(() {
+        isloading = false;
+      });
     } else {
       print('Payment Failed or Aborted => $res');
-      // Optional: call failure callback
-      // onPaymentFailed();
-      // isPaymentStatus.value = false;
+      setState(() {
+        isloading = false;
+      });
+      Future.delayed(Duration(milliseconds: 50), () {
+        showAppToast(message: 'Payment Failed');
+      });
     }
   }
 
@@ -226,6 +233,9 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                           promotionId: promotionId,
                         ),
                       );
+                  setState(() {
+                    isloading = false;
+                  });
                 },
                 onError: (response) {
                   showAppToast(message: 'Payment failed ${response.message}');
@@ -238,13 +248,13 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                 },
               );
 
-              // ✅ Open Razorpay checkout
+            
               paymentRepo.openCheckout(
                 key: checkoutState.promotionResponseModel.key ?? "",
                 amount: amountInPaise,
                 name: "Bringesse Promotions",
                 description: "Promotion Payment",
-                orderId: orderId, // Required for signature
+                orderId: orderId, 
                 email: "seller@example.com",
               );
             }
@@ -462,21 +472,28 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                 child: Container(
                   margin:
                       EdgeInsets.symmetric(horizontal: 10.w, vertical: 20.w),
-                  child: CustomButton(
-                    title: calculateTotalPrice() > 0
-                        ? "Pay ₹${calculateTotalPrice().round()}"
-                        : "Pay",
-                    onPressed: () {
-                      var totalAmount = calculateTotalPrice();
-                      if (totalAmount <= 0) {
-                        Fluttertoast.showToast(
-                            msg: "Please select valid start and end date");
-                        return;
-                      }
-                      _save();
-                    },
-                    icon: Icons.arrow_forward_ios_rounded,
-                  ),
+                  child: isloading == true
+                      ? CustomButton(
+                          title: "Loading",
+                          onPressed: () {},
+                          isLoading: true,
+                        )
+                      : CustomButton(
+                          title: calculateTotalPrice() > 0
+                              ? "Pay ₹${calculateTotalPrice().round()}"
+                              : "Pay",
+                          onPressed: () {
+                            var totalAmount = calculateTotalPrice();
+                            if (totalAmount <= 0) {
+                              Fluttertoast.showToast(
+                                  msg:
+                                      "Please select valid start and end date");
+                              return;
+                            }
+                            _save();
+                          },
+                          icon: Icons.arrow_forward_ios_rounded,
+                        ),
                 ),
               ),
             );

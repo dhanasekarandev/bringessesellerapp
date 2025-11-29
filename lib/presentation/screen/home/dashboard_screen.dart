@@ -122,42 +122,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           title: "Dashboard",
           showLeading: false,
           actions: [
-            InkWell(
-                onTap: () async {
-                  final payload = {
-                    "requestId": "5a4c1536eed146fda181b2a996aa652c",
-                    "service": "in.juspay.hyperpay",
-                    "payload": {
-                      "clientId": "amigoways",
-                      "customerId": "68eca71c8e85a24b7c45a973",
-                      "orderId": "sub_1764237919999",
-                      "returnUrl": "https://yourdomain.com/payment-callback",
-                      "currency": "INR",
-                      "customerPhone": "9999999999",
-                      "service": "in.juspay.hyperpay",
-                      "environment": "sandbox",
-                      "merchantId": "amigoways",
-                      "amount": "1.0",
-                      "clientAuthTokenExpiry": "2025-11-27T10:20:20Z",
-                      "clientAuthToken": "tkn_aeb90c56a9ee4e67a039a341c16ca89b",
-                      "action": "paymentPage",
-                      "collectAvsInfo": false
-                    },
-                    "currTime": "2025-11-27T10:05:20Z",
-                    "xRoutingId": "undefined"
-                  };
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PaymentPageScreen(
-                        hyperSDK: hyperSDKInstance,
-                        payload: payload,
-                      ),
-                    ),
-                  );
-                },
-                child: Text("Pay")),
+            
             InkWell(
                 onTap: () {
                   print(
