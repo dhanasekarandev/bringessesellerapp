@@ -74,6 +74,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _sku = TextEditingController();
   final TextEditingController _return = TextEditingController();
   final TextEditingController _refund = TextEditingController();
+  final TextEditingController _foodtype = TextEditingController();
   final TextEditingController _des = TextEditingController();
   final TextEditingController _cat = TextEditingController();
   final TextEditingController _sub = TextEditingController();
@@ -274,21 +275,22 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   .bodyLarge!
                   .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
             ),
-
-            Text(
-              "CGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['cgst']!.toStringAsFixed(2)}",
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              "SGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['sgst']!.toStringAsFixed(2)}",
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge!
-                  .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
-            ),
+            if (!isFood)
+              Text(
+                "CGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['cgst']!.toStringAsFixed(2)}",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge!
+                    .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+              ),
+            if (!isFood)
+              Text(
+                "SGST (${(gstPercent / 2).toStringAsFixed(1)}%): ₹${result['sgst']!.toStringAsFixed(2)}",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge!
+                    .copyWith(fontSize: 16.sp, fontWeight: FontWeight.w600),
+              ),
             Text(
               "Processing Fee ($processingFeePercent%): ₹${result['processingFeeAmount']!.toStringAsFixed(2)}",
               style: Theme.of(context)
@@ -444,6 +446,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             storeId: widget.storeId,
             name: _name.text,
             sku: _sku.text,
+            type: _foodtype.text,
             menuId: selectedMenuId,
             variants: variants,
             description: _des.text,
@@ -457,22 +460,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
         context.read<ProductCreateCubit>().login(req);
       } else {
         final req = ProductUpdateReqModel(
-          itemId: widget.editProduct!.id,
-          sellerId: widget.sellerId,
-          storeId: widget.storeId,
-          name: _name.text,
-          sku: _sku.text,
-          menuId: selectedMenuId,
-          variants: variants,
-          description: _des.text,
-          comboOffer: isCombo,
-          quantity: _stock.text,
-          outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
-          productImages: newFiles,
-          existingImages: existingImages,
-           isRefund: isRefundEnabled ? 'true' : 'false',
-            noOfDaysToReturn: _return.text
-        );
+            itemId: widget.editProduct!.id,
+            sellerId: widget.sellerId,
+            storeId: widget.storeId,
+            name: _name.text,
+            sku: _sku.text,
+            menuId: selectedMenuId,
+            variants: variants,
+            description: _des.text,
+            comboOffer: isCombo,
+            quantity: _stock.text,
+            outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
+            productImages: newFiles,
+            existingImages: existingImages,
+            isRefund: isRefundEnabled ? 'true' : 'false',
+            noOfDaysToReturn: _return.text);
 
         context.read<ProductUpdateCubit>().login(req);
       }
@@ -504,6 +506,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   bool isRefundEnabled = false;
   bool isReturn = false;
+  bool isFood = false;
   @override
   Widget build(BuildContext context) {
     print("sljdfgbs${widget.processingfee}");
@@ -840,6 +843,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           hintText: "Category name",
                           readOnly: true,
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const SubTitleText(
+                              title: "Food product",
+                            ),
+                            Switch(
+                              value: isFood,
+                              onChanged: (value) {
+                                setState(() {
+                                  isFood = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                        vericalSpaceMedium,
+                        if (isFood)
+                          CustomTextField(
+                            hintText: "Enter food type",
+                            controller: _foodtype,
+                          ),
                         vericalSpaceMedium,
                         const SubTitleText(
                           title: "Sub category name",
@@ -868,51 +893,53 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Refund Feature Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const SubTitleText(
-                                  title: "Refund feature",
-                                ),
-                                Switch(
-                                  value: isRefundEnabled,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isRefundEnabled = value;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
+                            if (!isFood)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const SubTitleText(
+                                    title: "Refund feature",
+                                  ),
+                                  Switch(
+                                    value: isRefundEnabled,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isRefundEnabled = value;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
 
                             // Show text field when refund = true
-                            if (isRefundEnabled)
+                            if (isRefundEnabled && !isFood)
                               CustomTextField(
                                 hintText: "Enter refund days",
                                 controller: _refund,
                               ),
                             vericalSpaceMedium,
-                            // Return Policy Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const SubTitleText(
-                                  title: "Return Policy",
-                                ),
-                                Switch(
-                                  value: isReturn,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isReturn = value;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
+                            if (!isFood)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const SubTitleText(
+                                    title: "Return Policy",
+                                  ),
+                                  Switch(
+                                    value: isReturn,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isReturn = value;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
 
                             // Show text field when return = true
-                            if (isReturn)
+                            if (isReturn && !isFood)
                               CustomTextField(
                                 hintText: "Enter return days",
                                 controller: _return,
@@ -1038,36 +1065,37 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                     });
                                   },
                                 ),
-                                vericalSpaceMedium,
-                                const SubTitleText(
-                                  title: "GST(%)",
-                                  isMandatory: true,
-                                ),
+                                if (!isFood) vericalSpaceMedium,
+                                if (!isFood)
+                                  const SubTitleText(
+                                    title: "GST(%)",
+                                    isMandatory: true,
+                                  ),
+                                if (!isFood)
+                                  CustomTextField(
+                                    controller: variant['gst'],
+                                    hintText: "",
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (value) {
+                                      double gstValue =
+                                          double.tryParse(value) ?? 0;
 
-                                CustomTextField(
-                                  controller: variant['gst'],
-                                  hintText: "",
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (value) {
-                                    double gstValue =
-                                        double.tryParse(value) ?? 0;
+                                      if (gstValue > 28) {
+                                        variant['gstError'] =
+                                            "GST cannot be more than 28%";
+                                      } else {
+                                        variant['gstError'] = null;
 
-                                    if (gstValue > 28) {
-                                      variant['gstError'] =
-                                          "GST cannot be more than 28%";
-                                    } else {
-                                      variant['gstError'] = null;
+                                        double split = gstValue / 2;
+                                        variant['cgst']!.text =
+                                            split.toStringAsFixed(2);
+                                        variant['sgst']!.text =
+                                            split.toStringAsFixed(2);
+                                      }
 
-                                      double split = gstValue / 2;
-                                      variant['cgst']!.text =
-                                          split.toStringAsFixed(2);
-                                      variant['sgst']!.text =
-                                          split.toStringAsFixed(2);
-                                    }
-
-                                    setState(() {});
-                                  },
-                                ),
+                                      setState(() {});
+                                    },
+                                  ),
 
 // Show error only for this variant
                                 if (variant['gstError'] != null)

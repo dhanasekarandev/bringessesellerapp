@@ -12,6 +12,7 @@ import 'package:bringessesellerapp/model/request/edit_profile_req_model.dart';
 import 'package:bringessesellerapp/model/request/login_req_model.dart';
 import 'package:bringessesellerapp/model/request/menu_creat_req_model.dart';
 import 'package:bringessesellerapp/model/request/menu_update_req_model.dart';
+import 'package:bringessesellerapp/model/request/my_subs_res_model.dart';
 import 'package:bringessesellerapp/model/request/notification_req_model.dart';
 import 'package:bringessesellerapp/model/request/oder_list_req_model.dart';
 import 'package:bringessesellerapp/model/request/payout_prefs_req_model.dart';
@@ -25,6 +26,7 @@ import 'package:bringessesellerapp/model/request/remove_video_req_model.dart';
 import 'package:bringessesellerapp/model/request/review_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
+import 'package:bringessesellerapp/model/request/store_open_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
@@ -60,6 +62,7 @@ import 'package:bringessesellerapp/model/response/revenue_graph_res_model.dart';
 import 'package:bringessesellerapp/model/response/review_res_model.dart';
 import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
+import 'package:bringessesellerapp/model/response/store_update_status_res_model.dart';
 import 'package:bringessesellerapp/model/response/store_upload_model.dart';
 import 'package:bringessesellerapp/model/response/subcription_checkout_response.dart';
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
@@ -512,6 +515,27 @@ class AuthRepository {
     }
   }
 
+  Future<dynamic> getMySubsDetails() async {
+    try {
+      final storeId = sharedPreferenceHelper.getStoreId;
+      var response = await apiService.get(ApiConstant.mysubs(storeId), false);
+
+      if (response.data['status_code'] == 200) {
+        
+        var responseData = response.data;
+
+        return (true, MySubscriptionResponse.fromJson(responseData));
+      } else {
+        print('Unexpected status code: ${response.data['status_code']}');
+        return (false, MySubscriptionResponse());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, MySubscriptionResponse());
+    }
+  }
+
   Future<dynamic> subscriptionCheckout(
       SubscriptionCheckoutReqModel editProfileRequestModel) async {
     try {
@@ -573,6 +597,28 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, NotificationResponseModel());
+    }
+  }
+
+  Future<dynamic> storeStatusUpdate(
+      StoreOpenReqModel notificationReqModel) async {
+    try {
+      print("Editreq:${notificationReqModel}");
+      var response = await apiService.post(
+          ApiConstant.storeUpdate, notificationReqModel, false);
+
+      if (response.data['status_code'] == 200) {
+        var responseData = response.data;
+        return (true, StoreUpdateStatusResponse.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('NotifyUnexpected status code: ${response.statusCode}');
+        return (false, StoreUpdateStatusResponse());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, StoreUpdateStatusResponse());
     }
   }
 

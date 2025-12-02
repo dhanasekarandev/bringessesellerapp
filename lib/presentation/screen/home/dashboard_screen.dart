@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/model/request/store_open_req_model.dart';
 import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
 
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_cubit.dart';
@@ -8,9 +9,12 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/dashboard_
 import 'package:bringessesellerapp/presentation/screen/dashboard/menu_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/product_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/review_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_state.dart';
 import 'package:bringessesellerapp/presentation/screen/home/invite_ref.dart';
 import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/home/payment_test.dart';
+import 'package:bringessesellerapp/presentation/screen/home/test_ui.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_list.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
@@ -85,6 +89,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  void storeopenStatus({String? ative}) {
+    context.read<StoreStatusCubit>().login(StoreOpenReqModel(
+        isActive: ative, storeId: sharedPreferenceHelper.getStoreId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final hyperSDKInstance = HyperSDK();
@@ -92,7 +101,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     log("sdjfbs$token");
     return MultiBlocListener(
       listeners: [
-        // ✅ GetStoreCubit Listener
+        BlocListener<StoreStatusCubit, StoreStatusState>(
+          listener: (context, state) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.notificationResponseModel.status == 'true') {}
+          },
+        ),
         BlocListener<GetStoreCubit, GetStoreState>(
           listener: (context, state) {
             if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
@@ -101,6 +115,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
               sharedPreferenceHelper.saveStoreId(data?.storeId);
               sharedPreferenceHelper.saveCategoryId(data?.categoryId);
               sharedPreferenceHelper.saveCategoryName(data?.categoryName);
+              final status = context
+                          .read<DashboardCubit>()
+                          .state
+                          .dashboardModel
+                          .isActive ==
+                      'true'
+                  ? true
+                  : false;
+              setState(() {
+                _storeSwitch = status;
+              });
             }
           },
         ),
@@ -122,7 +147,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           title: "Dashboard",
           showLeading: false,
           actions: [
-            
             InkWell(
                 onTap: () {
                   print(
@@ -232,6 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               value: _storeSwitch,
                               onChanged: (value) {
                                 setState(() => _storeSwitch = value);
+                                storeopenStatus(ative: value.toString());
                               },
                             ),
                           ],

@@ -44,11 +44,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String? refCode;
   Future<void> getReferral() async {
-    final code = await ReferrerService.getReferralCode();
-    _refferController.text = code!;
-    setState(() {
-      refCode = code;
-    });
+    // final code = await ReferrerService.getReferralCode();
+    // _refferController.text = code!;
+    // setState(() {
+    //   refCode = code;
+    // });
   }
 
   void _submitForm() async {
@@ -91,7 +91,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("lfsdkjgbdj${refCode}");
     final theme = Theme.of(context);
     return Scaffold(
       appBar: const CustomAppBar(title: "SignUp"),

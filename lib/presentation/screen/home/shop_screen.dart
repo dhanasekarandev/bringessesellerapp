@@ -37,6 +37,7 @@ import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/location_permission_helper.dart';
@@ -79,6 +80,7 @@ class _ShopScreenState extends State<ShopScreen> {
   TextEditingController _packingchrg = TextEditingController();
   TextEditingController _packingtime = TextEditingController();
   TextEditingController _return = TextEditingController();
+  TextEditingController _deliverycharge = TextEditingController();
   String? selectedOption;
   double? selectedLat;
   double? selectedLng;
@@ -119,6 +121,7 @@ class _ShopScreenState extends State<ShopScreen> {
     context.read<SubscriptionDefaultCubit>().login();
   }
 
+  bool storeLoading = true;
   void _loadShopdata() {
     context.read<GetStoreCubit>().login();
   }
@@ -194,6 +197,7 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
+  String deliveryType = "free";
   List<Category> _cat = [];
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
@@ -244,6 +248,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final storeReq = StoreReqModel(
         sellerId: sharedPreferenceHelper.getSellerId,
         storeId: _storeId,
+        deliveryType: deliveryType,
         name: _name.text.trim(),
         contactNo: _phone.text.trim(),
         categoryId: selectedOption ?? _catId,
@@ -267,6 +272,7 @@ class _ShopScreenState extends State<ShopScreen> {
         paymentOptions: selectedMethods.toList(),
         returnPolicy: _return.text);
     final storeUpdate = StoreUpdateReq(
+       deliveryType: deliveryType,
         sellerId: sharedPreferenceHelper.getSellerId,
         storeId: _storeId,
         isfood: _isfood,
@@ -337,26 +343,21 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   void _juspaymentSuccess({
-    String? sessionId,
-    String? sessionStatus,
+    String? storeId,
     String? orderId,
     String? subscriptionId,
     String? sellerId,
-    double? subscriptionPrice,
-    String? currency,
   }) {
     context.read<SubscriptionTransactionCubit>().login(
           SubscriptionTransactionReq(
-            price: selectedplanPrice,
-            gateway: 'juspay',
-            sessionId: sessionId,
-            sessionStatus: sessionStatus ?? "SUCCESS",
-            orderId: orderId,
-            subscriptionId: subscriptionId,
-            sellerId: sellerId,
-            subscriptionPrice: subscriptionPrice,
-            currency: currency ?? "INR",
-          ),
+              gateway: 'juspay',
+              orderId: orderId,
+              sellerId: sellerId,
+              paymentId: orderId,
+              subscriptionPlanId: subscriptionId,
+              storeId: storeId,
+              status: 'CHARGED',
+              gatewayName: 'Juspay'),
         );
   }
 
@@ -378,13 +379,11 @@ class _ShopScreenState extends State<ShopScreen> {
       showAppToast(message: 'Payment Successful');
       log("slkdjfhbskj${selectedplanId},${selectedplanPrice}");
       _juspaymentSuccess(
-          currency: payload!.payload!.currency,
-          orderId: res['orderId'],
-          sellerId: sharedPreferenceHelper.getSellerId,
-          sessionId: payload.requestId,
-          sessionStatus: 'SUCCESS',
-          subscriptionId: selectedplanId,
-          subscriptionPrice: double.tryParse(selectedplanPrice.toString()));
+        orderId: res['orderId'],
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: sharedPreferenceHelper.getStoreId,
+        subscriptionId: selectedplanId,
+      );
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
@@ -513,6 +512,9 @@ class _ShopScreenState extends State<ShopScreen> {
                 if (state.networkStatusEnum == NetworkStatusEnum.initial) {
                   const CircularProgressIndicator();
                 }
+                if (state.networkStatusEnum == NetworkStatusEnum.loading) {
+                  CupertinoActivityIndicator();
+                }
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.getStoreModel.status == 'true') {
                     final data = state.getStoreModel.result;
@@ -615,6 +617,9 @@ class _ShopScreenState extends State<ShopScreen> {
                         // They would need to be added to the API or stored separately
                       });
                     }
+                    setState(() {
+                      storeLoading = false;
+                    });
                     print(
                         "sd;kbf${sharedPreferenceHelper.getSearchLng}.${sharedPreferenceHelper.getSearchLat}");
                     // await getFullAddressFromLatLng(
@@ -665,514 +670,569 @@ class _ShopScreenState extends State<ShopScreen> {
               }
             },
             builder: (context, state) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Show data loaded indicator
-                    // if (_isDataLoaded)
-                    //   Container(
-                    //     margin: EdgeInsets.all(8.w),
-                    //     padding: EdgeInsets.all(12.w),
-                    //     decoration: BoxDecoration(
-                    //       color: Colors.green.shade50,
-                    //       borderRadius: BorderRadius.circular(8.r),
-                    //       border: Border.all(color: Colors.green.shade200),
-                    //     ),
-                    //     child: Row(
-                    //       children: [
-                    //         Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
-                    //         SizedBox(width: 8.w),
-                    //         Text(
-                    //           "Store data loaded successfully",
-                    //           style: TextStyle(
-                    //             color: Colors.green.shade700,
-                    //             fontWeight: FontWeight.w500,
-                    //           ),
-                    //         ),
-                    //       ],
-                    //     ),
-                    //   ),
-                    CustomCard(
+              return storeLoading
+                  ? Center(
+                      child: CupertinoActivityIndicator(
+                        color: AppTheme.primaryColor,
+                        radius: 20.r,
+                      ),
+                    )
+                  : SingleChildScrollView(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          vericalSpaceSmall,
-                          InkWell(
-                            onTap: () {
-                              _pickImage();
-                            },
-                            child: Center(
-                                child: CircleAvatar(
-                              radius: 63.r,
-                              backgroundColor: AppTheme.primaryColor,
-                              child: CircleAvatar(
-                                radius: 60.r,
-                                backgroundColor: Theme.of(context).cardColor,
-                                backgroundImage: _selectedImage != null
-                                    ? FileImage(_selectedImage!)
-                                    : (_storeImg != null &&
-                                            _storeImg!.isNotEmpty
-                                        ? NetworkImage(_storeImg!)
-                                        : null),
-                                child: _selectedImage == null &&
-                                        (_storeImg == null ||
-                                            _storeImg!.isEmpty)
-                                    ? Icon(
-                                        Icons.person_2_outlined,
-                                        color: Colors.grey,
-                                        size: 40.sp,
-                                      )
-                                    : null,
-                              ),
-                            )),
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Store name",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            hintText: "Store name",
-                            controller: _name,
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Mobile number",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            hintText: "Mobile number",
-                            controller: _phone,
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Store category",
-                            isMandatory: true,
-                          ),
-                          vericalSpaceMedium,
-                          DropdownButtonFormField<String>(
-                            value: selectedOption,
-                            hint: const Text("Store category"),
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
-                            ),
-                            items: _cat.map((option) {
-                              return DropdownMenuItem(
-                                value: option.id,
-                                child: Text(option.name ?? ""),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                selectedOption = value;
-                                print("");
-                              });
-                            },
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Store location",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            maxLines: 2,
-                            onTap: () async {
-                              final result = await context.push('/map');
-
-                              if (result != null && result is Map) {
-                                double lat = double.parse(result['lat']);
-                                double lng = double.parse(result['lng']);
-
-                                String? address =
-                                    await getFullAddressFromLatLng(
-                                  latitude: lat,
-                                  longitude: lng,
-                                );
-
-                                // Save coordinates + address
-                                await sharedPreferenceHelper
-                                    .saveSearchLat(lat.toString());
-                                await sharedPreferenceHelper
-                                    .saveSearchLng(lng.toString());
-
-                                setState(() {
-                                  selectedLat = lat;
-                                  selectedLng = lng;
-                                  storeName = address;
-                                });
-                              }
-                            },
-                            readOnly: true,
-                            controller:
-                                TextEditingController(text: storeName ?? ''),
-                            hintText: "Location",
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Store description",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            controller: _des,
-                            maxLines: 5,
-                            hintText: "description",
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Packing charge",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            controller: _packingchrg,
-                            hintText: "packing charge",
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "packing time",
-                            isMandatory: true,
-                          ),
-                          CustomTextField(
-                            controller: _packingtime,
-                            hintText: "packing time",
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Shop opening time",
-                            isMandatory: true,
-                          ),
-                          vericalSpaceSmall,
-                          InkWell(
-                            onTap: () => _pickTime(isOpenTime: true),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 14),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _openTime == null
-                                        ? "Select open time"
-                                        : _formatTime(_openTime!),
-                                  ),
-                                  const Icon(Icons.access_time,
-                                      color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Shop close time",
-                            isMandatory: true,
-                          ),
-                          vericalSpaceSmall,
-                          InkWell(
-                            onTap: () => _pickTime(isOpenTime: false),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 14),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey.shade400),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    _closeTime == null
-                                        ? "Select close time"
-                                        : _formatTime(_closeTime!),
-                                  ),
-                                  const Icon(Icons.access_time,
-                                      color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Select payment option",
-                            isMandatory: true,
-                          ),
-                          vericalSpaceSmall,
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: paymentMethods.map((method) {
-                              final bool isSelected =
-                                  selectedMethods.contains(method);
-                              return FilterChip(
-                                showCheckmark: true,
-                                checkmarkColor: Colors.white,
-                                label: Text(
-                                  method,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
+                          // Show data loaded indicator
+                          // if (_isDataLoaded)
+                          //   Container(
+                          //     margin: EdgeInsets.all(8.w),
+                          //     padding: EdgeInsets.all(12.w),
+                          //     decoration: BoxDecoration(
+                          //       color: Colors.green.shade50,
+                          //       borderRadius: BorderRadius.circular(8.r),
+                          //       border: Border.all(color: Colors.green.shade200),
+                          //     ),
+                          //     child: Row(
+                          //       children: [
+                          //         Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
+                          //         SizedBox(width: 8.w),
+                          //         Text(
+                          //           "Store data loaded successfully",
+                          //           style: TextStyle(
+                          //             color: Colors.green.shade700,
+                          //             fontWeight: FontWeight.w500,
+                          //           ),
+                          //         ),
+                          //       ],
+                          //     ),
+                          //   ),
+                          CustomCard(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                vericalSpaceSmall,
+                                InkWell(
+                                  onTap: () {
+                                    _pickImage();
+                                  },
+                                  child: Center(
+                                      child: CircleAvatar(
+                                    radius: 63.r,
+                                    backgroundColor: AppTheme.primaryColor,
+                                    child: CircleAvatar(
+                                      radius: 60.r,
+                                      backgroundColor:
+                                          Theme.of(context).cardColor,
+                                      backgroundImage: _selectedImage != null
+                                          ? FileImage(_selectedImage!)
+                                          : (_storeImg != null &&
+                                                  _storeImg!.isNotEmpty
+                                              ? NetworkImage(_storeImg!)
+                                              : null),
+                                      child: _selectedImage == null &&
+                                              (_storeImg == null ||
+                                                  _storeImg!.isEmpty)
+                                          ? Icon(
+                                              Icons.person_2_outlined,
+                                              color: Colors.grey,
+                                              size: 40.sp,
+                                            )
+                                          : null,
+                                    ),
+                                  )),
                                 ),
-                                selected: isSelected,
-                                selectedColor: AppTheme.primaryColor,
-                                backgroundColor: Theme.of(context).cardColor,
-                                onSelected: (bool selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      selectedMethods.add(method);
-                                    } else {
-                                      selectedMethods.remove(method);
-                                    }
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Store type",
-                            isMandatory: true,
-                          ),
-                          vericalSpaceSmall,
-                          Wrap(
-                            spacing: 16,
-                            runSpacing: 8,
-                            children: (state.storeDefaultModel.storeType != null
-                                    ? {
-                                        "Small": state.storeDefaultModel
-                                                .storeType!.small ??
-                                            0,
-                                        "Medium": state.storeDefaultModel
-                                                .storeType!.medium ??
-                                            0,
-                                        "Large": state.storeDefaultModel
-                                                .storeType!.large ??
-                                            0,
-                                      }
-                                    : {})
-                                .entries
-                                .map((entry) {
-                              final displayText = entry.value == 0
-                                  ? "No kilometer restriction"
-                                  : "${entry.value} km";
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Store name",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  hintText: "Store name",
+                                  controller: _name,
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Mobile number",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  hintText: "Mobile number",
+                                  controller: _phone,
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Store category",
+                                  isMandatory: true,
+                                ),
+                                vericalSpaceMedium,
+                                DropdownButtonFormField<String>(
+                                  value: selectedOption,
+                                  hint: const Text("Store category"),
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 8),
+                                  ),
+                                  items: _cat.map((option) {
+                                    return DropdownMenuItem(
+                                      value: option.id,
+                                      child: Text(option.name ?? ""),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      selectedOption = value;
+                                      print("");
+                                    });
+                                  },
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Store location",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  maxLines: 2,
+                                  onTap: () async {
+                                    final result = await context.push('/map');
 
-                              return Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Radio<String>(
-                                    value: entry.key.toLowerCase(),
-                                    groupValue: selectedSize,
-                                    onChanged: (value) {
+                                    if (result != null && result is Map) {
+                                      double lat = double.parse(result['lat']);
+                                      double lng = double.parse(result['lng']);
+
+                                      String? address =
+                                          await getFullAddressFromLatLng(
+                                        latitude: lat,
+                                        longitude: lng,
+                                      );
+
+                                      // Save coordinates + address
+                                      await sharedPreferenceHelper
+                                          .saveSearchLat(lat.toString());
+                                      await sharedPreferenceHelper
+                                          .saveSearchLng(lng.toString());
+
                                       setState(() {
-                                        selectedSize = value!;
+                                        selectedLat = lat;
+                                        selectedLng = lng;
+                                        storeName = address;
                                       });
-                                      print(
-                                          "Selected store type: $selectedSize");
-                                    },
-                                    activeColor: AppTheme.primaryColor,
-                                  ),
-                                  MediumText(
-                                    title: "${entry.key} ($displayText)",
-                                  ),
-                                ],
-                              );
-                            }).toList(),
-                          ),
-                          vericalSpaceMedium,
-                          Row(
-                            children: [
-                              const SubTitleText(
-                                title: "Food Product",
-                              ),
-                              Spacer(),
-                              Switch(
-                                value: _isfood,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isfood = value;
-                                  });
-                                },
-                              )
-                            ],
-                          ),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Return delivery",
-                          ),
-                          CustomTextField(
-                            hintText: 'add your return days',
-                            controller: _return,
-                          ),
-
-                          vericalSpaceMedium,
-
-                          // Wrap(
-                          //   spacing: 12,
-                          //   children: plans.map((plan) {
-                          //     return ChoiceChip(
-                          //       checkmarkColor: Colors.white,
-                          //       label: Text(plan),
-                          //       selected: selectedPlan == plan,
-                          //       selectedColor: AppTheme.primaryColor,
-                          //       labelStyle: TextStyle(
-                          //         color: selectedPlan == plan
-                          //             ? Colors.white
-                          //             : Colors.black,
-                          //       ),
-                          //       onSelected: (_) {
-                          //         setState(() {
-                          //           selectedPlan = plan;
-                          //         });
-                          //       },
-                          //     );
-                          //   }).toList(),
-                          // ),
-
-                          // if (selectedPlan == "Subscription")
-                          subscriptionPlanWidgets(),
-                          vericalSpaceMedium,
-                          const SubTitleText(
-                            title: "Select Delivery",
-                          ),
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: options.map((option) {
-                              final isSelected =
-                                  selectedOptions.contains(option);
-
-                              return FilterChip(
-                                showCheckmark: true,
-                                checkmarkColor: Colors.white,
-                                label: Text(
-                                  option,
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                                selected: isSelected,
-                                selectedColor: AppTheme.primaryColor,
-                                backgroundColor: Theme.of(context).cardColor,
-                                onSelected: (bool selected) {
-                                  setState(() {
-                                    if (selected) {
-                                      selectedOptions.add(option);
-                                    } else {
-                                      selectedOptions.remove(option);
                                     }
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-
-// CONDITION: Show subtitle ONLY when OWN delivery is selected
-                          vericalSpaceSmall,
-
-                          if (selectedOptions
-                              .any((e) => e == "Own Delivery")) ...[
-                            const SubTitleText(
-                              title:
-                                  '(To manage deliveries, get our Delivery Partner App)',
-                            ),
-                            const SizedBox(height: 8),
-
-                            // App store banner
-                            GestureDetector(
-                              onTap: () {
-                                launchUrl(Uri.parse(
-                                    'https://play.google.com/store/apps/details?id=com.app.bringessedeliverypartner'));
-                              },
-                              child: Center(
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      'https://www.einpresswire.com/image/large/741945/google-play-logo.png',
-                                  height: 50,
+                                  },
+                                  readOnly: true,
+                                  controller: TextEditingController(
+                                      text: storeName ?? ''),
+                                  hintText: "Location",
                                 ),
-                              ),
-                            ),
-                          ],
-                          vericalSpaceMedium,
-                          const SubTitleText(title: "Add document"),
-                          vericalSpaceMedium,
-                          if (documents.isNotEmpty)
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: documents.length,
-                              itemBuilder: (context, index) {
-                                final doc = documents[index];
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: CustomCard(
-                                    child: ListTile(
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
-                                      leading: const Icon(Icons.picture_as_pdf,
-                                          color: Colors.red),
-                                      title: Text(doc["name"]!),
-                                      subtitle: Text(
-                                          "${doc["size"]} • ${doc["date"]}"),
-                                      trailing: IconButton(
-                                        icon: const Icon(
-                                            Icons.delete_outline_outlined,
-                                            color: Colors.red),
-                                        onPressed: () => _removeDocument(index),
-                                      ),
-                                      onTap: () {
-                                        _openDocument(
-                                          doc["name"] ?? "",
-                                        );
-                                      },
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Store description",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  controller: _des,
+                                  maxLines: 5,
+                                  hintText: "description",
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Packing charge",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  controller: _packingchrg,
+                                  hintText: "packing charge",
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "packing time",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  controller: _packingtime,
+                                  hintText: "packing time",
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Shop opening time",
+                                  isMandatory: true,
+                                ),
+                                vericalSpaceSmall,
+                                InkWell(
+                                  onTap: () => _pickTime(isOpenTime: true),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.grey.shade400),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _openTime == null
+                                              ? "Select open time"
+                                              : _formatTime(_openTime!),
+                                        ),
+                                        const Icon(Icons.access_time,
+                                            color: Colors.grey),
+                                      ],
                                     ),
                                   ),
-                                );
-                              },
-                            ),
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomOutlineButton(
-                              icon: Icons.add_circle_outline_sharp,
-                              title: "Add document",
-                              onPressed: () {
-                                _pickPdf();
-                              },
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Shop close time",
+                                  isMandatory: true,
+                                ),
+                                vericalSpaceSmall,
+                                InkWell(
+                                  onTap: () => _pickTime(isOpenTime: false),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.grey.shade400),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          _closeTime == null
+                                              ? "Select close time"
+                                              : _formatTime(_closeTime!),
+                                        ),
+                                        const Icon(Icons.access_time,
+                                            color: Colors.grey),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Select payment option",
+                                  isMandatory: true,
+                                ),
+                                vericalSpaceSmall,
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: paymentMethods.map((method) {
+                                    final bool isSelected =
+                                        selectedMethods.contains(method);
+                                    return FilterChip(
+                                      showCheckmark: true,
+                                      checkmarkColor: Colors.white,
+                                      label: Text(
+                                        method,
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      selected: isSelected,
+                                      selectedColor: AppTheme.primaryColor,
+                                      backgroundColor:
+                                          Theme.of(context).cardColor,
+                                      onSelected: (bool selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            selectedMethods.add(method);
+                                          } else {
+                                            selectedMethods.remove(method);
+                                          }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Store type",
+                                  isMandatory: true,
+                                ),
+                                vericalSpaceSmall,
+                                Wrap(
+                                  spacing: 16,
+                                  runSpacing: 8,
+                                  children:
+                                      (state.storeDefaultModel.storeType != null
+                                              ? {
+                                                  "Small": state
+                                                          .storeDefaultModel
+                                                          .storeType!
+                                                          .small ??
+                                                      0,
+                                                  "Medium": state
+                                                          .storeDefaultModel
+                                                          .storeType!
+                                                          .medium ??
+                                                      0,
+                                                  "Large": state
+                                                          .storeDefaultModel
+                                                          .storeType!
+                                                          .large ??
+                                                      0,
+                                                }
+                                              : {})
+                                          .entries
+                                          .map((entry) {
+                                    final displayText = entry.value == 0
+                                        ? "No kilometer restriction"
+                                        : "${entry.value} km";
+
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Radio<String>(
+                                          value: entry.key.toLowerCase(),
+                                          groupValue: selectedSize,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              selectedSize = value!;
+                                            });
+                                            print(
+                                                "Selected store type: $selectedSize");
+                                          },
+                                          activeColor: AppTheme.primaryColor,
+                                        ),
+                                        MediumText(
+                                          title: "${entry.key} ($displayText)",
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                                vericalSpaceMedium,
+                                Row(
+                                  children: [
+                                    const SubTitleText(
+                                      title: "Food Product",
+                                    ),
+                                    Spacer(),
+                                    Switch(
+                                      value: _isfood,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _isfood = value;
+                                        });
+                                      },
+                                    )
+                                  ],
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Return delivery",
+                                ),
+                                CustomTextField(
+                                  hintText: 'add your return days',
+                                  controller: _return,
+                                ),
+
+                                vericalSpaceMedium,
+
+                                // Wrap(
+                                //   spacing: 12,
+                                //   children: plans.map((plan) {
+                                //     return ChoiceChip(
+                                //       checkmarkColor: Colors.white,
+                                //       label: Text(plan),
+                                //       selected: selectedPlan == plan,
+                                //       selectedColor: AppTheme.primaryColor,
+                                //       labelStyle: TextStyle(
+                                //         color: selectedPlan == plan
+                                //             ? Colors.white
+                                //             : Colors.black,
+                                //       ),
+                                //       onSelected: (_) {
+                                //         setState(() {
+                                //           selectedPlan = plan;
+                                //         });
+                                //       },
+                                //     );
+                                //   }).toList(),
+                                // ),
+
+                                // if (selectedPlan == "Subscription")
+                                subscriptionPlanWidgets(),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Select Delivery",
+                                ),
+                                Wrap(
+                                  spacing: 12,
+                                  runSpacing: 12,
+                                  children: options.map((option) {
+                                    final isSelected =
+                                        selectedOptions.contains(option);
+
+                                    return FilterChip(
+                                      showCheckmark: true,
+                                      checkmarkColor: Colors.white,
+                                      label: Text(
+                                        option,
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                      selected: isSelected,
+                                      selectedColor: AppTheme.primaryColor,
+                                      backgroundColor:
+                                          Theme.of(context).cardColor,
+                                      onSelected: (bool selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            selectedOptions.add(option);
+                                          } else {
+                                            selectedOptions.remove(option);
+                                          }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Select Delivery Type",
+                                ),
+// CONDITION: Show subtitle ONLY when OWN delivery is selected
+                                vericalSpaceSmall,
+                                RadioListTile(
+                                  title: Text("Free Delivery"),
+                                  value: "free",
+                                  groupValue: deliveryType,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      deliveryType = value.toString();
+                                    });
+                                  },
+                                ),
+
+                                // Paid Delivery
+                                RadioListTile(
+                                  title: Text("Paid Delivery"),
+                                  value: "paid",
+                                  groupValue: deliveryType,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      deliveryType = value.toString();
+                                    });
+                                  },
+                                ),
+                                // If you want text input instead of normal text 👇
+                                if (deliveryType == "paid")
+                                  CustomTextField(
+                                    controller: _deliverycharge,
+                                    hintText: 'Enter delivery charge',
+                                  ),
+
+                                // if (selectedOptions
+                                //     .any((e) => e == "Own Delivery")) ...[
+                                //   const SubTitleText(
+                                //     title:
+                                //         '(To manage deliveries, get our Delivery Partner App)',
+                                //   ),
+                                //   const SizedBox(height: 8),
+
+                                //   // App store banner
+                                //   GestureDetector(
+                                //     onTap: () {
+                                //       launchUrl(Uri.parse(
+                                //           'https://play.google.com/store/apps/details?id=com.app.bringessedeliverypartner'));
+                                //     },
+                                //     child: Center(
+                                //       child: CachedNetworkImage(
+                                //         imageUrl:
+                                //             'https://www.einpresswire.com/image/large/741945/google-play-logo.png',
+                                //         height: 50,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ],
+                                vericalSpaceMedium,
+                                const SubTitleText(title: "Add document"),
+                                vericalSpaceMedium,
+                                if (documents.isNotEmpty)
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    itemCount: documents.length,
+                                    itemBuilder: (context, index) {
+                                      final doc = documents[index];
+
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(bottom: 8.0),
+                                        child: CustomCard(
+                                          child: ListTile(
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 8),
+                                            leading: const Icon(
+                                                Icons.picture_as_pdf,
+                                                color: Colors.red),
+                                            title: Text(doc["name"]!),
+                                            subtitle: Text(
+                                                "${doc["size"]} • ${doc["date"]}"),
+                                            trailing: IconButton(
+                                              icon: const Icon(
+                                                  Icons.delete_outline_outlined,
+                                                  color: Colors.red),
+                                              onPressed: () =>
+                                                  _removeDocument(index),
+                                            ),
+                                            onTap: () {
+                                              _openDocument(
+                                                doc["name"] ?? "",
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: CustomOutlineButton(
+                                    icon: Icons.add_circle_outline_sharp,
+                                    title: "Add document",
+                                    onPressed: () {
+                                      _pickPdf();
+                                    },
+                                  ),
+                                ),
+                                vericalSpaceMedium,
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: CustomButton(
+                                    title: _isDataLoaded
+                                        ? "Update Store"
+                                        : "Create Store",
+                                    onPressed: () => _save(),
+                                  ),
+                                )
+                              ],
                             ),
                           ),
-                          vericalSpaceMedium,
-                          SizedBox(
-                            width: double.infinity,
-                            child: CustomButton(
-                              title: _isDataLoaded
-                                  ? "Update Store"
-                                  : "Create Store",
-                              onPressed: () => _save(),
-                            ),
-                          )
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              );
+                    );
             },
           ),
         ));

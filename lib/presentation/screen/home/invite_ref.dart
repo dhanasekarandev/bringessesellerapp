@@ -35,11 +35,25 @@ class _InviteReferreState extends State<InviteReferre> {
   String? referralLink;
   @override
   void initState() {
-    referralLink =
-        "https://play.google.com/store/apps/details?id=com.app.bringessesellerapp"
-        "&referrer=${Uri.encodeComponent("referral_code=${widget.refId ?? ''}")}";
-
+    generateReferralLink(widget.refId!);
     super.initState();
+  }
+
+  String reffUri = '';
+  String generateReferralLink(String referralCode) {
+    final baseUrl = 'https://play.google.com/store/apps/details';
+    final packageName = 'com.app.bringessesellerapp';
+
+    final Uri uri = Uri.parse(baseUrl).replace(
+      queryParameters: {
+        'id': packageName,
+        'referrer': 'referral_code=${referralCode}',
+      },
+    );
+    setState(() {
+      reffUri = uri.toString();
+    });
+    return uri.toString();
   }
 
   void showToast(String msg) {
@@ -54,12 +68,12 @@ class _InviteReferreState extends State<InviteReferre> {
 
   // SHARE FUNCTION
   void shareReferral() {
-    Share.share("Download the app & use my referral!\n$referralLink");
+    Share.share("Download the app & use my referral!\n$reffUri");
   }
 
   // COPY FUNCTION
   Future<void> copyReferral() async {
-    await Clipboard.setData(ClipboardData(text: referralLink!));
+    await Clipboard.setData(ClipboardData(text: reffUri));
     Fluttertoast.showToast(
       msg: "Referral link copied!",
       backgroundColor: Colors.black87,
@@ -69,7 +83,7 @@ class _InviteReferreState extends State<InviteReferre> {
 
   // DOWNLOAD FUNCTION
   Future<void> openPlayStore() async {
-    final url = Uri.parse(referralLink!);
+    final url = Uri.parse(reffUri);
 
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -147,7 +161,7 @@ class _InviteReferreState extends State<InviteReferre> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   QrImageView(
-                    data: referralLink!,
+                    data: reffUri,
                     version: QrVersions.auto,
                     size: 120,
                   ),

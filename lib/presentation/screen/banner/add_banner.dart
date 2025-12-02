@@ -183,7 +183,12 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
     if (res != null && res['success'] == true) {
       // Show toast BEFORE popping
       showAppToast(message: 'Payment Successful');
-
+      context.read<PromotionTransctionCubit>().login(
+            TransactionRequestModel(
+                orderId: res['orderId'],
+                promotionId: promotionId,
+                gatewayName: 'Juspay'),
+          );
       // Pop the page
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop(); // standard Flutter pop
@@ -248,13 +253,12 @@ class _AddBannerScreenState extends State<AddBannerScreen> {
                 },
               );
 
-            
               paymentRepo.openCheckout(
                 key: checkoutState.promotionResponseModel.key ?? "",
                 amount: amountInPaise,
                 name: "Bringesse Promotions",
                 description: "Promotion Payment",
-                orderId: orderId, 
+                orderId: orderId,
                 email: "seller@example.com",
               );
             }

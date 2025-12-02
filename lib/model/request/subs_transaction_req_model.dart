@@ -1,74 +1,72 @@
 class SubscriptionTransactionReq {
+  String? gateway; // razorpay / juspay
   String? paymentId;
   String? orderId;
   String? signature;
-  String? gateway = "razorpay";
-  // For Juspay extra fields
-  String? sessionStatus;
-  String? sessionId;
-  String? subscriptionId;
+
+  // New Juspay format fields
+  String? gatewayName;
+  String? subscriptionPlanId;
+  String? storeId;
   String? sellerId;
-  double? subscriptionPrice;
-  int? price;
-  String? currency;
+  String? status;
 
   SubscriptionTransactionReq({
-    this.gateway,
+    this.gateway = "razorpay",
     this.paymentId,
     this.orderId,
-    this.price,
     this.signature,
-    this.sessionStatus,
-    this.sessionId,
-    this.subscriptionId,
+    this.gatewayName,
+    this.subscriptionPlanId,
+    this.storeId,
     this.sellerId,
-    this.subscriptionPrice,
-    this.currency,
+    this.status,
   });
 
   SubscriptionTransactionReq.fromJson(Map<String, dynamic> json) {
+    // Razorpay keys
     paymentId = json['paymentId'] ?? json['payment_id'];
     orderId = json['orderId'] ?? json['order_id'];
     signature = json['signature'];
 
-    // Juspay keys
-    if (json['session'] != null) {
-      var session = json['session'];
-      sessionStatus = session['status'];
-      sessionId = session['id'];
-      orderId = session['order_id']; // override if needed
-      currency = session['sdk_payload']?['payload']?['currency'];
-    }
-    subscriptionId = json['subscriptionId'];
+    // Juspay keys (NEW FORMAT)
+    gatewayName = json['gatewayName'];
+    subscriptionPlanId = json['subscriptionPlanId'];
+    storeId = json['storeId'];
     sellerId = json['sellerId'];
-    price = json['subscriptionPrice'] != null ? json['subscriptionPrice'] : 0;
+    status = json['status'];
+
+    // Auto detect gateway
+    if (gatewayName != null) {
+      gateway = gatewayName!.toLowerCase();
+    }
   }
 
   Map<String, dynamic> toJson() {
+    // ✔ Razorpay request format
     if (gateway?.toLowerCase() == "razorpay") {
       return {
-        if (paymentId != null) 'paymentId': paymentId,
-        if (orderId != null) 'orderId': orderId,
-        if (signature != null) 'signature': signature,
-      };
-    } else if (gateway?.toLowerCase() == "juspay") {
-      return {
-        'session': {
-          'status': sessionStatus ?? "SUCCESS",
-          'id': sessionId ?? orderId,
-          'order_id': orderId,
-          'sdk_payload': {
-            'payload': {
-              'amount': subscriptionPrice ?? 0, // send as number
-              'currency': currency ?? "INR",
-            }
-          }
-        },
-        if (subscriptionId != null) 'subscriptionId': subscriptionId,
-        if (sellerId != null) 'sellerId': sellerId,
-        if (price != null) 'subscriptionPrice': price
+        "gateway": "razorpay",
+        if (paymentId != null) "paymentId": paymentId,
+        if (orderId != null) "orderId": orderId,
+        if (signature != null) "signature": signature,
       };
     }
+
+    // ✔ Juspay request format (NEW API)
+    if (gateway?.toLowerCase() == "juspay") {
+      return {
+        "gatewayName": "Juspay",
+        if (storeId != null) "storeId": storeId,
+        if (sellerId != null) "sellerId": sellerId,
+        if (subscriptionPlanId != null)
+          "subscriptionPlanId": subscriptionPlanId,
+        if (orderId != null) "orderId": orderId,
+        if (paymentId != null) "paymentId": paymentId,
+        if (status != null) "status": status,
+      };
+    }
+
     return {};
   }
 }

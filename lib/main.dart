@@ -27,6 +27,7 @@ import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/review_cub
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/upload_video_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/notification_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_update_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_cubit.dart';
 
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
@@ -37,6 +38,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_coupon_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/logout_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/my_subscription_plan_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/payout_account_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/privacy_policy_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
@@ -286,6 +288,12 @@ class MyApp extends StatelessWidget {
             create: (repoContext) =>
                 SubscriptionTransactionCubit(authRepository: authRepository),
           ),
+          BlocProvider<StoreStatusCubit>(
+              create: (repoContext) =>
+                  StoreStatusCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<MySubscriptionPlanCubit>(
+              create: (repoContext) => MySubscriptionPlanCubit(
+                  authRepository: AuthRepository(apiService))),
           BlocProvider<OderStatusUpdateCubit>(
               create: (repoContext) => OderStatusUpdateCubit(
                   authRepository: AuthRepository(apiService))),

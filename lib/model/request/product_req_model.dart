@@ -13,6 +13,7 @@ class ProductCreateReqModel {
   String? videoUrl;
   String? quantity;
   bool? comboOffer;
+  String? type;
   String? isRefund;
   String? noOfDaysToReturn;
   List<File>? productImages;
@@ -21,6 +22,7 @@ class ProductCreateReqModel {
     this.sellerId,
     this.storeId,
     this.name,
+    this.type,
     this.sku,
     this.videoUrl,
     this.quantity,
@@ -39,6 +41,7 @@ class ProductCreateReqModel {
       'sellerId': sellerId,
       'storeId': storeId,
       'name': name,
+      'type': type,
       'SKU': sku,
       'videoUrl': videoUrl,
       'quantity': quantity,
@@ -57,6 +60,7 @@ class ProductCreateReqModel {
       'sellerId': sellerId,
       'storeId': storeId,
       'name': name,
+      'type': type,
       'SKU': sku,
       'videoUrl': videoUrl,
       'quantity': quantity,

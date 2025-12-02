@@ -5,11 +5,14 @@ import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/edit_profile_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/edit_profile_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/my_subscription_plan_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/my_subscription_plan_state.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/send_otp_state.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/my_subscription_plan.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/otp_screen.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
@@ -56,10 +59,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String? currentVersion;
+  String? appcount;
+  bool reffer = false;
   void _loadProfile() async {
     context.read<ViewProfileCubit>().login();
     context.read<StoreDefaultsCubit>().login();
     context.read<SubscriptionDefaultCubit>().login();
+    context.read<MySubscriptionPlanCubit>().login();
+
     final packageInfo = await PackageInfo.fromPlatform();
     currentVersion = packageInfo.version;
   }
@@ -100,13 +107,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
 // Simple contact number validation (10 digits)
-    if (!RegExp(r'^\d{10}$').hasMatch(contact)) {
+    if (!RegExp(r'^\+91\s?\d{10}$|^\d{10}$').hasMatch(contact)) {
       showAppToast(
-          message: "Please enter a valid 10-digit contact number",
-          isError: true);
+        message: "Please enter a valid contact number",
+        isError: true,
+      );
       return;
     }
-
 // If all validations pass, update the profile
     context.read<EditProfileCubit>().login(EditProfileRequestModel(
           contactNo: contact,
@@ -129,10 +136,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() {
       phone = true;
     });
-    context.read<SendOtpCubit>().login(SendOtpReqModel(
-          phoneNumber: _contactController.text,
-          type: 'phone',
-        ));
+
+    String number = _contactController.text.trim();
+
+    // Remove +91 if exists
+    if (number.startsWith("+91")) {
+      number = number.replaceFirst("+91", "");
+    }
+
+    context.read<SendOtpCubit>().login(
+          SendOtpReqModel(
+            phoneNumber: number,
+            type: 'phone',
+          ),
+        );
   }
 
   void _sendOtpEmail() {
@@ -161,35 +178,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-      body: BlocListener<SendOtpCubit, SendOtpState>(
-        listener: (context, state) {
-          if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
-              state.ChangePassword.status != false) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => OtpScreen(
-                  isPhone: phone,
-                  phone: phone ? _contactController.text : null,
-                  email: phone ? null : _emailController.text,
-                ),
-              ),
-            ).then(
-              (value) {
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<SendOtpCubit, SendOtpState>(
+            listener: (context, state) {
+              if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                  state.ChangePassword.status != false) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OtpScreen(
+                      isPhone: phone,
+                      phone: phone ? _contactController.text : null,
+                      email: phone ? null : _emailController.text,
+                    ),
+                  ),
+                ).then(
+                  (value) {
+                    setState(() {
+                      phone = false;
+                      loading = false;
+                      phoneloading = false;
+                    });
+                  },
+                );
+                context.read<ViewProfileCubit>().login();
+                Fluttertoast.showToast(
+                  msg: state.ChangePassword.message ?? '',
+                  toastLength: Toast.LENGTH_SHORT,
+                );
+              }
+            },
+          ),
+          BlocListener<MySubscriptionPlanCubit, MySubscriptionPlanState>(
+            listener: (context, state) {
+              if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                 setState(() {
-                  phone = false;
-                  loading = false;
-                  phoneloading = false;
+                  appcount = state
+                      .viewProfile.result!.subscriptionPlan!.noOfDriversAllowed
+                      .toString();
+                  reffer = state.viewProfile.result!.id == '' ? false : true;
                 });
-              },
-            );
-            context.read<ViewProfileCubit>().login();
-            Fluttertoast.showToast(
-              msg: state.ChangePassword.message ?? '',
-              toastLength: Toast.LENGTH_SHORT,
-            );
-          }
-        },
+                print("sdlfhs${appcount},${reffer}");
+              }
+            },
+          ),
+        ],
         child: BlocConsumer<ViewProfileCubit, ViewProfileState>(
           listener: (context, state) {
             if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
@@ -364,6 +398,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Column(
                         children: [
                           CustomListTile(
+                            title: "My Plan",
+                            leadingIcon: Icons.workspace_premium_outlined,
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        SubscriptionListScreen(
+                                      data: context
+                                          .read<MySubscriptionPlanCubit>()
+                                          .state
+                                          .viewProfile
+                                          .result,
+                                    ),
+                                  ));
+                              //context.push('/profile/changepassword');
+                            },
+                          ),
+                          CustomListTile(
                             title: "Change password",
                             leadingIcon: Icons.remove_red_eye_outlined,
                             trailing: const Icon(Icons.arrow_forward_ios),
@@ -425,21 +479,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               context.push('/profile/account');
                             },
                           ),
-                          CustomListTile(
-                            title: "share delivery partner",
-                            leadingIcon: Icons.share_outlined,
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              Navigator.push(
+                          if (reffer && (appcount != '0'))
+                            CustomListTile(
+                              title: "share delivery partner",
+                              leadingIcon: Icons.share_outlined,
+                              trailing: const Icon(Icons.arrow_forward_ios),
+                              onTap: () {
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => DriverRefferal(
                                       storeId: state
                                           .viewProfile.result!.storeDetails!.id,
                                     ),
-                                  ));
-                            },
-                          ),
+                                  ),
+                                );
+                              },
+                            ),
                           // CustomListTile(
                           //   title: "Subscription Plans",
                           //   leadingIcon: Icons.shield_outlined,
@@ -476,7 +532,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: "Version",
                             leadingIcon: Icons.info_outline,
                             trailing: Text(
-                              "(${currentVersion})",
+                              "(//)",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),

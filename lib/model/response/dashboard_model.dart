@@ -13,6 +13,7 @@ class DashboardModel {
   int? sellerStatus;
   String? paymentStatus;
   int? liveStatus;
+  String? isActive;
 
   DashboardModel({
     this.status,
@@ -28,6 +29,7 @@ class DashboardModel {
     this.currencySymbol,
     this.sellerStatus,
     this.paymentStatus,
+    this.isActive,
     this.liveStatus,
   });
 
@@ -45,6 +47,7 @@ class DashboardModel {
     currencySymbol = json['currencySymbol'];
     sellerStatus = json['sellerStatus'];
     paymentStatus = json['paymentStatus'];
+    isActive = json['isActive'];
     liveStatus = json['live_status'];
   }
 
@@ -64,6 +67,7 @@ class DashboardModel {
     data['sellerStatus'] = sellerStatus;
     data['paymentStatus'] = paymentStatus;
     data['live_status'] = liveStatus;
+    data['isActive'] = isActive;
     return data;
   }
 }

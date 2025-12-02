@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:play_install_referrer/play_install_referrer.dart';
+// import 'package:play_install_referrer/play_install_referrer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -48,6 +50,31 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!playStoreUpdate && !firebaseUpdate && mounted) {
       _navigateNext();
     }
+  }
+
+  String? referCode;
+  Future<void> initReferrerDetails() async {
+    String referrerDetailsString;
+    String? referralCode;
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      ReferrerDetails referrerDetails =
+          await PlayInstallReferrer.installReferrer;
+
+      referrerDetailsString = referrerDetails.installReferrer.toString();
+
+      final uri = Uri.parse("https://dummy.com/?" + referrerDetailsString);
+      referralCode = uri.queryParameters['referral_code'];
+    } catch (e) {
+      referrerDetailsString = 'Failed to get referrer details: $e';
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      referCode = referralCode;
+      print('setstate refercode--------$referCode');
+    });
   }
 
   /// ✅ Step 1: Check Play Store version
