@@ -1,15 +1,33 @@
+import 'dart:developer';
+
+import 'package:bringessesellerapp/config/constant/contsant.dart';
+import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/my_subs_res_model.dart';
+import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
+import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
 import 'package:bringessesellerapp/model/response/subription_defaults_response_model.dart';
+import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
+import 'package:bringessesellerapp/presentation/repository/razorpay_repo.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_checkout_state.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_default_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/subscription_transaction_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
+import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
 import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
-import 'package:bringessesellerapp/presentation/widget/title_text.dart';
+
+import 'package:bringessesellerapp/utils/enums.dart';
+import 'package:bringessesellerapp/utils/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hypersdkflutter/hypersdkflutter.dart';
 import 'package:intl/intl.dart';
+
+
+import '../../../model/response/subcription_checkout_response.dart';
 
 class SubscriptionListScreen extends StatefulWidget {
   final MySubscriptionResult? data;
@@ -21,10 +39,20 @@ class SubscriptionListScreen extends StatefulWidget {
 
 class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
   List<SubscriptionModel> otherPlans = [];
-  Map<String, bool> expandedCard = {}; // Track showMore state per card
+  Map<String, bool> expandedCard = {};
+  late SharedPreferenceHelper sharedPreferenceHelper;
+
+  final hyperSDKInstance = HyperSDK();
+
+  /// Missing variables fixed 👇
+  String? selectedplanId;
+  double? selectedplanPrice;
+  bool isLoading = false;
 
   @override
   void initState() {
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    sharedPreferenceHelper.init();
     super.initState();
     loadPlans();
   }
@@ -35,52 +63,179 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
 
     otherPlans = subscriptionState.result ?? [];
 
-    // Remove active plan from this list as it is shown above separately
-    final activeId = widget.data?.subscriptionPlan!.id;
+    final activeId = widget.data?.subscriptionPlan?.id;
     if (activeId != null) {
       otherPlans.removeWhere((plan) => plan.id == activeId);
     }
   }
 
+  /// Juspay Success API Trigger
+  void _juspaymentSuccess({
+    String? storeId,
+    String? orderId,
+    String? subscriptionId,
+    String? sellerId,
+  }) {
+    context.read<SubscriptionTransactionCubit>().login(
+          SubscriptionTransactionReq(
+            gateway: 'juspay',
+            orderId: orderId,
+            sellerId: sellerId,
+            paymentId: orderId,
+            subscriptionPlanId: subscriptionId,
+            storeId: storeId,
+            status: 'CHARGED',
+            gatewayName: 'Juspay',
+          ),
+        );
+  }
+
+  /// Juspay Payment Launch & Result Handler
+  Future<void> jusPayment(
+    BuildContext context,
+    SdkPayload? payload,
+  ) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentPageScreen(
+          hyperSDK: hyperSDKInstance,
+          payload: payload,
+        ),
+      ),
+    );
+
+    if (result != null && result['status'] == "CHARGED") {
+      showAppToast(message: 'Payment Successful');
+
+      _juspaymentSuccess(
+        orderId: result['orderId'],
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: sharedPreferenceHelper.getStoreId,
+        subscriptionId: selectedplanId,
+      );
+    } else {
+      showAppToast(message: 'Payment Failed');
+    }
+
+    if (Navigator.canPop(context)) Navigator.pop(context);
+  }
+
+  /// Razorpay Success Handler
+  void _paymentSuccess(
+      {String? orderId, String? paymentId, String? signature}) {
+    context.read<SubscriptionTransactionCubit>().login(
+          SubscriptionTransactionReq(
+            orderId: orderId,
+            paymentId: paymentId,
+            signature: signature,
+          ),
+        );
+  }
+
+  bool loading = false;
+
+  
+  void _checkout({String? subsId, double? subsPrice}) {
+    setState(() {
+      loading = true;
+    });
+    selectedplanId = subsId;
+    selectedplanPrice = subsPrice;
+
+    context.read<SubscriptionCheckoutCubit>().login(
+          SubscriptionCheckoutReqModel(
+              subscriptionId: subsId,
+              subscriptionPrice: subsPrice,
+              sellerId: sharedPreferenceHelper.getSellerId),
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CustomAppBar(title: "Subscription"),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SubTitleText(title: "Active Plan"),
-            SizedBox(height: 20),
-            _activeCard(),
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SubscriptionCheckoutCubit, SubscriptionCheckoutState>(
+          listener: (context, state) async {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.editProfile.statusCode == 200) {
+           
+              if (state.editProfile.gateway == 'Juspay') {
+                final payload = state.editProfile.session?.sdkPayload;
+                await jusPayment(context, payload);
+              }
 
-            SizedBox(height: 20),
+              
+              else {
+                final paymentRepo = PaymentRepository();
 
-            SubTitleText(title: "Available Subscriptions"),
+                paymentRepo.init(
+                  onExternalWallet: (ExternalWalletResponse) {},
+                  onSuccess: (paymentId) {
+                    _paymentSuccess(
+                      orderId: paymentId.orderId,
+                      paymentId: paymentId.paymentId,
+                      signature: paymentId.signature,
+                    );
+                    showAppToast(message: "Payment Success");
+                  },
+                  onError: (response) {
+                    setState(() {
+                      loading = false;
+                    });
+                    setState(() => isLoading = false);
+                    showAppToast(message: "Payment Failed");
+                  },
+                );
 
-            SizedBox(height: 12),
-
-            /// 🔥 Loop API plans dynamically
-            ...otherPlans.map((plan) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _subscriptionCard(
-                  id: plan.id ?? "",
-                  title: plan.name ?? "--",
-                  duration: "${plan.durationCount} Days",
-                  freeCalls: "${plan.price}",
-                  description: plan.description ?? "--",
-                  isActive: false,
-                ),
-              );
-            }).toList(),
-          ],
+                paymentRepo.openCheckout(
+                  key: state.editProfile.key ?? '',
+                  amount: ((selectedplanPrice ?? 0) * 100)
+                      .toInt(), // Razorpay format
+                  name: "Subscription Payment",
+                  description: "Subscription purchase",
+                  orderId: state.editProfile.orderId,
+                  email: "seller@example.com",
+                );
+              }
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        appBar: CustomAppBar(title: "Subscription"),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SubTitleText(title: "Active Plan"),
+              SizedBox(height: 20),
+              _activeCard(),
+              SizedBox(height: 20),
+              SubTitleText(title: "Available Subscriptions"),
+              SizedBox(height: 12),
+              ...otherPlans.map((plan) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _subscriptionCard(
+                    id: plan.id ?? "",
+                    title: plan.name ?? "--",
+                    duration: "${plan.durationCount} Days",
+                    price: "${plan.price}",
+                    description: plan.description ?? "--",
+                    isActive: false,
+                  ),
+                );
+              }).toList(),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  /// ---------------- ACTIVE PLAN CARD -----------
   Widget _activeCard() {
     final plan = widget.data;
 
@@ -151,11 +306,12 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
     );
   }
 
+  /// ---------------- SUBSCRIPTION CARDS -----------------
   Widget _subscriptionCard({
     required String id,
     required String title,
     required String duration,
-    required String freeCalls,
+    required String price,
     required String description,
     required bool isActive,
   }) {
@@ -180,7 +336,7 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
                 SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    title,
+                    title.toUpperCase(),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
@@ -189,10 +345,8 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
             SizedBox(height: 10),
             _detailItem("Duration", duration),
             SizedBox(height: 6),
-            _detailItem("Price", "₹$freeCalls"),
+            _detailItem("Price", "₹$price"),
             SizedBox(height: 12),
-
-            // Show more toggle
             GestureDetector(
               onTap: () {
                 setState(() {
@@ -204,34 +358,23 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
                 style: TextStyle(color: Colors.redAccent),
               ),
             ),
-
             if (isExpanded)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
                 child: Text(description),
               ),
-
-            if (isActive) ...[
-              SizedBox(height: 12),
-              Container(
-                padding: EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.green),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.emoji_events, color: Colors.green, size: 18),
-                      SizedBox(width: 6),
-                      Text("Active ⚡",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
+            SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: CustomOutlineButton(
+                title: 'Activate',
+                onPressed: () {
+                  _checkout(subsId: id, subsPrice: double.tryParse(price));
+                },
+                icon: Icons.workspace_premium_outlined,
+                iconSize: 22.sp,
               ),
-            ]
+            ),
           ],
         ),
       ),

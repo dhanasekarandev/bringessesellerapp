@@ -92,6 +92,7 @@ class Variant {
   String? offerAvailable;
   double? offerPrice;
   String? unit;
+  int? weight;
   num? gst;
   num? cGstInPercent;
   num? cGstInAmount;
@@ -105,6 +106,7 @@ class Variant {
       this.offerAvailable,
       this.offerPrice,
       this.unit,
+      this.weight,
       this.gst,
       this.cGstInPercent,
       this.cGstInAmount,
@@ -119,6 +121,7 @@ class Variant {
       'offer_available': offerAvailable,
       'offer_price': offerPrice,
       'unit': unit,
+      'weight':weight,
       'gst': gst,
       'cGstInPercent': cGstInPercent,
       'cGstInAmount': cGstInAmount,

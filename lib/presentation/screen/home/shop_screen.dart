@@ -36,7 +36,6 @@ import 'package:bringessesellerapp/presentation/widget/medium_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:bringessesellerapp/utils/enums.dart';
@@ -52,7 +51,6 @@ import 'package:hypersdkflutter/hypersdkflutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
@@ -248,6 +246,7 @@ class _ShopScreenState extends State<ShopScreen> {
     final storeReq = StoreReqModel(
         sellerId: sharedPreferenceHelper.getSellerId,
         storeId: _storeId,
+        deliveryCharge: _deliverycharge.text.trim(),
         deliveryType: deliveryType,
         name: _name.text.trim(),
         contactNo: _phone.text.trim(),
@@ -272,7 +271,8 @@ class _ShopScreenState extends State<ShopScreen> {
         paymentOptions: selectedMethods.toList(),
         returnPolicy: _return.text);
     final storeUpdate = StoreUpdateReq(
-       deliveryType: deliveryType,
+        deliveryType: deliveryType,
+        deliveryCharge: _deliverycharge.text.trim(),
         sellerId: sharedPreferenceHelper.getSellerId,
         storeId: _storeId,
         isfood: _isfood,
@@ -313,7 +313,7 @@ class _ShopScreenState extends State<ShopScreen> {
   String selectedSize = 'Small';
   String selectedService = 'Subscription';
   bool isOwnDelivery = false;
-  final List<String> storeSizes = ['Small', 'Medium', 'Large'];
+  final List<String> storeSizes = ['Small', 'Medium', 'Large', 'Mini'];
   final List<String> servicetype = ['Subscription', 'Partnership'];
   final Set<String> selectedMethods = {};
   final hyperSDKInstance = HyperSDK();
@@ -327,7 +327,6 @@ class _ShopScreenState extends State<ShopScreen> {
   String? selectedplanId;
   int? selectedplanPrice;
   void _checkout({String? subsId, double? subsPrice}) {
-    print("slkdfns${subsPrice},${subsId}");
     context.read<SubscriptionCheckoutCubit>().login(
         SubscriptionCheckoutReqModel(
             subscriptionId: subsId,
@@ -553,10 +552,15 @@ class _ShopScreenState extends State<ShopScreen> {
                         _phone.text = data.contactNo?.toString() ?? '';
                         selectedOption = data.categoryId;
                         _des.text = data.description ?? "";
+                        _deliverycharge.text = data.deliveryCharge.toString();
                         _return.text = data.returnPolicy ?? '';
                         if (data.storeType != null &&
                             data.storeType!.isNotEmpty) {
                           selectedSize = data.storeType!;
+                        }
+                        if (data.deliveryType != null &&
+                            data.deliveryType!.isNotEmpty) {
+                          deliveryType = data.deliveryType!;
                         }
                         _packingtime.text = data.packingTime.toString();
                         _packingchrg.text = data.packingCharge.toString();
@@ -985,6 +989,11 @@ class _ShopScreenState extends State<ShopScreen> {
                                                           .storeType!
                                                           .large ??
                                                       0,
+                                                  "Mini": state
+                                                          .storeDefaultModel
+                                                          .storeType!
+                                                          .mini ??
+                                                      0,
                                                 }
                                               : {})
                                           .entries
@@ -1032,14 +1041,14 @@ class _ShopScreenState extends State<ShopScreen> {
                                     )
                                   ],
                                 ),
-                                vericalSpaceMedium,
-                                const SubTitleText(
-                                  title: "Return delivery",
-                                ),
-                                CustomTextField(
-                                  hintText: 'add your return days',
-                                  controller: _return,
-                                ),
+                                // vericalSpaceMedium,
+                                // const SubTitleText(
+                                //   title: "Return delivery",
+                                // ),
+                                // CustomTextField(
+                                //   hintText: 'add your return days',
+                                //   controller: _return,
+                                // ),
 
                                 vericalSpaceMedium,
 
@@ -1346,8 +1355,7 @@ class _ShopScreenState extends State<ShopScreen> {
       ),
       builder: (context) {
         String selectedPlanId = "";
-        SubscriptionModel? selectedPlan; // <<< ADDED
-
+        SubscriptionModel? selectedPlan;
         return StatefulBuilder(
           builder: (context, setState) {
             return Padding(

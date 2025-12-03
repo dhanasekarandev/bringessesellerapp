@@ -244,7 +244,7 @@ class AppSettings {
   String? razorKey;
   String? razorSecret;
   String? stripeClientId;
-  int? processingFee;
+  String? processingFee;
   // ... add remaining fields similarly
 
   AppSettings(
@@ -317,17 +317,32 @@ class AppSettings {
 
 class StoreType {
   int? small;
+  int? mini;
   int? medium;
   int? large;
-  StoreType({required this.small, required this.medium, required this.large});
+  int? processingFee;
+  StoreType(
+      {required this.small,
+      required this.medium,
+      required this.large,
+      this.processingFee,
+      this.mini});
 
   StoreType.fromJson(Map<String, dynamic> json) {
     small = json['small'];
+    mini = json['mini'];
     medium = json['medium'];
     large = json['large'];
+    processingFee = json['processingFee'];
   }
 
   Map<String, dynamic> toJson() {
-    return {'small': small, 'medium': medium, 'large': large};
+    return {
+      'small': small,
+      'medium': medium,
+      'large': large,
+      'mini': mini,
+      'processingFee': processingFee
+    };
   }
 }

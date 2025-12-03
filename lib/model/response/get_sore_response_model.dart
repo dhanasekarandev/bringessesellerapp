@@ -35,10 +35,12 @@ class Result {
   String? closingTime;
   int? packingTime;
   int? packingCharge;
+  String? deliveryCharge;
   String? description;
   double? lat;
   double? lon;
   String? storeType;
+  String? deliveryType;
   String? returnPolicy;
   List<String>? paymentOptions;
 
@@ -49,7 +51,9 @@ class Result {
     this.address,
     this.image,
     this.status,
+    this.deliveryCharge,
     this.categoryId,
+    this.deliveryType,
     this.categoryName,
     this.documents,
     this.createdAt,
@@ -71,6 +75,8 @@ class Result {
     contactNo = json['contactNo'];
     address = json['address'];
     image = json['image'];
+    deliveryCharge = json['deliveryCharge'];
+    deliveryType = json['deliveryType'];
     status = json['status'];
     categoryId = json['categoryId'];
     categoryName = json['categoryName'];
@@ -98,6 +104,8 @@ class Result {
     data['contactNo'] = contactNo;
     data['address'] = address;
     data['image'] = image;
+    data['deliveryType'] = deliveryType;
+    data['deliveryCharge'] = deliveryCharge;
     data['status'] = status;
     data['categoryId'] = categoryId;
     data['categoryName'] = categoryName;

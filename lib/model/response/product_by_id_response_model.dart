@@ -112,6 +112,7 @@ class ProductResult {
 class ProductVariant {
   String? name;
   num? price;
+  num? weight;
   num? gst;
   String? offerAvailable;
   num? offerPrice;
@@ -120,6 +121,7 @@ class ProductVariant {
   ProductVariant({
     this.name,
     this.price,
+    this.weight,
     this.gst,
     this.offerAvailable,
     this.offerPrice,
@@ -130,6 +132,7 @@ class ProductVariant {
     name = json['name'] ?? "";
     price = json['price'];
     gst = json['gst'];
+    weight = json['weight'];
     offerAvailable = json['offer_available']?.toString();
     offerPrice = json['offer_price'];
     unit = json['unit']?.trim(); // ✅ handles spaces like " kg"
@@ -140,6 +143,7 @@ class ProductVariant {
     data['name'] = name;
     data['price'] = price;
     data['gst'] = gst;
+    data['weight'] = weight;
     data['offer_available'] = offerAvailable;
     data['offer_price'] = offerPrice;
     data['unit'] = unit;

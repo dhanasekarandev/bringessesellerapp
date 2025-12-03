@@ -198,7 +198,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 final categories = state.categoryResponse.result?.subcategories;
                 return CustomButton(
                     title: "Add Menu",
-                    onPressed: sharedPreferenceHelper.getStoreId != ""
+                    onPressed: sharedPreferenceHelper.getStoreId != "err"
                         ? () {
                             context.push(
                               '/menu/addmenu',

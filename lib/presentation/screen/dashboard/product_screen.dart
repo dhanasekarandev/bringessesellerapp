@@ -259,7 +259,7 @@ class _ProductScreenState extends State<ProductScreen>
                   onPressed: () async {
                     final storeId = sharedPreferenceHelper.getStoreId;
 
-                    if (storeId == 'err' || storeId.isEmpty) {
+                    if (storeId == 'err') {
                       Fluttertoast.showToast(
                           msg: "Please create a store first");
                       return;
@@ -283,7 +283,7 @@ class _ProductScreenState extends State<ProductScreen>
                         .read<StoreDefaultsCubit>()
                         .state
                         .storeDefaultModel
-                        .appSettings!
+                        .storeType!
                         .processingFee
                         .toString();
 

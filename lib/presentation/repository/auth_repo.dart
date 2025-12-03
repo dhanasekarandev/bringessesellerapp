@@ -74,6 +74,7 @@ import 'package:bringessesellerapp/model/response/view_transaction_response_mode
 
 import 'package:bringessesellerapp/presentation/service/api_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:logger/logger.dart';
 
 class AuthRepository {
   final ApiService apiService;
@@ -433,9 +434,14 @@ class AuthRepository {
   }
 
   Future<dynamic> storeDefaults() async {
+    final storeId = sharedPreferenceHelper.getStoreId;
     try {
-      var response =
-          await apiService.post(ApiConstant.storedefaults, {}, false);
+      var response = await apiService.post(
+          ApiConstant.storedefaults,
+          sharedPreferenceHelper.getStoreId == 'err'
+              ? {}
+              : {'storeId': storeId},
+          false);
 
       if (response.data['status_code'] == 200) {
         var responseData = response.data;
@@ -521,7 +527,6 @@ class AuthRepository {
       var response = await apiService.get(ApiConstant.mysubs(storeId), false);
 
       if (response.data['status_code'] == 200) {
-        
         var responseData = response.data;
 
         return (true, MySubscriptionResponse.fromJson(responseData));
@@ -684,6 +689,15 @@ class AuthRepository {
   Future<dynamic> storeUpdate(StoreUpdateReq storereqModel) async {
     try {
       final formData = await storereqModel.toFormData();
+      if (kDebugMode) {
+        for (var field in formData.fields) {
+          debugPrint("📌 Field: ${field.key} = ${field.value}");
+        }
+
+        for (var file in formData.files) {
+          debugPrint("📂 File: ${file.key} => ${file.value.filename}");
+        }
+      }
 
       var response = await apiService.patch(
         ApiConstant.updatestore,

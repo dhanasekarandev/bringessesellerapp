@@ -13,8 +13,7 @@ import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_cu
 import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_state.dart';
 import 'package:bringessesellerapp/presentation/screen/home/invite_ref.dart';
 import 'package:bringessesellerapp/presentation/screen/home/order_screen.dart';
-import 'package:bringessesellerapp/presentation/screen/home/payment_test.dart';
-import 'package:bringessesellerapp/presentation/screen/home/test_ui.dart';
+
 import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_list.dart';
 
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_cubit.dart';
@@ -32,7 +31,7 @@ import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 import 'package:bringessesellerapp/presentation/widget/toast_widget.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -68,8 +67,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _loadDashboard() {
-    // if()
-
     context.read<ViewProfileCubit>().login();
     loadStore();
   }
@@ -94,9 +91,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         isActive: ative, storeId: sharedPreferenceHelper.getStoreId));
   }
 
+  Future<void> refreshAll() async {
+    await Future.delayed(Duration(seconds: 2));
+    _loadDashboard();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hyperSDKInstance = HyperSDK();
     final token = sharedPreferenceHelper.getRefreshToken;
     log("sdjfbs$token");
     return MultiBlocListener(
@@ -142,254 +143,257 @@ class _DashboardScreenState extends State<DashboardScreen> {
           },
         ),
       ],
-      child: Scaffold(
-        appBar: CustomAppBar(
-          title: "Dashboard",
-          showLeading: false,
-          actions: [
-            InkWell(
-                onTap: () {
-                  print(
-                      'sjkldghbslj${context.read<ViewProfileCubit>().state.viewProfile.result!.referralCode}');
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => InviteReferre(
-                          refId: context
-                              .read<ViewProfileCubit>()
-                              .state
-                              .viewProfile
-                              .result!
-                              .referralCode,
-                        ),
-                      ));
-                },
-                child: Icon(Icons.ios_share_outlined)),
-            InkWell(
-              onTap: () => context.push("/profile"),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                child: Container(
-                  height: 30.h,
-                  width: 30.h,
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    //  color: AppTheme.whiteColor,
+      child: RefreshIndicator(
+        onRefresh: refreshAll,
+        child: Scaffold(
+          appBar: CustomAppBar(
+            title: "Dashboard",
+            showLeading: false,
+            actions: [
+              InkWell(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => InviteReferre(
+                            refId: context
+                                .read<ViewProfileCubit>()
+                                .state
+                                .viewProfile
+                                .result!
+                                .referralCode,
+                          ),
+                        ));
+                  },
+                  child: const Icon(Icons.ios_share_outlined)),
+              InkWell(
+                onTap: () => context.push("/profile"),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Container(
+                    height: 30.h,
+                    width: 30.h,
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      //  color: AppTheme.whiteColor,
+                    ),
+                    child: const Icon(Icons.person_2_outlined),
                   ),
-                  child: const Icon(Icons.person_2_outlined),
                 ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
 
-        /// 🔹 Main Body
-        body: BlocBuilder<ViewProfileCubit, ViewProfileState>(
-          builder: (context, viewProfileState) {
-            if (NetworkStatusEnum.failed ==
-                viewProfileState.networkStatusEnum) {
-              print("sfjbs");
-            }
-            print("sdkfhbsk${viewProfileState}");
-            final isPaymentDone = viewProfileState
-                    .viewProfile.result?.paymentStatus
-                    ?.toString()
-                    .toLowerCase() ==
-                'true';
+          /// 🔹 Main Body
+          body: BlocBuilder<ViewProfileCubit, ViewProfileState>(
+            builder: (context, viewProfileState) {
+              if (NetworkStatusEnum.failed ==
+                  viewProfileState.networkStatusEnum) {
+                print("sfjbs");
+              }
+              print("sdkfhbsk${viewProfileState}");
+              final isPaymentDone = viewProfileState
+                      .viewProfile.result?.paymentStatus
+                      ?.toString()
+                      .toLowerCase() ==
+                  'true';
 
-            // 🔸 Only show loader for very first time
-            if (viewProfileState.networkStatusEnum ==
-                    NetworkStatusEnum.loading &&
-                viewProfileState.viewProfile.result == null) {
-              return const Center(child: CircularProgressIndicator());
-            }
+              // 🔸 Only show loader for very first time
+              if (viewProfileState.networkStatusEnum ==
+                      NetworkStatusEnum.loading &&
+                  viewProfileState.viewProfile.result == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (!isPaymentDone) {
-              return const Center(child: PaymentDetailsCard());
-            }
+              if (!isPaymentDone) {
+                return const Center(child: PaymentDetailsCard());
+              }
 
-            // 🔸 Build dashboard only after payment verified
-            return BlocBuilder<DashboardCubit, DashboardState>(
-              builder: (context, dashboardState) {
-                if (dashboardState.networkStatusEnum ==
-                        NetworkStatusEnum.loading &&
-                    dashboardState.dashboardModel.status == "false") {
-                  return const Center(child: CircularProgressIndicator());
-                }
+              // 🔸 Build dashboard only after payment verified
+              return BlocBuilder<DashboardCubit, DashboardState>(
+                builder: (context, dashboardState) {
+                  if (dashboardState.networkStatusEnum ==
+                          NetworkStatusEnum.loading &&
+                      dashboardState.dashboardModel.status == "false") {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (dashboardState.networkStatusEnum ==
-                    NetworkStatusEnum.failed) {
-                  return const Center(
-                      child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [Text("We are under maintanance")],
-                  ));
-                }
+                  if (dashboardState.networkStatusEnum ==
+                      NetworkStatusEnum.failed) {
+                    return const Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [Text("We are under maintanance")],
+                    ));
+                  }
 
-                final model = dashboardState.dashboardModel;
-                if (model.status != 'true') {
-                  return const Center(child: Text("No data found"));
-                }
+                  final model = dashboardState.dashboardModel;
+                  if (model.status != 'true') {
+                    return const Center(child: Text("No data found"));
+                  }
 
-                return SingleChildScrollView(
-                  padding: EdgeInsets.all(8.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Shop Status
-                      CustomCard(
-                        margin: EdgeInsets.all(5.w),
-                        child: Row(
-                          children: [
-                            Column(
+                  return SingleChildScrollView(
+                    padding: EdgeInsets.all(8.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Shop Status
+                        CustomCard(
+                          margin: EdgeInsets.all(5.w),
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SubTitleText(title: "Shop Status"),
+                                  TitleText(
+                                      title: _storeSwitch ? "Open" : "Closed"),
+                                ],
+                              ),
+                              const Spacer(),
+                              Switch(
+                                value: _storeSwitch,
+                                onChanged: (value) {
+                                  setState(() => _storeSwitch = value);
+                                  storeopenStatus(ative: value.toString());
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        CustomCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SubTitleText(title: "Total orders"),
+                              TitleText(title: "${model.totalOrders ?? '0'}"),
+                              CustomListTile(
+                                leadingIcon: Icons.check_circle_outline,
+                                title: "${model.successfulOrders ?? '0'}",
+                                subtitle: "Successful orders",
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const OrderScreen(
+                                          from: 'dash',
+                                        ),
+                                      ));
+                                },
+                                child: CustomListTile(
+                                  leadingIcon: Icons.pending_actions_outlined,
+                                  title: "${model.unSuccessfulOrders ?? '0'}",
+                                  subtitle: "Pending orders",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Revenue
+                        SizedBox(
+                          width: double.infinity,
+                          child: CustomCard(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => RevenueScreen(),
+                                  ));
+                            },
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SubTitleText(title: "Shop Status"),
+                                const SubTitleText(title: "Total Revenue"),
                                 TitleText(
-                                    title: _storeSwitch ? "Open" : "Closed"),
+                                    title: "${model.totalRevenue ?? '0'}"),
                               ],
                             ),
-                            const Spacer(),
-                            Switch(
-                              value: _storeSwitch,
-                              onChanged: (value) {
-                                setState(() => _storeSwitch = value);
-                                storeopenStatus(ative: value.toString());
-                              },
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
 
-                      CustomCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SubTitleText(title: "Total orders"),
-                            TitleText(title: "${model.totalOrders ?? '0'}"),
-                            CustomListTile(
-                              leadingIcon: Icons.check_circle_outline,
-                              title: "${model.successfulOrders ?? '0'}",
-                              subtitle: "Successful orders",
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const OrderScreen(
-                                        from: 'dash',
-                                      ),
-                                    ));
-                              },
-                              child: CustomListTile(
-                                leadingIcon: Icons.pending_actions_outlined,
-                                title: "${model.unSuccessfulOrders ?? '0'}",
-                                subtitle: "Pending orders",
+                        const CustomCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SubTitleText(title: "Revenue Graph"),
+                              TitleText(title: " 0.0"),
+                              SalesGraph(),
+                            ],
+                          ),
+                        ),
+
+                        CustomCard(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MenuScreen()),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SubTitleText(title: "Menu Section"),
+                              CustomListTile(
+                                leadingIcon: Icons.restaurant_menu,
+                                title: "Menu",
+                                subtitle: "${model.totalMenus ?? '0'}",
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
 
-                      // Revenue
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomCard(
+                        CustomCard(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ProductScreen()),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SubTitleText(title: "Product Section"),
+                              CustomListTile(
+                                leadingIcon: Icons.shopping_bag_outlined,
+                                title: "Product",
+                                subtitle: "${model.totalItems ?? '0'}",
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        CustomCard(
                           onTap: () {
                             Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => RevenueScreen(),
+                                  builder: (context) =>
+                                      ShopCustomerReviewsScreen(),
                                 ));
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SubTitleText(title: "Total Revenue"),
-                              TitleText(title: "${model.totalRevenue ?? '0'}"),
+                              const SubTitleText(title: "Review Section"),
+                              CustomListTile(
+                                leadingIcon: Icons.reviews_outlined,
+                                title: "Review",
+                                subtitle: "${model.totalReviews ?? '0'}",
+                              ),
                             ],
                           ),
                         ),
-                      ),
-
-                      const CustomCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SubTitleText(title: "Revenue Graph"),
-                            TitleText(title: " 0.0"),
-                            SalesGraph(),
-                          ],
-                        ),
-                      ),
-
-                      CustomCard(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const MenuScreen()),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SubTitleText(title: "Menu Section"),
-                            CustomListTile(
-                              leadingIcon: Icons.restaurant_menu,
-                              title: "Menu",
-                              subtitle: "${model.totalMenus ?? '0'}",
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      CustomCard(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const ProductScreen()),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SubTitleText(title: "Product Section"),
-                            CustomListTile(
-                              leadingIcon: Icons.shopping_bag_outlined,
-                              title: "Product",
-                              subtitle: "${model.totalItems ?? '0'}",
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      CustomCard(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ShopCustomerReviewsScreen(),
-                              ));
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SubTitleText(title: "Review Section"),
-                            CustomListTile(
-                              leadingIcon: Icons.reviews_outlined,
-                              title: "Review",
-                              subtitle: "${model.totalReviews ?? '0'}",
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

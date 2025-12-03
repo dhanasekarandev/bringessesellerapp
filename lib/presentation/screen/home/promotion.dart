@@ -191,7 +191,8 @@ class _PromotionScreenState extends State<PromotionScreen> {
                                                           final storeId =
                                                               sharedPreferenceHelper
                                                                   .getStoreId;
-                                                          if (storeId != 'err' &&
+                                                          if (storeId !=
+                                                                  'err' &&
                                                               storeId
                                                                   .isNotEmpty) {
                                                             context

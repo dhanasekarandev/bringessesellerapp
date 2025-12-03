@@ -123,7 +123,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       for (var v in product.variants!) {
         final gstController =
             TextEditingController(text: v.gst?.toString() ?? "0");
-
+        final weight = TextEditingController(text: v.weight.toString());
         final cgstController =
             TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
 
@@ -145,6 +145,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
             variantList.add({
               'count': TextEditingController(text: v.name ?? ""),
+              'weight': TextEditingController(text: v.weight.toString()),
               'price': TextEditingController(text: v.price?.toString() ?? ""),
               'offerPrice':
                   TextEditingController(text: v.offerPrice?.toString() ?? ""),
@@ -218,6 +219,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     variantList.add({
       'count': TextEditingController(),
       'price': TextEditingController(),
+      'weight': TextEditingController(),
       'offerPrice': TextEditingController(),
       'gst': TextEditingController(),
       'selectedUnit': null,
@@ -236,6 +238,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     List<Widget> calculationWidgets = [];
 
     for (var variant in variantList) {
+      int weight = int.parse(variant['weight'].text ?? 0);
       double price = double.tryParse(variant['price'].text) ?? 0;
       double offerPrice = double.tryParse(variant['offerPrice'].text) ?? 0;
 
@@ -395,7 +398,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       double price = double.tryParse(v['price'].text) ?? 0;
       double offerPrice = double.tryParse(v['offerPrice'].text) ?? 0;
       double gstPercent = double.tryParse(v['gst'].text) ?? 0;
-
+      int weight = int.tryParse(v['weight'].text) ?? 0;
       bool isOffer = v['selectedOffer'] == "Yes";
 
       double sellingPrice = isOffer ? offerPrice : price;
@@ -417,7 +420,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         offerAvailable: isOffer.toString(),
         offerPrice: offerPrice,
         unit: v['selectedUnit'] ?? "",
-
+        weight: weight,
         // Percent Values
         gst: gstPercent,
         cGstInPercent: cgstPercent,
@@ -1032,7 +1035,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 ),
                                 CustomTextField(
                                   controller: variant['count'],
-                                  hintText: "",
+                                  hintText: "Add product count",
                                   keyboardType: TextInputType.number,
                                 ),
                                 vericalSpaceMedium,
@@ -1065,6 +1068,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                     });
                                   },
                                 ),
+                                vericalSpaceSmall,
+                                if (variant['selectedUnit'] != null)
+                                  CustomTextField(
+                                    controller: variant['weight'],
+                                    keyboardType: TextInputType.number,
+                                    hintText:
+                                        ' Enter ${variant['selectedUnit']} value',
+                                  ),
                                 if (!isFood) vericalSpaceMedium,
                                 if (!isFood)
                                   const SubTitleText(

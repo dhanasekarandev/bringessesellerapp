@@ -14,6 +14,7 @@ import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/view_profile_state.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/my_subscription_plan.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/otp_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/quick_app_links.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_card.dart';
 import 'package:bringessesellerapp/presentation/widget/custom_conformation.dart';
@@ -519,6 +520,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           //   },
                           // ),
                           CustomListTile(
+                            title: "Quick App links",
+                            leadingIcon: Icons.play_for_work_rounded,
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PlayStoreListScreen(),
+                                  ));
+                            },
+                          ),
+                          CustomListTile(
                             title: "Privacy Policy",
                             leadingIcon: Icons.policy_outlined,
                             trailing: const Icon(Icons.arrow_forward_ios),
@@ -532,7 +545,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             title: "Version",
                             leadingIcon: Icons.info_outline,
                             trailing: Text(
-                              "(//)",
+                              "($currentVersion)",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),

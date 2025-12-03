@@ -206,6 +206,7 @@ class _CreateCouponState extends State<CreateCoupon> {
       ),
       body: BlocListener<UpdateCouponCubit, UpdateCouponState>(
         listener: (context, state) {
+          print("sldhf${state}, ${state.networkStatusEnum},");
           if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
             showAppToast(message: "Coupon update successfully 🎉");
             Future.delayed(const Duration(seconds: 1), () {

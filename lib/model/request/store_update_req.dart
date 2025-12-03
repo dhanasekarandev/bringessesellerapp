@@ -19,6 +19,7 @@ class StoreUpdateReq {
   String? storeType;
   String? packingtime;
   String? deliveryType;
+  String? deliveryCharge;
   List<String>? paymentOptions; // new ones
   List<String>? storePaymentOptions; // ✅ existing ones
   String? returnPolicy;
@@ -42,6 +43,7 @@ class StoreUpdateReq {
     this.description,
     this.opentime,
     this.closetime,
+    this.deliveryCharge,
     this.packingtime,
     this.storeType,
     this.paymentOptions,
@@ -58,6 +60,7 @@ class StoreUpdateReq {
       'sellerId': sellerId,
       'storeId': storeId,
       'isfood': isfood,
+      'deliveryCharge': deliveryCharge,
       'deliveryType': deliveryType,
       'lon': lon,
       'lat': lat,
@@ -90,6 +93,7 @@ class StoreUpdateReq {
     addField('categoryId', categoryId);
     addField('sellerId', sellerId);
     addField('isfood', isfood?.toString());
+    addField('deliveryCharge', deliveryCharge);
     addField('storeId', storeId);
     addField('lon', lon);
     addField('lat', lat);
