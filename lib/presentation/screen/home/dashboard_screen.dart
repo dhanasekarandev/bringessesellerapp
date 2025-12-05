@@ -99,7 +99,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     final token = sharedPreferenceHelper.getRefreshToken;
-    log("sdjfbs$token");
+
     return MultiBlocListener(
       listeners: [
         BlocListener<StoreStatusCubit, StoreStatusState>(
@@ -270,10 +270,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               const SubTitleText(title: "Total orders"),
                               TitleText(title: "${model.totalOrders ?? '0'}"),
-                              CustomListTile(
-                                leadingIcon: Icons.check_circle_outline,
-                                title: "${model.successfulOrders ?? '0'}",
-                                subtitle: "Successful orders",
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const OrderScreen(
+                                          from: 'dash',
+                                          status: 'complete',
+                                        ),
+                                      ));
+                                },
+                                child: CustomListTile(
+                                  leadingIcon: Icons.check_circle_outline,
+                                  title: "${model.successfulOrders ?? '0'}",
+                                  subtitle: "Successful orders",
+                                ),
                               ),
                               InkWell(
                                 onTap: () {
@@ -282,6 +294,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => const OrderScreen(
                                           from: 'dash',
+                                          status: 'pending',
                                         ),
                                       ));
                                 },

@@ -27,6 +27,7 @@ import 'package:bringessesellerapp/model/request/review_req_model.dart';
 import 'package:bringessesellerapp/model/request/send_otp_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/request/store_open_req_model.dart';
+import 'package:bringessesellerapp/model/request/store_req_model.dart';
 import 'package:bringessesellerapp/model/request/store_update_req.dart';
 import 'package:bringessesellerapp/model/request/subcription_checkout_req_model.dart';
 import 'package:bringessesellerapp/model/request/subs_transaction_req_model.dart';
@@ -237,6 +238,30 @@ class AuthRepository {
         print('Stacktrace${stacktrace}');
       }
       return (false, TermsResponseModel());
+    }
+  }
+
+  Future<dynamic> getAppLinks() async {
+    try {
+      var response = await apiService.post(ApiConstant.getAppLinks, {}, false);
+
+      if (response.data['status'] == "true") {
+        var responseData = response.data;
+        return (true, AccountDetailModel.fromJson(responseData));
+      } else {
+        if (kDebugMode) {
+          print('Unexpected status code: ${response.statusCode}');
+        }
+        return (false, AccountDetailModel());
+      }
+    } catch (e, stacktrace) {
+      if (kDebugMode) {
+        print('Exception occurred: $e');
+      }
+      if (kDebugMode) {
+        print('Stacktrace${stacktrace}');
+      }
+      return (false, AccountDetailModel());
     }
   }
 
@@ -627,7 +652,7 @@ class AuthRepository {
     }
   }
 
-  Future<dynamic> storeUpload(StoreUpdateReq storereqModel) async {
+  Future<dynamic> storeUpload(StoreReqModel storereqModel) async {
     try {
       final formData = await storereqModel.toFormData();
 

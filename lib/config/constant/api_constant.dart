@@ -71,8 +71,9 @@ class ApiConstant {
   static const String storeUpdate = 'store/active/status';
   static const String payoutAccount = 'accounts/razorurl';
   static const String getpayoutAccount = 'accounts/showrazorpayaccountdetail';
+  static const String getAppLinks = 'app/info';
   static String storeget(String storeId) => 'store/list/$storeId';
-   static String mysubs(String storeId) => 'store/getsubscriptionplan/$storeId';
+  static String mysubs(String storeId) => 'store/getsubscriptionplan/$storeId';
   static const String updatestore = 'store/update';
   static const String promotionPre = 'promotions/beforedata';
   static const String promotionCreate = 'promotions/create';

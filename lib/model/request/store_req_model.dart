@@ -85,7 +85,7 @@ class StoreReqModel {
     data['closingTime'] = closetime;
     data['storeType'] = storeType;
     data['returnPolicy'] = returnPolicy;
-    // image and documents should be sent via FormData, not JSON
+
     return data;
   }
 

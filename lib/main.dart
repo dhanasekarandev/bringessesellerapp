@@ -81,10 +81,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1️⃣ Register background handler FIRST
+  
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // 2️⃣ Initialize Firebase
+ 
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
@@ -95,26 +95,25 @@ void main() async {
     ),
   );
 
-  // 3️⃣ Life cycle observer
+  
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
 
-  // 4️⃣ Init local notifications + FCM
+  
   await NotificationService().init();
 
-  // 5️⃣ Location + remote config
-  // final RemoteConfigService remoteConfigService = RemoteConfigService();
+
   bool granted = await LocationPermissionHelper.isLocationGranted();
   if (!granted) {
     await LocationPermissionHelper.requestLocationPermission();
   }
-  // await remoteConfigService.init();
+  
 
-  // 6️⃣ Run app
+ 
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  // final RemoteConfigService remoteConfigService;
+  
 
   MyApp({
     super.key,

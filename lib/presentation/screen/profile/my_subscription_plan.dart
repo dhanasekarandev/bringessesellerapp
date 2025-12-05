@@ -17,6 +17,7 @@ import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_outline_button.dart';
 import 'package:bringessesellerapp/presentation/widget/headline_text.dart';
 import 'package:bringessesellerapp/presentation/widget/sub_title.dart';
+import 'package:bringessesellerapp/presentation/widget/title_text.dart';
 
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
@@ -26,12 +27,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:hypersdkflutter/hypersdkflutter.dart';
 import 'package:intl/intl.dart';
 
-
 import '../../../model/response/subcription_checkout_response.dart';
 
 class SubscriptionListScreen extends StatefulWidget {
+  final String? contact;
   final MySubscriptionResult? data;
-  const SubscriptionListScreen({super.key, this.data});
+  const SubscriptionListScreen({super.key, this.data, this.contact});
 
   @override
   State<SubscriptionListScreen> createState() => _SubscriptionListScreenState();
@@ -135,7 +136,6 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
 
   bool loading = false;
 
-  
   void _checkout({String? subsId, double? subsPrice}) {
     setState(() {
       loading = true;
@@ -159,14 +159,10 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
           listener: (context, state) async {
             if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
                 state.editProfile.statusCode == 200) {
-           
               if (state.editProfile.gateway == 'Juspay') {
                 final payload = state.editProfile.session?.sdkPayload;
                 await jusPayment(context, payload);
-              }
-
-              
-              else {
+              } else {
                 final paymentRepo = PaymentRepository();
 
                 paymentRepo.init(
@@ -187,8 +183,9 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
                     showAppToast(message: "Payment Failed");
                   },
                 );
-
+                print("dkgfjhu${widget.contact}");
                 paymentRepo.openCheckout(
+                  contact: widget.contact,
                   key: state.editProfile.key ?? '',
                   amount: ((selectedplanPrice ?? 0) * 100)
                       .toInt(), // Razorpay format
@@ -235,73 +232,197 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
     );
   }
 
-  /// ---------------- ACTIVE PLAN CARD -----------
   Widget _activeCard() {
     final plan = widget.data;
+    print('plandetail:$plan');
+    if (plan == null) return noActivePlanCard();
 
-    if (plan == null) return SizedBox();
+    return activePlanCard(plan: plan);
+  }
 
-    return Material(
-      elevation: 3,
-      borderRadius: BorderRadius.circular(12),
-      shadowColor: Colors.black.withOpacity(0.2),
-      child: Container(
-        padding: EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.primaryColor,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.workspace_premium_outlined,
-                      color: Colors.white,
-                      size: 30.sp,
-                    ),
-                    SizedBox(width: 8),
-                    HeadlineText(
-                      title: plan.subscriptionName ?? "—",
-                      textColor: Colors.white,
-                    ),
-                  ],
-                ),
-                HeadlineText(
-                  title: "₹${plan.subscriptionPrice ?? '--'}",
-                  textColor: Colors.white,
-                ),
-              ],
-            ),
-            SizedBox(height: 6),
-            Text(
-              "Duration : ${plan.subscriptionDuration ?? '--'}",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600),
-            ),
-            SizedBox(height: 6),
-            Text(
-              "Start : ${DateFormat('dd MMM yyyy').format(DateTime.parse('${plan.startDate}'))}",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600),
-            ),
-            Text(
-              "End : ${DateFormat('dd MMM yyyy').format(DateTime.parse('${plan.endDate}'))}",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w600),
-            ),
+  Widget activePlanCard({MySubscriptionResult? plan}) {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF6A4FFC),
+            Color(0xFF7B4DF0),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Current Plan Chip
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              "CURRENT PLAN",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          SizedBox(height: 12),
+
+          // Title show plan name
+          Text(
+            plan!.subscriptionPlan!.name ?? "Your Plan",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          SizedBox(height: 6),
+
+          // Subtitle - expiry or description
+          Text(
+            "Active until ${DateFormat('dd MMM yyyy').format(DateTime.parse(plan.endDate.toString()))}", // or your field
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Price
+              Text(
+                "₹${plan.subscriptionPrice}",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              // ElevatedButton(
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.white,
+              //     foregroundColor: Color(0xFF6A4FFC),
+              //     shape: RoundedRectangleBorder(
+              //       borderRadius: BorderRadius.circular(30),
+              //     ),
+              //   ),
+              //   onPressed: () {
+              //     // open plan management
+              //   },
+              //   child: Text("Manage"),
+              // )
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget noActivePlanCard() {
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF6A4FFC),
+            Color(0xFF7B4DF0),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Current Plan Chip
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              "CURRENT PLAN",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+          SizedBox(height: 12),
+
+          // Title
+          Text(
+            "No plan active",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          SizedBox(height: 6),
+
+          // Subtitle
+          Text(
+            "You don't have an active subscription.",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 14,
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Price
+              Text(
+                "₹0/month",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              // See Plans Button
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.white),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                onPressed: () {
+                  // Open your plan screen
+                },
+                child: Text(
+                  "See pricing plans",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

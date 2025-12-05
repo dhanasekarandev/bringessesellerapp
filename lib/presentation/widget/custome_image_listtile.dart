@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class CustomImageListTile extends StatelessWidget {
   final String imageUrl;
+  final String? offer;
+  final String? offerPrice;
   final String title;
   final String price;
   final String? quantity;
@@ -14,10 +16,14 @@ class CustomImageListTile extends StatelessWidget {
     required this.price,
     required this.status,
     this.quantity,
+    this.offerPrice,
+    this.offer,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasOffer = offer?.toLowerCase() == "true";
+    print("sldhfbs${offer}");
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -52,8 +58,17 @@ class CustomImageListTile extends StatelessWidget {
                     text: "Price: ",
                     style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
+                  if (hasOffer)
+                    TextSpan(
+                      text: "₹ $price  ",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
                   TextSpan(
-                    text: "₹ ${price}",
+                    text: hasOffer ? "₹ ${offerPrice ?? price}" : "₹ $price",
                     style: const TextStyle(
                       fontSize: 14,
                       color: Colors.black,

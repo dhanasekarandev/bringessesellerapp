@@ -331,23 +331,17 @@ class DeliveryAddress {
   });
 
   DeliveryAddress.fromJson(Map<String, dynamic> json) {
-    // CASE 1 → full object
-    if (json['address'] is Map) {
-      final addr = json['address'];
-      lat = (addr['lat'] as num?)?.toDouble();
-      lon = (addr['lon'] as num?)?.toDouble();
-      address = addr['address'];
-      location = addr['location'];
-      addressType = addr['address_type'];
-      flatNo = addr['flat_no'];
-      note = addr['note'];
-      isDefault = addr['is_default'];
-      id = addr['id'];
-    }
-    // CASE 2 → just a string
-    else if (json['address'] is String) {
-      address = json['address'];
-    }
+    lat = (json['lat'] as num?)?.toDouble();
+    lon = (json['lon'] as num?)?.toDouble();
+    address = json['address'];
+    location = json['location'];
+    addressType = json['address_type'];
+    flatNo = json['flat_no'];
+    note = json['note'];
+    isDefault = json['is_default']?.toString();
+    id = json['id'] is int
+        ? json['id']
+        : int.tryParse(json['id']?.toString() ?? '');
   }
 
   Map<String, dynamic> toJson() {

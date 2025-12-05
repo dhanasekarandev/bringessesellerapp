@@ -1,6 +1,4 @@
-
 import 'package:flutter/material.dart';
-
 
 class TitleText extends StatelessWidget {
   final String title;
@@ -26,10 +24,16 @@ class TitleText extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Text(title,
-        textAlign: textAlign ?? TextAlign.start,
-        maxLines: maxLines ?? 4,
-        overflow: overflow ?? TextOverflow.ellipsis,
-        style: theme.textTheme.titleLarge);
+    return Text(
+      title,
+      textAlign: textAlign ?? TextAlign.start,
+      maxLines: maxLines ?? 4,
+      overflow: overflow ?? TextOverflow.ellipsis,
+      style: theme.textTheme.titleLarge?.copyWith(
+        color: textColor ?? theme.textTheme.titleLarge?.color,
+        fontWeight: fontWeight ?? theme.textTheme.titleLarge?.fontWeight,
+        fontSize: fontSize ?? theme.textTheme.titleLarge?.fontSize,
+      ),
+    );
   }
 }

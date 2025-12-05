@@ -4,6 +4,7 @@ import 'package:bringessesellerapp/model/request/oder_list_req_model.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 
 import 'package:bringessesellerapp/presentation/screen/home/order_detail.dart';
+import 'package:bringessesellerapp/presentation/screen/home/success_order_details.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_state.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
@@ -15,7 +16,8 @@ import 'package:intl/intl.dart';
 
 class OrderScreen extends StatefulWidget {
   final String? from;
-  const OrderScreen({super.key, this.from});
+  final String? status;
+  const OrderScreen({super.key, this.from, this.status});
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -33,13 +35,20 @@ class _OrderScreenState extends State<OrderScreen>
     sharedPreferenceHelper.init();
 
     _tabController = TabController(length: 2, vsync: this);
-
+    if (widget.status == "complete") {
+      _tabController.index = 1;
+      _loadOrder(status: "complete");
+    } else {
+      
+      _tabController.index = 0;
+      _loadOrder(status: "pending");
+    }
     _loadOrder(status: "pending");
 
-    // Change tab listener
+    
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
-      final status = _tabController.index == 0 ? "pending" : "completed";
+      final status = _tabController.index == 0 ? "pending" : "complete";
       _loadOrder(status: status);
     });
   }
@@ -80,7 +89,7 @@ class _OrderScreenState extends State<OrderScreen>
                   e.status?.toString() == 'accept')
               .toList();
           completedOrders =
-              orders.where((e) => e.status?.toString() == "completed").toList();
+              orders.where((e) => e.status?.toString() == "complete").toList();
         }
 
         return Scaffold(
@@ -153,7 +162,16 @@ class _OrderScreenState extends State<OrderScreen>
                     ),
                   );
                 }
-              : null,
+              : () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SuccessOrderDetailsScreen(
+                        order: order,
+                      ),
+                    ),
+                  );
+                },
           child: _buildOrderCard(order, isPending: isPending),
         );
       },

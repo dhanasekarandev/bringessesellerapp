@@ -129,7 +129,9 @@ class ApiService {
       if (_isheaders == false) {
         headers ??= await _getHeaders1();
       }
-
+      // if (isFormData) {
+      //   headers?.remove("Content-Type");
+      // }
       print(headers);
       print("BodyData:$headers");
       Response response;
@@ -160,9 +162,7 @@ class ApiService {
     try {
       print(body);
 
-      
-        headers ??= await _getHeaders1();
-      
+      headers ??= await _getHeaders1();
 
       print(headers);
       print("BodyData:$headers");

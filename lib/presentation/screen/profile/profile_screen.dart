@@ -403,11 +403,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             leadingIcon: Icons.workspace_premium_outlined,
                             trailing: const Icon(Icons.arrow_forward_ios),
                             onTap: () {
+                              print(
+                                  "ldksfghj${state.viewProfile.result!.contactNo}");
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
                                         SubscriptionListScreen(
+                                      contact:
+                                          state.viewProfile.result!.contactNo,
                                       data: context
                                           .read<MySubscriptionPlanCubit>()
                                           .state

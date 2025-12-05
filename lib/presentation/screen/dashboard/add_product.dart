@@ -87,8 +87,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final ImagePicker _picker = ImagePicker();
   bool load = false;
   List<dynamic> _productMedia = [];
+  int? processfeeAmount;
   @override
   void initState() {
+    print("sdlfs${widget.processingfee}");
     super.initState();
     addVariant();
     _cat.text = widget.catname ?? "";
@@ -238,7 +240,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
     List<Widget> calculationWidgets = [];
 
     for (var variant in variantList) {
-      int weight = int.parse(variant['weight'].text ?? 0);
+      int weight = int.tryParse(variant['weight'].text) ?? 0;
       double price = double.tryParse(variant['price'].text) ?? 0;
       double offerPrice = double.tryParse(variant['offerPrice'].text) ?? 0;
 
@@ -393,7 +395,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   void _save() async {
     setState(() => load = true);
-
+    double? processfeeAmount;
     final variants = variantList.map((v) {
       double price = double.tryParse(v['price'].text) ?? 0;
       double offerPrice = double.tryParse(v['offerPrice'].text) ?? 0;
@@ -413,6 +415,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       double totalAmount =
           sellingPrice + cgstAmount + sgstAmount + processingFeePercent;
+      double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
+      setState(() {
+        processfeeAmount = processingFeeAmount;
+      });
       print("dsdfsdf$totalAmount");
       return Variant(
         name: v['count'].text,
@@ -443,11 +449,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
         .toList();
 
     try {
+      print("ssdfsd${processfeeAmount}");
       if (widget.editProduct == null) {
         final req = ProductCreateReqModel(
             sellerId: widget.sellerId,
             storeId: widget.storeId,
             name: _name.text,
+            processingFeeAmount: processfeeAmount!.round(),
             sku: _sku.text,
             type: _foodtype.text,
             menuId: selectedMenuId,
@@ -468,6 +476,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             storeId: widget.storeId,
             name: _name.text,
             sku: _sku.text,
+            processingFeeAmount: processfeeAmount!.round(),
             menuId: selectedMenuId,
             variants: variants,
             description: _des.text,
@@ -512,7 +521,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   bool isFood = false;
   @override
   Widget build(BuildContext context) {
-    print("sljdfgbs${widget.processingfee}");
     final unitOptions = widget.units?.map((e) => e.name ?? '').toList() ?? [];
 
     return MultiBlocListener(
@@ -544,7 +552,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         ),
         BlocListener<ProductUpdateCubit, ProductUpdateState>(
           listener: (context, state) {
-            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.productupdateres.status == 'true') {
               setState(() => load = false);
               Fluttertoast.showToast(
                   msg: state.productupdateres.message ??
@@ -560,7 +569,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       ],
       child: BlocConsumer<ProductCreateCubit, ProductCreateState>(
         listener: (context, state) {
-          if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+          if (state.menuCreateResModel.status == 'true') {
             final data = state.menuCreateResModel.message;
             setState(() {
               load = false;
@@ -568,6 +577,13 @@ class _AddProductScreenState extends State<AddProductScreen> {
             context.pop(true);
             Fluttertoast.showToast(
                 msg: data ?? "Product has been created successfully");
+          } else if (state.menuCreateResModel.status == 'false') {
+            setState(() {
+              load = false;
+            });
+            Fluttertoast.showToast(
+                msg: state.menuCreateResModel.message ??
+                    "Product has been created successfully");
           }
         },
         builder: (context, state) {
@@ -916,11 +932,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
                               ),
 
                             // Show text field when refund = true
-                            if (isRefundEnabled && !isFood)
-                              CustomTextField(
-                                hintText: "Enter refund days",
-                                controller: _refund,
-                              ),
+                            // if (isRefundEnabled && !isFood)
+                            //   CustomTextField(
+                            //     hintText: "Enter refund days",
+                            //     controller: _refund,
+                            //   ),
                             vericalSpaceMedium,
                             if (!isFood)
                               Row(
@@ -1303,7 +1319,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
     // Step 5: Earning (your profit)
     double earningAmount = finalPrice - processingFeeAmount;
-
+    setState(() {
+      processfeeAmount = int.tryParse(processingFeeAmount.toString());
+    });
     return {
       "sellingPrice": sellingPrice,
       "cgst": cgst,

@@ -67,7 +67,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         .read<StoreDefaultsCubit>()
                         .state
                         .storeDefaultModel
-                        .appSettings!
+                        .storeType!
                         .processingFee
                         .toString();
                     if (product != null) {

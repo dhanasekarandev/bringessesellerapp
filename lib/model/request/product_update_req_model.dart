@@ -13,6 +13,7 @@ class ProductUpdateReqModel {
   String? quantity;
   bool? outOfStock;
   bool? comboOffer;
+  int? processingFeeAmount;
   String? description;
   String? isRefund;
   String? noOfDaysToReturn;
@@ -33,6 +34,7 @@ class ProductUpdateReqModel {
     this.storeId,
     this.name,
     this.quantity,
+    this.processingFeeAmount,
     this.sku,
     this.menuId,
     this.outOfStock,
@@ -56,6 +58,7 @@ class ProductUpdateReqModel {
       'name': name,
       'SKU': sku,
       'menuId': menuId,
+      'processingFeeAmount': processingFeeAmount,
       'outOfStock': outOfStock,
       'comboOffer': comboOffer,
       'description': description,
@@ -76,6 +79,7 @@ class ProductUpdateReqModel {
       'quantity': quantity,
       'name': name,
       'SKU': sku,
+      'processingFeeAmount': processingFeeAmount,
       'menuId': menuId,
       'outOfStock': outOfStock,
       'comboOffer': comboOffer,

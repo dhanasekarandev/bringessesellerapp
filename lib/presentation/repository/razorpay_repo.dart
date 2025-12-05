@@ -38,7 +38,7 @@ class PaymentRepository {
       if (orderId != null) 'order_id': orderId,
       'description': description,
       'prefill': {
-        'contact': '+919000000000',
+        'contact': '$contact',
         'email': email ?? '',
       },
       'external': {
