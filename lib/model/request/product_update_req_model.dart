@@ -13,7 +13,7 @@ class ProductUpdateReqModel {
   String? quantity;
   bool? outOfStock;
   bool? comboOffer;
-  int? processingFeeAmount;
+  double? processingFeeAmount;
   String? description;
   String? isRefund;
   String? noOfDaysToReturn;

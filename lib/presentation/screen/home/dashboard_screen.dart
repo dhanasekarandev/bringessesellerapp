@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/store_open_req_model.dart';
 import 'package:bringessesellerapp/presentation/repository/juspay_repo.dart';
@@ -38,6 +39,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:async';
 
 import 'package:hypersdkflutter/hypersdkflutter.dart';
+import 'package:lottie/lottie.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -231,7 +233,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   final model = dashboardState.dashboardModel;
                   if (model.status != 'true') {
-                    return const Center(child: Text("No data found"));
+                    return Center(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Lottie.asset(
+                          'assets/lottie/Store.json',
+                          height: 300.h,
+                        ),
+                        Text(
+                          'Create your store to get started',
+                          style: TextStyle(
+                              fontSize: 18.sp, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ));
                   }
 
                   return SingleChildScrollView(

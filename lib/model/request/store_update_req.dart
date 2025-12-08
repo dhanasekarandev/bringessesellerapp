@@ -107,13 +107,18 @@ class StoreUpdateReq {
     addField('packingCharge', packingcharge);
 
     // --- Image ---
+    // ---- IMAGE Upload ----
     if (image != null && await image!.exists()) {
+      print("sldkhns${image!.path}");
       formData.files.add(MapEntry(
-        'storeImage',
-        await MultipartFile.fromFile(image!.path,
-            filename: image!.path.split('/').last),
+        'image', // ⬅️ correct field name for new image
+        await MultipartFile.fromFile(
+          image!.path,
+          filename: image!.path.split('/').last,
+        ),
       ));
     } else if (storeImage != null && storeImage!.isNotEmpty) {
+      print("sldkhnasds${storeImage}");
       addField('storeImage', storeImage);
     }
 
@@ -142,7 +147,7 @@ class StoreUpdateReq {
       for (var doc in documents!) {
         if (await doc.exists()) {
           formData.files.add(MapEntry(
-            'storeDocuments',
+            'documents',
             await MultipartFile.fromFile(doc.path,
                 filename: doc.path.split('/').last),
           ));

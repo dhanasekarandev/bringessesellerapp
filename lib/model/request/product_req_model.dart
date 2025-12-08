@@ -14,7 +14,7 @@ class ProductCreateReqModel {
   String? quantity;
   bool? comboOffer;
   String? type;
-  int?  processingFeeAmount;
+  double? processingFeeAmount;
   String? isRefund;
   String? noOfDaysToReturn;
   List<File>? productImages;
@@ -48,7 +48,7 @@ class ProductCreateReqModel {
       'videoUrl': videoUrl,
       'quantity': quantity,
       'menuId': menuId,
-      'processingFeeAmount':processingFeeAmount,
+      'processingFeeAmount': processingFeeAmount,
       'variants': variants?.map((v) => v.toJson()).toList(),
       'description': description,
       'noOfDaysToReturn': noOfDaysToReturn,
@@ -64,7 +64,7 @@ class ProductCreateReqModel {
       'storeId': storeId,
       'name': name,
       'type': type,
-      'processingFeeAmount':processingFeeAmount,
+      'processingFeeAmount': processingFeeAmount,
       'SKU': sku,
       'videoUrl': videoUrl,
       'quantity': quantity,
@@ -125,7 +125,7 @@ class Variant {
       'offer_available': offerAvailable,
       'offer_price': offerPrice,
       'unit': unit,
-      'weight':weight,
+      'weight': weight,
       'gst': gst,
       'cGstInPercent': cGstInPercent,
       'cGstInAmount': cGstInAmount,

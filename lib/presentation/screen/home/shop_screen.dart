@@ -203,7 +203,6 @@ class _ShopScreenState extends State<ShopScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isDataLoaded = false;
   void _save() {
-  
     if (_name.text.isEmpty || _phone.text.isEmpty || selectedOption == null) {
       Fluttertoast.showToast(
         msg: "Please fill all mandatory fields",
@@ -227,15 +226,14 @@ class _ShopScreenState extends State<ShopScreen> {
         newDocuments.add(File(doc['file']!)); // convert path → File
       }
     }
-
+    print("sdjfbsd${newDocuments}");
     File? newImageFile;
     String? existingImageName;
 
     if (_selectedImage != null) {
       newImageFile = _selectedImage;
     } else if (_storeImg != null && _storeImg!.isNotEmpty) {
-      existingImageName =
-          _storeImg!.split('/').last; // send as existing image name
+      existingImageName = _storeImg!.split('/').last;
     }
 
     List<String> existingDocs = [];
@@ -244,34 +242,35 @@ class _ShopScreenState extends State<ShopScreen> {
         existingDocs.add(doc['name']!);
       }
     }
-
+    print("newDocuments:${newDocuments}");
     final storeReq = StoreReqModel(
-        sellerId: sharedPreferenceHelper.getSellerId,
-        storeId: _storeId,
-        deliveryCharge: _deliverycharge.text.trim(),
-        deliveryType: deliveryType,
-        name: _name.text.trim(),
-        contactNo: _phone.text.trim(),
-        categoryId: selectedOption ?? _catId,
-        description: _des.text.trim(),
-        packingcharge: _packingchrg.text.trim(),
-        packingtime: _packingtime.text.trim(),
-        opentime: _formatTime(_openTime),
-        closetime: _formatTime(_closeTime),
-        image: newImageFile,
-        documents: newDocuments,
-        isfood: _isfood,
-        lat: (selectedLat ??
-                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-                0.0)
-            .toString(),
-        lon: (selectedLng ??
-                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-                0.0)
-            .toString(),
-        storeType: selectedSize,
-        paymentOptions: selectedMethods.toList(),
-        returnPolicy: _return.text);
+      sellerId: sharedPreferenceHelper.getSellerId,
+      storeId: _storeId,
+      deliveryCharge: _deliverycharge.text.trim(),
+      deliveryType: deliveryType,
+      name: _name.text.trim(),
+      contactNo: _phone.text.trim(),
+      categoryId: selectedOption ?? _catId,
+      description: _des.text.trim(),
+      packingcharge: _packingchrg.text.trim(),
+      packingtime: _packingtime.text.trim(),
+      opentime: _formatTime(_openTime),
+      closetime: _formatTime(_closeTime),
+      image: newImageFile,
+      documents: newDocuments,
+      isfood: _isfood,
+      lat: (selectedLat ??
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
+      storeType: selectedSize,
+      paymentOptions: selectedMethods.toList(),
+      // returnPolicy: _return.text
+    );
     final storeUpdate = StoreUpdateReq(
         deliveryType: deliveryType,
         deliveryCharge: _deliverycharge.text.trim(),
@@ -512,11 +511,15 @@ class _ShopScreenState extends State<ShopScreen> {
             BlocListener<GetStoreCubit, GetStoreState>(
               listener: (context, state) async {
                 if (state.networkStatusEnum == NetworkStatusEnum.initial) {
-                  const CircularProgressIndicator();
+                  setState(() {
+                    storeLoading = true;
+                  });
                 }
-                // if (state.networkStatusEnum == NetworkStatusEnum.loading) {
-                //   CupertinoActivityIndicator();
-                // }
+                if (state.networkStatusEnum == NetworkStatusEnum.loading) {
+                  setState(() {
+                    storeLoading = true;
+                  });
+                }
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.getStoreModel.status == 'true') {
                     final data = state.getStoreModel.result;
@@ -635,6 +638,9 @@ class _ShopScreenState extends State<ShopScreen> {
                     //     longitude:
                     //         double.parse(sharedPreferenceHelper.getSearchLng));
                   } else {
+                    setState(() {
+                      storeLoading = false;
+                    });
                     Fluttertoast.showToast(
                       msg: "Failed to load store data",
                       backgroundColor: Colors.red,
@@ -644,6 +650,9 @@ class _ShopScreenState extends State<ShopScreen> {
                   }
                 } else if (state.networkStatusEnum ==
                     NetworkStatusEnum.failed) {
+                  setState(() {
+                    storeLoading = false;
+                  });
                   Fluttertoast.showToast(
                     msg: "Network error while loading store data",
                     backgroundColor: Colors.red,
@@ -656,7 +665,14 @@ class _ShopScreenState extends State<ShopScreen> {
           ],
           child: BlocConsumer<StoreDefaultsCubit, StoreDefaultState>(
             listener: (context, state) {
-              if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+              if (state.networkStatusEnum == NetworkStatusEnum.loading) {
+                setState(() {
+                  storeLoading = true;
+                });
+              } else if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+                setState(() {
+                  storeLoading = false;
+                });
                 if (state.storeDefaultModel.status == 'true') {
                   _cat = state.storeDefaultModel.result!.categories!;
                 } else {
@@ -668,6 +684,9 @@ class _ShopScreenState extends State<ShopScreen> {
                   );
                 }
               } else if (state.networkStatusEnum == NetworkStatusEnum.failed) {
+                setState(() {
+                  storeLoading = false;
+                });
                 Fluttertoast.showToast(
                   msg: "Network error",
                   backgroundColor: Colors.red,
@@ -677,16 +696,31 @@ class _ShopScreenState extends State<ShopScreen> {
               }
             },
             builder: (context, state) {
-              return
-                  // storeLoading
-                  //     ? Center(
-                  //         child: CupertinoActivityIndicator(
-                  //           color: AppTheme.primaryColor,
-                  //           radius: 20.r,
-                  //         ),
-                  //       )
-                  //     :
-                  SingleChildScrollView(
+              // Show loading indicator when data is being fetched
+              if (state.networkStatusEnum == NetworkStatusEnum.loading ||
+                  storeLoading) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CupertinoActivityIndicator(
+                        color: AppTheme.primaryColor,
+                        radius: 20.r,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        "Loading store information...",
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -703,7 +737,8 @@ class _ShopScreenState extends State<ShopScreen> {
                     //     ),
                     //     child: Row(
                     //       children: [
-                    //         Icon(Icons.check_circle, color: Colors.green, size: 20.sp),
+                    //         Icon(Icons.check_circle,
+                    //             color: Colors.green, size: 20.sp),
                     //         SizedBox(width: 8.w),
                     //         Text(
                     //           "Store data loaded successfully",
