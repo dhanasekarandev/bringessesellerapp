@@ -120,7 +120,7 @@ class UserDetailsModel {
   String? uniqueCode;
   String? referId;
   String? deviceType;
-  int? walletAmount;
+  double? walletAmount;
   int? status;
   String? createdAt;
   String? updatedAt;
@@ -156,7 +156,7 @@ class UserDetailsModel {
     uniqueCode = json['uniqueCode'];
     referId = json['referId'];
     deviceType = json['deviceType'];
-    walletAmount = json['walletAmount'];
+    walletAmount = json['walletAmount']?.toDouble();
     status = json['status'];
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
@@ -221,8 +221,8 @@ class UserAddressModel {
       this.isDefault});
 
   UserAddressModel.fromJson(Map<String, dynamic> json) {
-    lat = json['lat']?.toDouble();
-    lon = json['lon']?.toDouble();
+    lat = (json['lat'] as num?)?.toDouble();
+    lon = (json['lon'] as num?)?.toDouble();
     address = json['address'];
     location = json['location'];
     addressType = json['address_type'];
@@ -299,17 +299,22 @@ class StoreDetailsModel {
     location = json['location'] != null
         ? LocationModel.fromJson(json['location'])
         : null;
+
     id = json['_id'];
     name = json['name'];
     contactNo = json['contactNo'];
     sellerId = json['sellerId'];
     categoryId = json['categoryId'];
-    documents =
-        json['documents'] != null ? List<String>.from(json['documents']) : null;
+
+    // Safe conversion
+    documents = json['documents'] != null
+        ? (json['documents'] as List).map((e) => e.toString()).toList()
+        : null;
+
     image = json['image'];
     status = json['status'];
     featured = json['featured'];
-    rating = json['rating'];
+    rating = (json['rating'] as num?)?.toDouble();
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     v = json['__v'];
@@ -320,17 +325,18 @@ class StoreDetailsModel {
     packingTime = json['packingTime'];
     address = json['address'];
     storeType = json['storeType'];
+
+    // Safe conversion
     paymentOptions = json['paymentOptions'] != null
-        ? List<String>.from(json['paymentOptions'])
+        ? (json['paymentOptions'] as List).map((e) => e.toString()).toList()
         : null;
+
     returnPolicy = json['retunPolicy'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
-    if (location != null) {
-      data['location'] = location!.toJson();
-    }
+    if (location != null) data['location'] = location!.toJson();
     data['_id'] = id;
     data['name'] = name;
     data['contactNo'] = contactNo;
@@ -365,9 +371,13 @@ class LocationModel {
 
   LocationModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
-    coordinates = json['coordinates'] != null
-        ? List<double>.from(json['coordinates'])
-        : null;
+
+    // FIX: safely convert int or double
+    if (json['coordinates'] != null) {
+      coordinates = (json['coordinates'] as List)
+          .map((e) => (e as num).toDouble())
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
