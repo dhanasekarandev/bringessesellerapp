@@ -1,8 +1,12 @@
 import 'package:bringessesellerapp/config/constant/contsant.dart';
+import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/model/request/account_req_model.dart';
 import 'package:bringessesellerapp/presentation/screen/onboarding/withdraw_screen.dart';
+import 'package:bringessesellerapp/presentation/screen/profile/bloc/get_account_detail_cubit.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/medium_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class RevenueScreen extends StatefulWidget {
   const RevenueScreen({super.key});
@@ -12,9 +16,23 @@ class RevenueScreen extends StatefulWidget {
 }
 
 class _RevenueScreenState extends State<RevenueScreen> {
+  late SharedPreferenceHelper sharedPreferenceHelper;
+  @override
+  void initState() {
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    sharedPreferenceHelper.init();
+    _loadProfile();
+    super.initState();
+  }
+
+  void _loadProfile() {
+    context
+        .read<GetAccountDetailCubit>()
+        .login(AccountReqModel(sellerId: sharedPreferenceHelper.getSellerId));
+  }
+
   double balance = 4570.80;
 
-  // 🔹 Dummy List (replace with API response later)
   List<Map<String, dynamic>> transactions = [
     {
       "image": "https://picsum.photos/200",
@@ -121,7 +139,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                "\$${balance.toStringAsFixed(2)}",
+                "₹${balance.toStringAsFixed(2)}",
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -135,7 +153,12 @@ class _RevenueScreenState extends State<RevenueScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const WithdrawScreen(),
+                  builder: (context) => WithdrawScreen(
+                    accountDetailModel: context
+                        .read<GetAccountDetailCubit>()
+                        .state
+                        .accountDetailModel,
+                  ),
                 ),
               );
             },
@@ -226,7 +249,7 @@ Widget revenueItem({
           ),
         ),
         Text(
-          "\$$amount",
+          "₹$amount",
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,

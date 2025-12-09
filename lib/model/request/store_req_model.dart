@@ -20,7 +20,7 @@ class StoreReqModel {
   String? deliveryCharge;
   bool? isfood;
   String? deliveryType;
-  String? returnPolicy;
+  String? retunPolicy; // match Postman typo
   List<String>? paymentOptions;
   String? packingcharge;
 
@@ -42,33 +42,10 @@ class StoreReqModel {
     this.deliveryCharge,
     this.isfood,
     this.deliveryType,
-    this.returnPolicy,
+    this.retunPolicy,
     this.paymentOptions,
     this.packingcharge,
   });
-
-  StoreReqModel.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
-    contactNo = json['contactNo'];
-    categoryId = json['categoryId'];
-    sellerId = json['sellerId'];
-    storeId = json['storeId'];
-    isfood = json['isfood'];
-    deliveryCharge = json['deliveryCharge'];
-    lon = json['lon'];
-    lat = json['lat'];
-    deliveryType = json['deliveryType'];
-    description = json['description'];
-    opentime = json['openingTime'];
-    closetime = json['closingTime'];
-    packingtime = json['packingTime'];
-    storeType = json['storeType'];
-    returnPolicy = json['returnPolicy'];
-    packingcharge = json['packingCharge'];
-    paymentOptions = json['paymentOptions'] != null
-        ? List<String>.from(json['paymentOptions'])
-        : null;
-  }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
@@ -87,7 +64,7 @@ class StoreReqModel {
     data['closingTime'] = closetime;
     data['packingTime'] = packingtime;
     data['storeType'] = storeType;
-    data['returnPolicy'] = returnPolicy;
+    data['retunPolicy'] = retunPolicy;
     data['packingCharge'] = packingcharge;
     data['paymentOptions'] = paymentOptions;
     return data;
@@ -102,7 +79,7 @@ class StoreReqModel {
       }
     }
 
-    // Add text/boolean fields
+    // Add basic fields
     addField('name', name);
     addField('contactNo', contactNo);
     addField('categoryId', categoryId);
@@ -118,10 +95,10 @@ class StoreReqModel {
     addField('closingTime', closetime);
     addField('packingTime', packingtime);
     addField('storeType', storeType);
-    addField('returnPolicy', returnPolicy);
     addField('packingCharge', packingcharge);
+    addField('retunPolicy', retunPolicy); // match Postman typo
 
-    // Add payment options as JSON array
+    // Payment options (optional)
     if (paymentOptions != null && paymentOptions!.isNotEmpty) {
       addField('paymentOptions', jsonEncode(paymentOptions));
     }
@@ -142,7 +119,7 @@ class StoreReqModel {
       for (var doc in documents!) {
         if (await doc.exists()) {
           formData.files.add(MapEntry(
-            'documents', // note the []
+            'documents', // match Postman
             await MultipartFile.fromFile(
               doc.path,
               filename: doc.path.split('/').last,

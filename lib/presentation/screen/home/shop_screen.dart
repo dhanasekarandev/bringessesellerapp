@@ -202,6 +202,7 @@ class _ShopScreenState extends State<ShopScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isDataLoaded = false;
+  bool _isLoading = false;
   void _save() {
     if (_name.text.isEmpty || _phone.text.isEmpty || selectedOption == null) {
       Fluttertoast.showToast(
@@ -242,7 +243,9 @@ class _ShopScreenState extends State<ShopScreen> {
         existingDocs.add(doc['name']!);
       }
     }
-    print("newDocuments:${newDocuments}");
+    setState(() {
+      _isLoading = true;
+    });
     final storeReq = StoreReqModel(
       sellerId: sharedPreferenceHelper.getSellerId,
       storeId: _storeId,
@@ -269,39 +272,41 @@ class _ShopScreenState extends State<ShopScreen> {
           .toString(),
       storeType: selectedSize,
       paymentOptions: selectedMethods.toList(),
+
       // returnPolicy: _return.text
     );
     final storeUpdate = StoreUpdateReq(
-        deliveryType: deliveryType,
-        deliveryCharge: _deliverycharge.text.trim(),
-        sellerId: sharedPreferenceHelper.getSellerId,
-        storeId: _storeId,
-        isfood: _isfood,
-        name: _name.text.trim(),
-        contactNo: _phone.text.trim(),
-        categoryId: selectedOption ?? _catId,
-        description: _des.text.trim(),
-        packingcharge: _packingchrg.text.trim(),
-        packingtime: _packingtime.text.trim(),
-        opentime: _formatTime(_openTime),
-        closetime: _formatTime(_closeTime),
-        image: newImageFile,
-        storeImage: existingImageName,
-        documents: newDocuments,
-        storeDocuments: existingDocs,
-        lat: (selectedLat ??
-                _existingLat ?? // ✅ fallback to old API lat
-                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-                0.0)
-            .toString(),
-        lon: (selectedLng ??
-                _existingLng ?? // ✅ fallback to old API lon
-                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-                0.0)
-            .toString(),
-        storeType: selectedSize,
-        paymentOptions: selectedMethods.toList(),
-        returnPolicy: _return.text);
+      deliveryType: deliveryType,
+      deliveryCharge: _deliverycharge.text.trim(),
+      sellerId: sharedPreferenceHelper.getSellerId,
+      storeId: _storeId,
+      isfood: _isfood,
+      name: _name.text.trim(),
+      contactNo: _phone.text.trim(),
+      categoryId: selectedOption ?? _catId,
+      description: _des.text.trim(),
+      packingcharge: _packingchrg.text.trim(),
+      packingtime: _packingtime.text.trim(),
+      opentime: _formatTime(_openTime),
+      closetime: _formatTime(_closeTime),
+      image: newImageFile,
+      storeImage: existingImageName,
+      documents: newDocuments,
+      storeDocuments: existingDocs,
+      lat: (selectedLat ??
+              _existingLat ?? // ✅ fallback to old API lat
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              _existingLng ?? // ✅ fallback to old API lon
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
+      storeType: selectedSize,
+      paymentOptions: selectedMethods.toList(),
+      // returnPolicy: _return.text
+    );
     if (_isDataLoaded) {
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
@@ -311,7 +316,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   String selectedSubPlan = "";
-  final List<String> paymentMethods = ["Cash on Delivery", "Online payment"];
+  final List<String> paymentMethods = ["Cash on Delivery", "Online"];
   String selectedSize = 'Small';
   String selectedService = 'Subscription';
   bool isOwnDelivery = false;
@@ -455,12 +460,20 @@ class _ShopScreenState extends State<ShopScreen> {
               listener: (context, state) {
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.storeResponseModel.status == true) {
+                    sharedPreferenceHelper
+                        .saveStoreId(state.storeResponseModel.result?.storeId);
+                    sharedPreferenceHelper.saveCategoryId(
+                        state.storeResponseModel.result?.categoryId);
+                    String storeId = sharedPreferenceHelper.getStoreId;
+                    String catId = sharedPreferenceHelper.getCatId;
+                    context.read<GetStoreCubit>().login();
                     Fluttertoast.showToast(
                       msg: "Store Created Successfully",
-                      backgroundColor: Colors.green,
-                      textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
+                    setState(() {
+                      _isLoading = false;
+                    });
                   } else {
                     Fluttertoast.showToast(
                       msg: "Store creation failed",
@@ -489,6 +502,9 @@ class _ShopScreenState extends State<ShopScreen> {
                       textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
+                    setState(() {
+                      _isLoading = false;
+                    });
                   } else {
                     Fluttertoast.showToast(
                       msg: "Store creation failed",
@@ -1251,6 +1267,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
+                              isLoading: _isLoading,
                               title: _isDataLoaded
                                   ? "Update Store"
                                   : "Create Store",

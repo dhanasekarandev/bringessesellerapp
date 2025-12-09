@@ -1,11 +1,16 @@
-import 'package:bringessesellerapp/presentation/screen/onboarding/revenue_otp_screen.dart';
+import 'package:bringessesellerapp/config/constant/api_constant.dart';
+import 'package:bringessesellerapp/config/constant/contsant.dart';
+import 'package:bringessesellerapp/model/response/account_detail_model.dart';
+import 'package:bringessesellerapp/presentation/service/bank_service.dart';
+
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class WithdrawScreen extends StatefulWidget {
-  const WithdrawScreen({super.key});
+  final AccountDetailModel? accountDetailModel;
+  const WithdrawScreen({super.key, this.accountDetailModel});
 
   @override
   State<WithdrawScreen> createState() => _WithdrawScreenState();
@@ -90,13 +95,13 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
   bool isValidAmount() {
     double value = double.tryParse(amount.replaceAll(",", "")) ?? 0;
-    return value > 0 && value <= availableBalance;
+    return value >= 100 && value <= availableBalance;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: "Withdraw Money"),
+      appBar: const CustomAppBar(title: "Withdraw"),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -111,10 +116,21 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.savings, size: 18),
-                  const SizedBox(width: 6),
-                  Text("Retirement"),
-                  const SizedBox(width: 6),
+                  CircleAvatar(child: Icon(Icons.account_balance, size: 18)),
+                  SizedBox(width: 6),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                          "${widget.accountDetailModel!.sellerDetails!.accountName}"),
+                      SizedBox(height: 4),
+                      Text(
+                        "${BankHelper.getBankName(widget.accountDetailModel!.sellerDetails!.ifsc!)}",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 6),
                   Icon(Icons.keyboard_arrow_down, size: 18),
                 ],
               ),
@@ -135,7 +151,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
             Text(
               "₹$availableBalance available balance",
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
 
             const SizedBox(height: 30),
@@ -219,19 +235,21 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                               right: 20,
                             ),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
-                                  "Verify your withdrawal amount",
-                                  style: TextStyle(
+                                Text(
+                                  "Verify your  ₹${value.round()} withdrawl",
+                                  style: const TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 8),
+                                vericalSpaceMedium,
                                 Text(
                                   "Please verify the passcode that we sent to your mobile number",
+                                  textAlign: TextAlign.center,
                                   style: TextStyle(
-                                      fontSize: 14, color: Colors.grey[700]),
+                                      fontSize: 16, color: Colors.grey[700]),
                                 ),
                                 const SizedBox(height: 30),
                                 Row(
@@ -278,9 +296,9 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                                 const Spacer(),
                                 SizedBox(
                                   width: double.infinity,
-                                  child: ElevatedButton(
+                                  child: CustomButton(
                                     onPressed: submitOtp,
-                                    child: const Text("Submit"),
+                                    title: "Vetify & withdraw",
                                   ),
                                 ),
                                 const SizedBox(height: 20),

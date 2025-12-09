@@ -412,10 +412,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       double cgstAmount = sellingPrice * (cgstPercent / 100);
       double sgstAmount = sellingPrice * (sgstPercent / 100);
-
-      double totalAmount =
-          sellingPrice + cgstAmount + sgstAmount + processingFeePercent;
       double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
+      double totalAmount =
+          sellingPrice + cgstAmount + sgstAmount + processingFeeAmount;
+
       setState(() {
         processfeeAmount = processingFeeAmount;
       });
@@ -427,21 +427,21 @@ class _AddProductScreenState extends State<AddProductScreen> {
         offerPrice: offerPrice,
         unit: v['selectedUnit'] ?? "",
         weight: weight,
-        // Percent Values
+        
         gst: gstPercent,
         cGstInPercent: cgstPercent,
         sGstInPercent: sgstPercent,
 
-        // Amount Values
+       
         cGstInAmount: cgstAmount,
         sGstInAmount: sgstAmount,
 
-        // Final Total
+       
         totalAmount: totalAmount,
       );
     }).toList();
 
-    // Separate new image files & existing images
+   
     final newFiles = _productMedia.whereType<File>().toList();
     final existingImages = _productMedia
         .whereType<String>()
@@ -595,7 +595,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             body: SingleChildScrollView(
               child: Column(
                 children: [
-                  /// ---- Upload Image Section ----
+                
                   CustomCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,7 +603,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                         const TitleText(title: "Upload Product Images"),
                         vericalSpaceMedium,
 
-                        // Grid View for images
+                        
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),

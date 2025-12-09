@@ -111,4 +111,6 @@ class ApiConstant {
   static const String reviewlist = 'reviews/lists';
   static const String privacyPolicy = 'helps/seller';
   static String revenuegraph(String storeId) => 'chart/$storeId';
+
+  
 }

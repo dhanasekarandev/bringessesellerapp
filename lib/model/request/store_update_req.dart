@@ -22,7 +22,7 @@ class StoreUpdateReq {
   String? deliveryCharge;
   List<String>? paymentOptions; // new ones
   List<String>? storePaymentOptions; // ✅ existing ones
-  String? returnPolicy;
+  // String? returnPolicy;
   String? packingcharge;
   bool? isfood;
 
@@ -48,7 +48,7 @@ class StoreUpdateReq {
     this.storeType,
     this.paymentOptions,
     this.storePaymentOptions,
-    this.returnPolicy,
+    // this.returnPolicy,
     this.packingcharge,
   });
 
@@ -73,7 +73,7 @@ class StoreUpdateReq {
       'storeType': storeType,
       "paymentOptions": paymentOptions,
       "storePaymentOptions": storePaymentOptions, // ✅ added
-      "returnPolicy": returnPolicy,
+      // "returnPolicy": returnPolicy,
       'storeDocuments': storeDocuments,
     };
   }
@@ -103,7 +103,7 @@ class StoreUpdateReq {
     addField('closingTime', closetime);
     addField('packingTime', packingtime);
     addField('storeType', storeType);
-    addField('returnPolicy', returnPolicy);
+    // addField('returnPolicy', returnPolicy);
     addField('packingCharge', packingcharge);
 
     // --- Image ---
