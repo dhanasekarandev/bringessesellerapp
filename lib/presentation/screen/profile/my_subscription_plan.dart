@@ -225,6 +225,9 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
                   ),
                 );
               }).toList(),
+              SizedBox(
+                height: 30.h,
+              )
             ],
           ),
         ),

@@ -2,7 +2,6 @@ import 'package:bringessesellerapp/config/constant/contsant.dart';
 import 'package:bringessesellerapp/config/themes.dart';
 
 import 'package:bringessesellerapp/presentation/repository/api_class.dart';
-import 'package:bringessesellerapp/presentation/service/referral_services.dart';
 
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
@@ -15,7 +14,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  final String? referCode;
+  const RegisterScreen({super.key, this.referCode});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -42,15 +42,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  String? refCode;
-  Future<void> getReferral() async {
-    // final code = await ReferrerService.getReferralCode();
-    // _refferController.text = code!;
-    // setState(() {
-    //   refCode = code;
-    // });
-  }
-
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -65,12 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
 
         if (res['status'] == true) {
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   SnackBar(
-          //     content: Text(' ${res['message']}'),
-          //     backgroundColor: Colors.green,
-          //   ),
-          // );
           context.push('/approve');
         }
       } catch (e) {
@@ -118,7 +103,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SubTitleText(title: "Name"),
+                    const SubTitleText(title: "Name"),
                     CustomTextField(
                       controller: _nameController,
                       hintText: "Enter your Name",
@@ -130,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    SubTitleText(title: "Email"),
+                    const SubTitleText(title: "Email"),
                     CustomTextField(
                       controller: _emailController,
                       hintText: "Enter your Email",
@@ -146,7 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    SubTitleText(title: "Mobile Number"),
+                    const SubTitleText(title: "Mobile Number"),
                     CustomTextField(
                       controller: _mobileController,
                       hintText: "Enter your Mobile Number",
@@ -161,19 +146,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    SubTitleText(title: "Coupon"),
+                    const SubTitleText(title: "Coupon"),
                     CustomTextField(
                       controller: _couponController,
                       hintText: "Enter your Coupon",
                       prefixIcon: Icons.apps_sharp,
                     ),
-                    SubTitleText(title: "Reffer"),
+                    const SubTitleText(title: "Reffer"),
                     CustomTextField(
                       controller: _refferController,
                       hintText: "Enter your refferer",
                       prefixIcon: Icons.link_sharp,
                     ),
-                    SubTitleText(title: "Password"),
+                    const SubTitleText(title: "Password"),
                     CustomTextField(
                       controller: _passwordController,
                       hintText: "Enter your Password",

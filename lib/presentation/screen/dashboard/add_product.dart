@@ -385,7 +385,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   ),
                 ],
               ),
-              SizedBox(height: 20.h),
+              SizedBox(height: 50.h),
             ],
           ),
         );
@@ -415,33 +415,31 @@ class _AddProductScreenState extends State<AddProductScreen> {
       double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
       double totalAmount =
           sellingPrice + cgstAmount + sgstAmount + processingFeeAmount;
+      print("sldjfns${totalAmount - processingFeeAmount}");
+      String earningAmount =
+          (totalAmount - processingFeeAmount).toStringAsFixed(2);
 
       setState(() {
         processfeeAmount = processingFeeAmount;
       });
       print("dsdfsdf$totalAmount");
       return Variant(
-        name: v['count'].text,
-        price: price,
-        offerAvailable: isOffer.toString(),
-        offerPrice: offerPrice,
-        unit: v['selectedUnit'] ?? "",
-        weight: weight,
-        
-        gst: gstPercent,
-        cGstInPercent: cgstPercent,
-        sGstInPercent: sgstPercent,
-
-       
-        cGstInAmount: cgstAmount,
-        sGstInAmount: sgstAmount,
-
-       
-        totalAmount: totalAmount,
-      );
+          name: v['count'].text,
+          price: price,
+          offerAvailable: isOffer.toString(),
+          offerPrice: offerPrice,
+          unit: v['selectedUnit'] ?? "",
+          weight: weight,
+          gst: gstPercent,
+          cGstInPercent: cgstPercent,
+          sGstInPercent: sgstPercent,
+          cGstInAmount: cgstAmount,
+          sGstInAmount: sgstAmount,
+          totalAmount: totalAmount,
+          processingFee: processingFeeAmount.toStringAsFixed(2),
+          sellerEarningAmount: earningAmount);
     }).toList();
 
-   
     final newFiles = _productMedia.whereType<File>().toList();
     final existingImages = _productMedia
         .whereType<String>()
@@ -449,7 +447,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         .toList();
 
     try {
-      print("ssdfsd${processfeeAmount}");
+      //  print("ssdfsd${processfeeAmount}");
       if (widget.editProduct == null) {
         final req = ProductCreateReqModel(
             sellerId: widget.sellerId,
@@ -595,15 +593,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
             body: SingleChildScrollView(
               child: Column(
                 children: [
-                
                   CustomCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const TitleText(title: "Upload Product Images"),
                         vericalSpaceMedium,
-
-                        
                         GridView.builder(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
@@ -674,7 +669,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
                             );
                           },
                         ),
-
                         vericalSpaceMedium,
                         const SubTitleText(
                             title: "Maximum 5 images (JPG or PNG)"),

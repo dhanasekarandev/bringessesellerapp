@@ -163,8 +163,8 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  /// ✅ Navigate to next screen
   Future<void> _navigateNext() async {
+    print('skssk${referCode}');
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('onboard_seen') ?? false;
     final loginSeen = prefs.getBool('login_seen') ?? false;
@@ -174,11 +174,12 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     if (!hasSeenOnboarding) {
-      context.go('/onboarding');
+      context.go('/onboarding', extra: {'refcode': referCode});
     } else if (loginSeen) {
+      //  context.go('/approve');
       context.go('/dashboard');
     } else {
-      context.go('/welcome');
+      context.go('/welcome', extra: {'refcode': referCode});
     }
   }
 

@@ -11,7 +11,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 class WelcomeScreen extends StatefulWidget {
-  const WelcomeScreen({super.key});
+ final String? referCode;
+  const WelcomeScreen({super.key, this.referCode=''});
 
   @override
   State<WelcomeScreen> createState() => _WelcomeScreenState();

@@ -132,12 +132,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
           },
         ),
-
-        // ✅ DashboardCubit Listener
         BlocListener<DashboardCubit, DashboardState>(
           listener: (context, state) {
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+              final status =
+                  state.dashboardModel.isActive == 'true' ? true : false;
+              setState(() {
+                _storeSwitch = status;
+              });
+            }
             if (state.networkStatusEnum == NetworkStatusEnum.failed) {
-              ToastWidget(
+              const ToastWidget(
                 message: "Failed to load dashboard",
                 color: Colors.red,
               ).build(context);
@@ -192,9 +197,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             builder: (context, viewProfileState) {
               if (NetworkStatusEnum.failed ==
                   viewProfileState.networkStatusEnum) {
-                print("sfjbs");
+                //  print("sfjbs");
               }
-              print("sdkfhbsk${viewProfileState}");
+              // print("sdkfhbsk${viewProfileState}");
               final isPaymentDone = viewProfileState
                       .viewProfile.result?.paymentStatus
                       ?.toString()
@@ -333,7 +338,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => RevenueScreen(),
+                                    builder: (context) => const RevenueScreen(),
                                   ));
                             },
                             child: Column(
@@ -402,7 +407,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      ShopCustomerReviewsScreen(),
+                                      const ShopCustomerReviewsScreen(),
                                 ));
                           },
                           child: Column(

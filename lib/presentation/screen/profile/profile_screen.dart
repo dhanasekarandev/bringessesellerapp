@@ -201,6 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       loading = false;
                       phoneloading = false;
                     });
+                    context.read()<ViewProfileCubit>().login();
                   },
                 );
                 context.read<ViewProfileCubit>().login();

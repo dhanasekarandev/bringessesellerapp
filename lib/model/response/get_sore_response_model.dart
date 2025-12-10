@@ -42,6 +42,7 @@ class Result {
   String? storeType;
   String? deliveryType;
   String? returnPolicy;
+  String? isfood;
   List<String>? paymentOptions;
 
   Result({
@@ -50,6 +51,7 @@ class Result {
     this.contactNo,
     this.address,
     this.image,
+    this.isfood,
     this.status,
     this.deliveryCharge,
     this.categoryId,
@@ -72,6 +74,7 @@ class Result {
   Result.fromJson(Map<String, dynamic> json) {
     storeId = json['storeId'];
     name = json['name'];
+    isfood = json['isfood'];
     contactNo = json['contactNo'];
     address = json['address'];
     image = json['image'];
@@ -100,6 +103,7 @@ class Result {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     data['storeId'] = storeId;
+    data['isfood'] = isfood;
     data['name'] = name;
     data['contactNo'] = contactNo;
     data['address'] = address;

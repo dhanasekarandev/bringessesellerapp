@@ -36,11 +36,21 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnBordingScreen(),
+      builder: (context, state) {
+        var args = state.extra as Map;
+        return OnBordingScreen(
+          referCode: args['refcode'],
+        );
+      },
     ),
     GoRoute(
       path: '/welcome',
-      builder: (context, state) => const WelcomeScreen(),
+      builder: (context, state) {
+        var args = state.extra as Map;
+        return WelcomeScreen(
+          referCode: args['refcode'],
+        );
+      },
     ),
     GoRoute(
       path: '/login',
@@ -48,7 +58,12 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/register',
-      builder: (context, state) => const RegisterScreen(),
+      builder: (context, state) {
+        var args = state.extra as Map;
+        return RegisterScreen(
+          referCode: args['refcode'],
+        );
+      },
     ),
     GoRoute(
       path: '/approve',

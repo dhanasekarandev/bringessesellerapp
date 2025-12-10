@@ -202,7 +202,6 @@ class _ShopScreenState extends State<ShopScreen> {
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
   bool _isDataLoaded = false;
-  bool _isLoading = false;
   void _save() {
     if (_name.text.isEmpty || _phone.text.isEmpty || selectedOption == null) {
       Fluttertoast.showToast(
@@ -243,9 +242,7 @@ class _ShopScreenState extends State<ShopScreen> {
         existingDocs.add(doc['name']!);
       }
     }
-    setState(() {
-      _isLoading = true;
-    });
+
     final storeReq = StoreReqModel(
       sellerId: sharedPreferenceHelper.getSellerId,
       storeId: _storeId,
@@ -280,7 +277,7 @@ class _ShopScreenState extends State<ShopScreen> {
       deliveryCharge: _deliverycharge.text.trim(),
       sellerId: sharedPreferenceHelper.getSellerId,
       storeId: _storeId,
-      isfood: _isfood,
+      isfood: _isfood ? 'true' : 'false',
       name: _name.text.trim(),
       contactNo: _phone.text.trim(),
       categoryId: selectedOption ?? _catId,
@@ -469,11 +466,10 @@ class _ShopScreenState extends State<ShopScreen> {
                     context.read<GetStoreCubit>().login();
                     Fluttertoast.showToast(
                       msg: "Store Created Successfully",
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
-                    setState(() {
-                      _isLoading = false;
-                    });
                   } else {
                     Fluttertoast.showToast(
                       msg: "Store creation failed",
@@ -502,9 +498,6 @@ class _ShopScreenState extends State<ShopScreen> {
                       textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
-                    setState(() {
-                      _isLoading = false;
-                    });
                   } else {
                     Fluttertoast.showToast(
                       msg: "Store creation failed",
@@ -568,9 +561,9 @@ class _ShopScreenState extends State<ShopScreen> {
                       setState(() {
                         _storeId = data.storeId;
                         _catId = data.categoryId;
-                        print("${data.image}");
+                        print("sdcsds${data.isfood}");
                         _name.text = data.name ?? '';
-
+                        _isfood = data.isfood == 'true' ? true : false;
                         _phone.text = data.contactNo?.toString() ?? '';
                         selectedOption = data.categoryId;
                         _des.text = data.description ?? "";
@@ -772,14 +765,14 @@ class _ShopScreenState extends State<ShopScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           vericalSpaceSmall,
-                          InkWell(
-                            onTap: () {
-                              _pickImage();
-                            },
-                            child: Center(
-                                child: CircleAvatar(
-                              radius: 63.r,
-                              backgroundColor: AppTheme.primaryColor,
+                          Center(
+                              child: CircleAvatar(
+                            radius: 63.r,
+                            backgroundColor: AppTheme.primaryColor,
+                            child: InkWell(
+                              onTap: () {
+                                _pickImage();
+                              },
                               child: CircleAvatar(
                                 radius: 60.r,
                                 backgroundColor: Theme.of(context).cardColor,
@@ -799,8 +792,8 @@ class _ShopScreenState extends State<ShopScreen> {
                                       )
                                     : null,
                               ),
-                            )),
-                          ),
+                            ),
+                          )),
                           vericalSpaceMedium,
                           const SubTitleText(
                             title: "Store name",
@@ -1267,7 +1260,6 @@ class _ShopScreenState extends State<ShopScreen> {
                           SizedBox(
                             width: double.infinity,
                             child: CustomButton(
-                              isLoading: _isLoading,
                               title: _isDataLoaded
                                   ? "Update Store"
                                   : "Create Store",
@@ -1356,7 +1348,7 @@ class _ShopScreenState extends State<ShopScreen> {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          //     color: Colors.grey.shade200,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: Colors.grey.shade300,
@@ -1387,14 +1379,14 @@ class _ShopScreenState extends State<ShopScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      //backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       builder: (context) {
         String selectedPlanId = "";
         SubscriptionModel? selectedPlan;
-
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
@@ -1409,7 +1401,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[400],
+                        // color: Colors.grey[400],
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
@@ -1446,11 +1438,15 @@ class _ShopScreenState extends State<ShopScreen> {
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
                                   color: selectedPlanId == plan.id.toString()
-                                      ? Colors.black
-                                      : Colors.grey.shade300,
+                                      ? (isDark
+                                          ? Colors.orangeAccent
+                                          : Colors.black) // Selected border
+                                      : (isDark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300), // Unselected
                                   width: 2,
                                 ),
-                                color: Colors.grey.shade100,
+                                // color: Colors.grey.shade100,
                               ),
                               child: Row(
                                 children: [
@@ -1493,7 +1489,7 @@ class _ShopScreenState extends State<ShopScreen> {
                                         selectedPlan = plan;
                                       });
                                     },
-                                    activeColor: Colors.black,
+                                    //  activeColor: Colors.black,
                                   )
                                 ],
                               ),

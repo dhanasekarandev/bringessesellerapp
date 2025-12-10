@@ -1,5 +1,6 @@
 import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
+import 'package:bringessesellerapp/config/themes.dart';
 import 'package:bringessesellerapp/model/request/store_id_reqmodel.dart';
 import 'package:bringessesellerapp/model/request/productlist_req_model.dart';
 import 'package:bringessesellerapp/presentation/screen/dashboard/bloc/product_category_cubit.dart';
@@ -129,7 +130,7 @@ class _ProductScreenState extends State<ProductScreen>
                     controller: _tabController,
                     indicatorSize: TabBarIndicatorSize.tab,
                     indicator: const BoxDecoration(
-                      color: Colors.blueAccent,
+                      color: AppTheme.primaryColor,
                       borderRadius: BorderRadius.all(Radius.circular(8)),
                     ),
                     labelColor: Colors.white,
@@ -141,7 +142,7 @@ class _ProductScreenState extends State<ProductScreen>
                   ),
                 ),
 
-                /// ---------------- SEARCH BAR ----------------
+          
                 Padding(
                   padding:
                       EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
@@ -188,7 +189,7 @@ class _ProductScreenState extends State<ProductScreen>
                                         .toDouble()
                                         .toStringAsFixed(2))
                                     : "0";
-                                print("skdfns$offer");
+              
                                 return GestureDetector(
                                   onTap: () {
                                     context.push('/products/details',

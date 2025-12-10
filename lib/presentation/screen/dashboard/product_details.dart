@@ -29,12 +29,21 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   late SharedPreferenceHelper sharedPreferenceHelper;
+  late PageController _pageController;
+  int _currentPage = 0;
   @override
   void initState() {
     sharedPreferenceHelper = SharedPreferenceHelper();
     sharedPreferenceHelper.init();
     super.initState();
+    _pageController = PageController();
     context.read<ProductByIdCubit>().login(widget.product.id ?? "");
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -163,11 +172,66 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   if (product.images != null && product.images!.isNotEmpty)
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12.r),
-                      child: Image.network(
-                        "${ApiConstant.imageUrl}/public/media/items/${product.images!.first}",
+                      child: SizedBox(
                         width: double.infinity,
                         height: 220.h,
-                        fit: BoxFit.cover,
+                        child: Stack(
+                          children: [
+                            PageView.builder(
+                              controller: _pageController,
+                              itemCount: product.images!.length,
+                              onPageChanged: (index) =>
+                                  setState(() => _currentPage = index),
+                              itemBuilder: (context, index) {
+                                final img = product.images![index];
+                                return Image.network(
+                                  "${ApiConstant.imageUrl}/public/media/items/$img",
+                                  width: double.infinity,
+                                  height: 220.h,
+                                  //  fit: BoxFit.cover,
+                                  errorBuilder: (c, e, s) =>
+                                      Container(color: Colors.grey[200]),
+                                  loadingBuilder: (c, child, progress) {
+                                    if (progress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: progress.expectedTotalBytes !=
+                                                null
+                                            ? progress.cumulativeBytesLoaded /
+                                                (progress.expectedTotalBytes ??
+                                                    1)
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                            Positioned(
+                              bottom: 8.h,
+                              left: 0,
+                              right: 0,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(product.images!.length,
+                                    (index) {
+                                  return Container(
+                                    margin:
+                                        EdgeInsets.symmetric(horizontal: 4.w),
+                                    width: _currentPage == index ? 10.w : 8.w,
+                                    height: _currentPage == index ? 10.w : 8.w,
+                                    decoration: BoxDecoration(
+                                      color: _currentPage == index
+                                          ? Colors.grey.shade400
+                                          : Colors.grey.shade700,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   SizedBox(height: 10.h),
@@ -253,7 +317,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               ),
                             ))
                       ],
-                    )
+                    ),
+                  SizedBox(
+                    height: 40.h,
+                  ),
                 ],
               ),
             );

@@ -26,7 +26,7 @@ class _InviteReferreState extends State<InviteReferre> {
         textAlign: TextAlign.center,
         style: const TextStyle(
           fontSize: 16,
-          color: Colors.black,
+          //  color: Colors.black,
         ),
       ),
     );
@@ -59,7 +59,7 @@ class _InviteReferreState extends State<InviteReferre> {
   void showToast(String msg) {
     Fluttertoast.showToast(
       msg: msg,
-      backgroundColor: Colors.black87,
+      // backgroundColor: Colors.black87,
       textColor: Colors.white,
       gravity: ToastGravity.BOTTOM,
       toastLength: Toast.LENGTH_SHORT,
@@ -163,6 +163,7 @@ class _InviteReferreState extends State<InviteReferre> {
                   QrImageView(
                     data: reffUri,
                     version: QrVersions.auto,
+                    backgroundColor: Colors.grey.shade200,
                     size: 120,
                   ),
                   const SizedBox(width: 20),

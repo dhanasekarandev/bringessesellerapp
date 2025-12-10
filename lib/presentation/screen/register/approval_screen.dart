@@ -18,7 +18,7 @@ class WaitingApprovalScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Lottie.asset('assetslottie/Waiting.json'),
+              Lottie.asset('assets/lottie/Waiting.json'),
               SizedBox(height: 20.h),
 
               Text(

@@ -17,19 +17,6 @@ class RevenueScreen extends StatefulWidget {
 
 class _RevenueScreenState extends State<RevenueScreen> {
   late SharedPreferenceHelper sharedPreferenceHelper;
-  @override
-  void initState() {
-    sharedPreferenceHelper = SharedPreferenceHelper();
-    sharedPreferenceHelper.init();
-    _loadProfile();
-    super.initState();
-  }
-
-  void _loadProfile() {
-    context
-        .read<GetAccountDetailCubit>()
-        .login(AccountReqModel(sellerId: sharedPreferenceHelper.getSellerId));
-  }
 
   double balance = 4570.80;
 
@@ -69,27 +56,45 @@ class _RevenueScreenState extends State<RevenueScreen> {
   ];
 
   @override
+  void initState() {
+    sharedPreferenceHelper = SharedPreferenceHelper();
+    sharedPreferenceHelper.init();
+    _loadProfile();
+    super.initState();
+  }
+
+  void _loadProfile() {
+    context.read<GetAccountDetailCubit>().login(
+          AccountReqModel(sellerId: sharedPreferenceHelper.getSellerId),
+        );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: const CustomAppBar(title: "Revenue"),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            balanceCard(),
-            vericalSpaceMedium,
-            MediumText(title: "Recent Transactions"),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              gridStats(),
+              const SizedBox(height: 12),
+              balanceCard(),
+              vericalSpaceMedium,
 
-            // 🔹 ListView.builder
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.only(bottom: 20, top: 12),
+              MediumText(title: "Recent Transactions"),
+              const SizedBox(height: 10),
+
+              // 🔹 FIXED LISTVIEW — NO OVERFLOW
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: transactions.length,
                 itemBuilder: (context, index) {
                   final item = transactions[index];
-
                   return revenueItem(
                     image: item["image"],
                     title: item["title"],
@@ -100,14 +105,78 @@ class _RevenueScreenState extends State<RevenueScreen> {
                   );
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // 🔹 Balance card UI
+  // 🔹 GRID 4 BOXES
+  Widget gridStats() {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      childAspectRatio: 1.3,
+      padding: const EdgeInsets.all(8),
+      children: [
+        statBox("Total Orders", "245", "Today's Orders", "12"),
+        statBox("Total Income", "₹18,450", "Today's Income", "₹920"),
+        statBox("Total Returns", "32", "Today's Returns", "1"),
+        statBox("Total Refund", "₹2,140", "Today's Refund", "₹120"),
+      ],
+    );
+  }
+
+  // 🔹 STAT BOX UI
+  Widget statBox(
+    String title1,
+    String value1,
+    String title2,
+    String value2,
+  ) {
+    return Container(
+      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 8,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title1,
+              style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500)),
+          Text(value1,
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(title2,
+              style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500)),
+          Text(value2,
+              style:
+                  const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  // 🔹 BALANCE CARD
   Widget balanceCard() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -132,19 +201,17 @@ class _RevenueScreenState extends State<RevenueScreen> {
               const Text(
                 "Current Balance",
                 style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w500,
-                ),
+                    fontSize: 13,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 6),
               Text(
                 "₹${balance.toStringAsFixed(2)}",
                 style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ],
           ),
@@ -171,10 +238,9 @@ class _RevenueScreenState extends State<RevenueScreen> {
               child: const Text(
                 "Withdraw",
                 style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13),
               ),
             ),
           ),
@@ -184,7 +250,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
   }
 }
 
-// 🔹 Revenue Item UI
+// 🔹 Revenue item UI
 Widget revenueItem({
   required String image,
   required String title,
@@ -224,37 +290,25 @@ Widget revenueItem({
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(title,
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 4),
-              Text(
-                "Ordered on $date",
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-              ),
+              Text("Ordered on $date",
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 4),
-              Text(
-                "Order ID  $orderId",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade700,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Text("Order ID  $orderId",
+                  style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.w500)),
             ],
           ),
         ),
         Text(
           "₹$amount",
           style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: amountColor,
-          ),
+              fontSize: 16, fontWeight: FontWeight.bold, color: amountColor),
         ),
       ],
     ),

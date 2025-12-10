@@ -103,6 +103,8 @@ class Variant {
   num? sGstInAmount;
   num? sGstInPercent;
   num? totalAmount;
+  String? sellerEarningAmount;
+  String? processingFee;
 
   Variant(
       {this.name,
@@ -116,6 +118,8 @@ class Variant {
       this.cGstInAmount,
       this.sGstInAmount,
       this.sGstInPercent,
+      this.sellerEarningAmount,
+      this.processingFee,
       this.totalAmount});
 
   Map<String, dynamic> toJson() {
@@ -131,7 +135,9 @@ class Variant {
       'cGstInAmount': cGstInAmount,
       'sGstInAmount': sGstInAmount,
       'sGstInPercent': sGstInPercent,
-      'totalAmount': totalAmount
+      'totalAmount': totalAmount,
+      'processingFee': processingFee,
+      'sellerEarningAmount': sellerEarningAmount,
     };
   }
 }

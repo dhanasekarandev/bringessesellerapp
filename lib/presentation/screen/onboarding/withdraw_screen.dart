@@ -188,12 +188,13 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
 
       // Continue Button
       bottomSheet: SafeArea(
+        maintainBottomViewPadding: false,
         child: Opacity(
           opacity: isValidAmount() ? 1 : 0.4,
           child: IgnorePointer(
             ignoring: !isValidAmount(),
             child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 30.w),
+              padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 50.h),
               child: CustomButton(
                 title: "Continue",
                 onPressed: () {
@@ -229,7 +230,7 @@ class _WithdrawScreenState extends State<WithdrawScreen> {
                           child: Padding(
                             padding: EdgeInsets.only(
                               bottom:
-                                  MediaQuery.of(context).viewInsets.bottom + 20,
+                                  MediaQuery.of(context).viewInsets.bottom + 50,
                               top: 20,
                               left: 20,
                               right: 20,

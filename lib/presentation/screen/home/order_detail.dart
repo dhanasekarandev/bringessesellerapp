@@ -377,39 +377,52 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
+          resizeToAvoidBottomInset: false,
           bottomSheet: currentStatus == "pending"
-              ? Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CustomButton(
-                          backgroundColor: Colors.green,
-                          title: "Accept",
-                          onPressed: acceptOrder,
+              ? SafeArea(
+                  child: Container(
+                    width: double.infinity,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+                    decoration:const BoxDecoration(
+                      color: Colors.white,
+                      boxShadow:  [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, -2),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomButton(
+                            backgroundColor: Colors.green,
+                            title: "Accept",
+                            onPressed: acceptOrder,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 10.w),
-                      Expanded(
-                        child: CustomButton(
-                          title: "Decline",
-                          backgroundColor: Colors.red,
-                          onPressed: () {
-                            showCustomConfirmationDialog(
-                              context: context,
-                              content: "Are you sure want to cancel this order",
-                              confirmText: "Yes",
-                              title: "Cencel Order",
-                              cancelText: "Cancel",
-                              onConfirm: () {
-                                declineOrder();
-                              },
-                            );
-                          },
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: CustomButton(
+                            title: "Decline",
+                            backgroundColor: Colors.red,
+                            onPressed: () {
+                              showCustomConfirmationDialog(
+                                context: context,
+                                content:
+                                    "Are you sure want to cancel this order",
+                                confirmText: "Yes",
+                                title: "Cancel Order",
+                                cancelText: "Cancel",
+                                onConfirm: declineOrder,
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 )
               : const SizedBox.shrink(),

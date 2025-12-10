@@ -53,6 +53,7 @@ import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_defaults_
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/store_upload_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/shop/bloc/update_store_cubit.dart';
 import 'package:bringessesellerapp/presentation/service/api_service.dart';
+import 'package:bringessesellerapp/presentation/service/firebase_options.dart';
 import 'package:bringessesellerapp/presentation/service/notification_service.dart';
 
 import 'package:bringessesellerapp/router/app_router.dart';
@@ -81,40 +82,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
- 
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyAebIczLvdHI1zy2Vz11oMoed6Zme2pg7Y",
-      appId: "1:989733009995:android:6a8a68c52af08bcb996bce",
-      messagingSenderId: "989733009995",
-      projectId: "bringessedeliverypartner",
-      storageBucket: "bringessedeliverypartner.firebasestorage.app",
-    ),
+    options: DefaultFirebaseOptions.android,
   );
 
-  
   WidgetsBinding.instance.addObserver(AppLifecycleObserver());
 
-  
   await NotificationService().init();
-
 
   bool granted = await LocationPermissionHelper.isLocationGranted();
   if (!granted) {
     await LocationPermissionHelper.requestLocationPermission();
   }
-  
 
- 
   runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  
-
   MyApp({
     super.key,
   });
@@ -129,6 +115,7 @@ class MyApp extends StatelessWidget {
       responseType: ResponseType.json,
       receiveDataWhenStatusError: true,
       validateStatus: (_) => true,
+       
       headers: {
         "Accept": "application/json",
       },

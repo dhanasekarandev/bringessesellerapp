@@ -56,13 +56,13 @@ class _PrivacyPolicyState extends State<PrivacyPolicy> {
               padding: const EdgeInsets.all(16),
               child: Html(
                 data: rawHtml, // Directly render HTML
-                style: {
-                  "body": Style(
-                    fontSize: FontSize(15),
-                    lineHeight: LineHeight(1.5),
-                    color: Colors.black87,
-                  ),
-                },
+                // style: {
+                //   "body": Style(
+                //     fontSize: FontSize(15),
+                //     lineHeight: LineHeight(1.5),
+                //     //   color: Colors.black87,
+                //   ),
+                // },
               ),
             );
           }

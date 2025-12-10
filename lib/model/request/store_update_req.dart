@@ -24,7 +24,7 @@ class StoreUpdateReq {
   List<String>? storePaymentOptions; // ✅ existing ones
   // String? returnPolicy;
   String? packingcharge;
-  bool? isfood;
+  String? isfood;
 
   StoreUpdateReq({
     this.name,
@@ -92,7 +92,7 @@ class StoreUpdateReq {
     addField('contactNo', contactNo);
     addField('categoryId', categoryId);
     addField('sellerId', sellerId);
-    addField('isfood', isfood?.toString());
+    addField('isfood', isfood);
     addField('deliveryCharge', deliveryCharge);
     addField('storeId', storeId);
     addField('lon', lon);
