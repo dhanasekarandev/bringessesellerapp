@@ -142,7 +142,6 @@ class _ProductScreenState extends State<ProductScreen>
                   ),
                 ),
 
-          
                 Padding(
                   padding:
                       EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
@@ -175,13 +174,13 @@ class _ProductScreenState extends State<ProductScreen>
                               itemCount: approvedProducts.length,
                               itemBuilder: (context, index) {
                                 final product = approvedProducts[index];
-                                final offer = product.variants!.isNotEmpty
-                                    ? product.variants!.first.offerAvailable ??
-                                        "No Offer"
-                                    : "No Offer";
-                                final offerprice = product.variants!.isNotEmpty
-                                    ? product.variants!.first.offerPrice
-                                    : 0;
+                                // final offer = product.variants!.isNotEmpty
+                                //     ? product.variants!.first.offerAvailable ??
+                                //         "No Offer"
+                                //     : "No Offer";
+                                // final offerprice = product.variants!.isNotEmpty
+                                //     ? product.variants!.first.offerPrice
+                                //     : 0;
                                 final totalPrice = (product.variants != null &&
                                         product.variants!.isNotEmpty)
                                     ? ((product.variants!.first.totalAmount ??
@@ -189,7 +188,7 @@ class _ProductScreenState extends State<ProductScreen>
                                         .toDouble()
                                         .toStringAsFixed(2))
                                     : "0";
-              
+
                                 return GestureDetector(
                                   onTap: () {
                                     context.push('/products/details',
@@ -207,8 +206,8 @@ class _ProductScreenState extends State<ProductScreen>
                                         ? "Stock available"
                                         : "Out of stock",
                                     price: totalPrice,
-                                    offerPrice: offerprice.toString(),
-                                    offer: offer,
+                                    //  offerPrice: offerprice.toString(),
+                                    //   offer: offer,
                                     quantity: product.quantity ?? "",
                                     title: product.name ?? "",
                                   ),

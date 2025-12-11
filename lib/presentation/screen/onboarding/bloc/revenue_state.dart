@@ -1,28 +1,28 @@
-import 'package:bringessesellerapp/model/response/oder_list_response.dart';
+import 'package:bringessesellerapp/model/response/revenue_response_model.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:equatable/equatable.dart';
 
-class OderListState extends Equatable {
+class RevenueState extends Equatable {
   final NetworkStatusEnum networkStatusEnum;
-  final OrderListResponse orderlistresponse;
+  final RevenueResponseModel orderlistresponse;
 
-  const OderListState(
+  const RevenueState(
       {required this.networkStatusEnum, required this.orderlistresponse});
 
-  factory OderListState.initial() => OderListState(
+  factory RevenueState.initial() => RevenueState(
         networkStatusEnum: NetworkStatusEnum.initial,
-        orderlistresponse: OrderListResponse(),
+        orderlistresponse: RevenueResponseModel(),
       );
 
   @override
   List<Object?> get props => [networkStatusEnum, orderlistresponse];
 
-  OderListState copyWith(
+  RevenueState copyWith(
       {NetworkStatusEnum? networkStatusEnum,
       NetworkStatusEnum? childNetworkStatusEnum,
       int? currentPage,
-      OrderListResponse? orderlistresponse}) {
-    return OderListState(
+      RevenueResponseModel? orderlistresponse}) {
+    return RevenueState(
         orderlistresponse: orderlistresponse ?? this.orderlistresponse,
         networkStatusEnum: networkStatusEnum ?? this.networkStatusEnum);
   }

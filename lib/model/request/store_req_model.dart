@@ -22,6 +22,7 @@ class StoreReqModel {
   String? deliveryType;
   String? retunPolicy; // match Postman typo
   List<String>? paymentOptions;
+  List<String>? deliveryOptions;
   String? packingcharge;
 
   StoreReqModel({
@@ -44,6 +45,7 @@ class StoreReqModel {
     this.deliveryType,
     this.retunPolicy,
     this.paymentOptions,
+    this.deliveryOptions,
     this.packingcharge,
   });
 
@@ -67,6 +69,7 @@ class StoreReqModel {
     data['retunPolicy'] = retunPolicy;
     data['packingCharge'] = packingcharge;
     data['paymentOptions'] = paymentOptions;
+    data['deliveryOptions'] = deliveryOptions;
     return data;
   }
 
@@ -102,7 +105,9 @@ class StoreReqModel {
     if (paymentOptions != null && paymentOptions!.isNotEmpty) {
       addField('paymentOptions', jsonEncode(paymentOptions));
     }
-
+    if (deliveryOptions != null && deliveryOptions!.isNotEmpty) {
+      addField('deliveryOptions', jsonEncode(deliveryOptions));
+    }
     // Add image
     if (image != null && await image!.exists()) {
       formData.files.add(MapEntry(

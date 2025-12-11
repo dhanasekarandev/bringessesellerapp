@@ -44,7 +44,7 @@ class Result {
   String? returnPolicy;
   String? isfood;
   List<String>? paymentOptions;
-
+  List<String>? deliveryOptions;
   Result({
     this.storeId,
     this.name,
@@ -69,6 +69,7 @@ class Result {
     this.storeType,
     this.returnPolicy,
     this.paymentOptions,
+    this.deliveryOptions,
   });
 
   Result.fromJson(Map<String, dynamic> json) {
@@ -98,6 +99,9 @@ class Result {
     paymentOptions = json['paymentOptions'] != null
         ? List<String>.from(json['paymentOptions'])
         : [];
+    deliveryOptions = json['deliveryOptions'] != null
+        ? List<String>.from(json['deliveryOptions'])
+        : [];
   }
 
   Map<String, dynamic> toJson() {
@@ -125,6 +129,7 @@ class Result {
     data['storeType'] = storeType;
     data['returnPolicy'] = returnPolicy;
     data['paymentOptions'] = paymentOptions;
+    data['deliveryOptions'] = deliveryOptions;
     return data;
   }
 }

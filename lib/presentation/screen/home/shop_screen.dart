@@ -249,66 +249,67 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     final storeReq = StoreReqModel(
-      sellerId: sharedPreferenceHelper.getSellerId,
-      storeId: _storeId,
-      deliveryCharge: _deliverycharge.text.trim(),
-      deliveryType: deliveryType,
-      name: _name.text.trim(),
-      contactNo: _phone.text.trim(),
-      categoryId: selectedOption ?? _catId,
-      description: _des.text.trim(),
-      packingcharge: _packingchrg.text.trim(),
-      packingtime: _packingtime.text.trim(),
-      opentime: _formatTime(_openTime),
-      closetime: _formatTime(_closeTime),
-      image: newImageFile,
-      documents: newDocuments,
-      isfood: _isfood,
-      lat: (selectedLat ??
-              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-              0.0)
-          .toString(),
-      lon: (selectedLng ??
-              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-              0.0)
-          .toString(),
-      storeType: selectedSize,
-      paymentOptions: selectedMethods.toList(),
-
-      // returnPolicy: _return.text
-    );
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: _storeId,
+        deliveryCharge: _deliverycharge.text.trim(),
+        deliveryType: deliveryType,
+        name: _name.text.trim(),
+        contactNo: _phone.text.trim(),
+        categoryId: selectedOption ?? _catId,
+        description: _des.text.trim(),
+        packingcharge: _packingchrg.text.trim(),
+        packingtime: _packingtime.text.trim(),
+        opentime: _formatTime(_openTime),
+        closetime: _formatTime(_closeTime),
+        image: newImageFile,
+        documents: newDocuments,
+        isfood: _isfood,
+        lat: (selectedLat ??
+                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+                0.0)
+            .toString(),
+        lon: (selectedLng ??
+                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+                0.0)
+            .toString(),
+        storeType: selectedSize,
+        paymentOptions: selectedMethods.toList(),
+        deliveryOptions: selectedOptions
+        // returnPolicy: _return.text
+        );
     final storeUpdate = StoreUpdateReq(
-      deliveryType: deliveryType,
-      deliveryCharge: _deliverycharge.text.trim(),
-      sellerId: sharedPreferenceHelper.getSellerId,
-      storeId: _storeId,
-      isfood: _isfood ? 'true' : 'false',
-      name: _name.text.trim(),
-      contactNo: _phone.text.trim(),
-      categoryId: selectedOption ?? _catId,
-      description: _des.text.trim(),
-      packingcharge: _packingchrg.text.trim(),
-      packingtime: _packingtime.text.trim(),
-      opentime: _formatTime(_openTime),
-      closetime: _formatTime(_closeTime),
-      image: newImageFile,
-      storeImage: existingImageName,
-      documents: newDocuments,
-      storeDocuments: existingDocs,
-      lat: (selectedLat ??
-              _existingLat ?? // ✅ fallback to old API lat
-              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-              0.0)
-          .toString(),
-      lon: (selectedLng ??
-              _existingLng ?? // ✅ fallback to old API lon
-              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-              0.0)
-          .toString(),
-      storeType: selectedSize,
-      paymentOptions: selectedMethods.toList(),
-      // returnPolicy: _return.text
-    );
+        deliveryType: deliveryType,
+        deliveryCharge: _deliverycharge.text.trim(),
+        sellerId: sharedPreferenceHelper.getSellerId,
+        storeId: _storeId,
+        isfood: _isfood ? 'true' : 'false',
+        name: _name.text.trim(),
+        contactNo: _phone.text.trim(),
+        categoryId: selectedOption ?? _catId,
+        description: _des.text.trim(),
+        packingcharge: _packingchrg.text.trim(),
+        packingtime: _packingtime.text.trim(),
+        opentime: _formatTime(_openTime),
+        closetime: _formatTime(_closeTime),
+        image: newImageFile,
+        storeImage: existingImageName,
+        documents: newDocuments,
+        storeDocuments: existingDocs,
+        lat: (selectedLat ??
+                _existingLat ?? // ✅ fallback to old API lat
+                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+                0.0)
+            .toString(),
+        lon: (selectedLng ??
+                _existingLng ?? // ✅ fallback to old API lon
+                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+                0.0)
+            .toString(),
+        storeType: selectedSize,
+        paymentOptions: selectedMethods.toList(),
+        deliveryOptions: selectedOptions
+        // returnPolicy: _return.text
+        );
     if (_isDataLoaded) {
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
@@ -325,6 +326,7 @@ class _ShopScreenState extends State<ShopScreen> {
   final List<String> storeSizes = ['Small', 'Medium', 'Large', 'Mini'];
   final List<String> servicetype = ['Subscription', 'Partnership'];
   final Set<String> selectedMethods = {};
+  final Set<String> selectedDelivery = {};
   final hyperSDKInstance = HyperSDK();
   final List<String> options = [
     "Own Delivery",
@@ -452,6 +454,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print("sldfhs${selectedDelivery},${selectedOptions}");
     return Scaffold(
         appBar: const CustomAppBar(
           title: 'Shop Information',
@@ -518,6 +521,7 @@ class _ShopScreenState extends State<ShopScreen> {
                     );
                     setState(() {
                       _isLoading = false;
+                      _currentStep = 0; // Jump back to Step 1
                     });
                   } else {
                     Fluttertoast.showToast(
@@ -526,6 +530,9 @@ class _ShopScreenState extends State<ShopScreen> {
                       textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
+                    setState(() {
+                      _isLoading = false;
+                    });
                   }
                 } else if (state.networkStatusEnum ==
                     NetworkStatusEnum.failed) {
@@ -543,20 +550,24 @@ class _ShopScreenState extends State<ShopScreen> {
                 if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
                   if (state.editStore.status == true) {
                     Fluttertoast.showToast(
-                      msg: "Store Upodated Successfully",
+                      msg: "Store Updated Successfully",
+                      textColor: Colors.white,
+                      toastLength: Toast.LENGTH_SHORT,
+                    );
+                    setState(() {
+                      _isLoading = false;
+                      _currentStep = 0; // Jump back to Step 1
+                    });
+                  } else {
+                    Fluttertoast.showToast(
+                      msg: "Store update failed",
+                      backgroundColor: Colors.red,
                       textColor: Colors.white,
                       toastLength: Toast.LENGTH_SHORT,
                     );
                     setState(() {
                       _isLoading = false;
                     });
-                  } else {
-                    Fluttertoast.showToast(
-                      msg: "Store creation failed",
-                      backgroundColor: Colors.red,
-                      textColor: Colors.white,
-                      toastLength: Toast.LENGTH_SHORT,
-                    );
                   }
                 } else if (state.networkStatusEnum ==
                     NetworkStatusEnum.failed) {
@@ -617,10 +628,15 @@ class _ShopScreenState extends State<ShopScreen> {
                           data.storeType!.isNotEmpty) {
                         selectedSize = data.storeType!;
                       }
+                      
                       if (data.deliveryType != null &&
                           data.deliveryType!.isNotEmpty) {
                         deliveryType = data.deliveryType!;
                       }
+                      selectedOptions = data.deliveryOptions != null &&
+                              data.deliveryOptions!.isNotEmpty
+                          ? List<String>.from(data.deliveryOptions!)
+                          : [];
                       _packingtime.text = data.packingTime.toString();
                       _packingchrg.text = data.packingCharge.toString();
                       if (data.paymentOptions != null &&
@@ -1255,6 +1271,40 @@ class _ShopScreenState extends State<ShopScreen> {
                       selectedMethods.add(method);
                     } else {
                       selectedMethods.remove(method);
+                    }
+                  });
+                },
+              );
+            }).toList(),
+          ),
+          SizedBox(height: 16.h),
+          const SubTitleText(
+            title: "Select Delivery",
+          ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: options.map((option) {
+              final isSelected = selectedOptions.contains(option);
+
+              return FilterChip(
+                showCheckmark: true,
+                checkmarkColor: Colors.white,
+                label: Text(
+                  option,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                  ),
+                ),
+                selected: isSelected,
+                selectedColor: AppTheme.primaryColor,
+                backgroundColor: Theme.of(context).cardColor,
+                onSelected: (bool selected) {
+                  setState(() {
+                    if (selected) {
+                      selectedOptions.add(option);
+                    } else {
+                      selectedOptions.remove(option);
                     }
                   });
                 },

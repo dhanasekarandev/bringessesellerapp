@@ -30,6 +30,7 @@ import 'package:bringessesellerapp/presentation/screen/home/bloc/oder_status_upd
 import 'package:bringessesellerapp/presentation/screen/home/bloc/store_status_cubit.dart';
 
 import 'package:bringessesellerapp/presentation/screen/login/bloc/login_cubit.dart';
+import 'package:bringessesellerapp/presentation/screen/onboarding/bloc/revenue_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/order_section/bloc/oder_list_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/change_password_cubit.dart';
 import 'package:bringessesellerapp/presentation/screen/profile/bloc/coupon_create_cubit.dart';
@@ -115,7 +116,6 @@ class MyApp extends StatelessWidget {
       responseType: ResponseType.json,
       receiveDataWhenStatusError: true,
       validateStatus: (_) => true,
-       
       headers: {
         "Accept": "application/json",
       },
@@ -277,6 +277,9 @@ class MyApp extends StatelessWidget {
           BlocProvider<StoreStatusCubit>(
               create: (repoContext) =>
                   StoreStatusCubit(authRepository: AuthRepository(apiService))),
+          BlocProvider<RevenueCubit>(
+              create: (repoContext) =>
+                  RevenueCubit(authRepository: AuthRepository(apiService))),
           BlocProvider<MySubscriptionPlanCubit>(
               create: (repoContext) => MySubscriptionPlanCubit(
                   authRepository: AuthRepository(apiService))),

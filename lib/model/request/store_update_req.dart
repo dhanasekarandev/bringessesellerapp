@@ -24,6 +24,7 @@ class StoreUpdateReq {
   List<String>? storePaymentOptions; // ✅ existing ones
   // String? returnPolicy;
   String? packingcharge;
+  List<String>? deliveryOptions;
   String? isfood;
 
   StoreUpdateReq({
@@ -48,6 +49,7 @@ class StoreUpdateReq {
     this.storeType,
     this.paymentOptions,
     this.storePaymentOptions,
+    this.deliveryOptions,
     // this.returnPolicy,
     this.packingcharge,
   });
@@ -75,6 +77,7 @@ class StoreUpdateReq {
       "storePaymentOptions": storePaymentOptions, // ✅ added
       // "returnPolicy": returnPolicy,
       'storeDocuments': storeDocuments,
+      'deliveryOptions': deliveryOptions
     };
   }
 
@@ -141,7 +144,11 @@ class StoreUpdateReq {
         formData.fields.add(MapEntry('paymentOptions[]', option));
       }
     }
-
+    if (deliveryOptions != null && deliveryOptions!.isNotEmpty) {
+      for (var option in deliveryOptions!) {
+        formData.fields.add(MapEntry('deliveryOptions', option));
+      }
+    }
     // --- New document files ---
     if (documents != null && documents!.isNotEmpty) {
       for (var doc in documents!) {

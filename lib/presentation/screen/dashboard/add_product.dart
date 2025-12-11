@@ -1147,7 +1147,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 //                                 ),
                                 vericalSpaceMedium,
                                 const SubTitleText(
-                                  title: "Price",
+                                  title: "Regular Price",
                                   isMandatory: true,
                                 ),
                                 CustomTextField(
@@ -1181,7 +1181,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                 ),
                                 vericalSpaceMedium,
                                 if (variant['selectedOffer'] == "Yes") ...[
-                                  const SubTitleText(title: "Offer Price"),
+                                  const SubTitleText(title: "Sale Price"),
                                   CustomTextField(
                                     controller: variant['offerPrice'],
                                     hintText: "",

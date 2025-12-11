@@ -60,6 +60,7 @@ import 'package:bringessesellerapp/model/response/promotion_checkout_response_mo
 import 'package:bringessesellerapp/model/response/promotion_create_response.dart';
 import 'package:bringessesellerapp/model/response/promotion_predata_response_model.dart';
 import 'package:bringessesellerapp/model/response/revenue_graph_res_model.dart';
+import 'package:bringessesellerapp/model/response/revenue_response_model.dart';
 import 'package:bringessesellerapp/model/response/review_res_model.dart';
 import 'package:bringessesellerapp/model/response/send_otp_response_model.dart';
 import 'package:bringessesellerapp/model/response/store_default_model.dart';
@@ -1341,6 +1342,26 @@ class AuthRepository {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
       return (false, BannerResponseModel());
+    }
+  }
+
+  Future<dynamic> getRevenue(StoreIdReqmodel revenuereqmodel) async {
+    try {
+      var response =
+          await apiService.post(ApiConstant.revenue, revenuereqmodel, false);
+      
+      if (response.statusCode == 200) {
+        var responseData = response.data;
+        return (true, RevenueResponseModel.fromJson(responseData));
+      } else {
+        // Handle other status codes
+        print('Unexpected status code: ${response.statusCode}');
+        return (false, RevenueResponseModel());
+      }
+    } catch (e, stacktrace) {
+      print('Exception occurred: $e');
+      print('Stacktrace${stacktrace}');
+      return (false, RevenueResponseModel());
     }
   }
 
