@@ -13,6 +13,7 @@ class ProductCreateReqModel {
   String? videoUrl;
   String? quantity;
   bool? comboOffer;
+  String? isFood;
   String? type;
   double? processingFeeAmount;
   String? isRefund;
@@ -26,6 +27,7 @@ class ProductCreateReqModel {
     this.type,
     this.processingFeeAmount,
     this.sku,
+    this.isFood,
     this.videoUrl,
     this.quantity,
     this.menuId,
@@ -43,6 +45,7 @@ class ProductCreateReqModel {
       'sellerId': sellerId,
       'storeId': storeId,
       'name': name,
+      'isFood': isFood,
       'type': type,
       'SKU': sku,
       'videoUrl': videoUrl,
@@ -64,6 +67,7 @@ class ProductCreateReqModel {
       'storeId': storeId,
       'name': name,
       'type': type,
+      'isFood': isFood,
       'processingFeeAmount': processingFeeAmount,
       'SKU': sku,
       'videoUrl': videoUrl,

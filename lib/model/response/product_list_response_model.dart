@@ -57,6 +57,8 @@ class ProductItem {
   int? status;
   int? outOfStock;
   int? comboOffer;
+  String? type;
+  String? isFood;
   String? quantity;
   List<String>? images;
   List<ProductVariant>? variants;
@@ -67,6 +69,8 @@ class ProductItem {
       this.v,
       this.name,
       this.status,
+      this.type,
+      this.isFood,
       this.outOfStock,
       this.comboOffer,
       this.quantity,
@@ -82,7 +86,8 @@ class ProductItem {
     outOfStock = json['outOfStock'];
     comboOffer = json['comboOffer'];
     quantity = json['quantity'];
-
+    isFood = json['isFood'];
+    type = json['type'];
     images = json['images'] != null ? List<String>.from(json['images']) : [];
 
     // variants
@@ -101,6 +106,8 @@ class ProductItem {
     data['id'] = id;
     data['__v'] = v;
     data['name'] = name;
+    data['type'] = type;
+    data['isFood'] = isFood;
     data['status'] = status;
     data['outOfStock'] = outOfStock;
     data['comboOffer'] = comboOffer;
@@ -141,15 +148,18 @@ class ProductVariant {
       this.totalAmount});
 
   ProductVariant.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
+    name = json['name']?.toString() ?? '';
     price = json['price'];
     offerAvailable = json['offer_available'];
     offerPrice = json['offer_price'];
     unit = json['unit'];
     gst = (json['gst'] ?? 0).toDouble();
-    cGstInPercent = (json['cGstInPercent'] ?? 0).toDouble();
+    cGstInPercent = double.tryParse(
+          json['cGstInPercent']?.toString() ?? '0',
+        ) ??
+        0.0;
     cGstInAmount = (json['cGstInAmount'] ?? 0).toDouble();
-    sGstInPercent = (json['sGstInPercent'] ?? 0).toDouble();
+    // sGstInPercent = (json['sGstInPercent'] ?? 0).toDouble();
     sGstInAmount = (json['sGstInAmount'] ?? 0).toDouble();
     totalAmount = (json['totalAmount'] ?? 0).toDouble();
   }

@@ -102,6 +102,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _sku.text = product.sku ?? "";
       _des.text = product.description ?? "";
       _cat.text = widget.catname ?? "";
+      isFood = product.isFood == 'true' ? true : false;
+      _foodtype.text = product.type ?? "";
       _stock.text = widget.editProduct!.quantity ?? "";
       isCombo = product.comboOffer == 0 ? false : true;
       if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
@@ -479,6 +481,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
             variants: variants,
             description: _des.text,
             comboOffer: isCombo,
+            isFood: isFood ? 'true' : 'false',
+            type: _foodtype.text,
             quantity: _stock.text,
             outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
             productImages: newFiles,

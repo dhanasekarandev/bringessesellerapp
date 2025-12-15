@@ -69,6 +69,7 @@ class OrderDetails {
   String? createdAt;
   String? updatedAt;
   List<Vehicle>? vehicles;
+  List<OrderItem>? orderItems;
 
   OrderDetails({
     this.orderId,
@@ -93,6 +94,7 @@ class OrderDetails {
     this.createdAt,
     this.updatedAt,
     this.vehicles,
+    this.orderItems,
   });
 
   OrderDetails.fromJson(Map<String, dynamic> json) {
@@ -129,6 +131,11 @@ class OrderDetails {
       vehicles =
           (json['vehicles'] as List).map((v) => Vehicle.fromJson(v)).toList();
     }
+    if (json['orderItems'] != null) {
+      orderItems = (json['orderItems'] as List)
+          .map((v) => OrderItem.fromJson(v))
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -157,6 +164,70 @@ class OrderDetails {
     data['updatedAt'] = updatedAt;
     if (vehicles != null)
       data['vehicles'] = vehicles!.map((v) => v.toJson()).toList();
+    if (orderItems != null)
+      data['orderItems'] = orderItems!.map((v) => v.toJson()).toList();
+    return data;
+  }
+}
+
+class OrderItem {
+  String? id;
+  String? orderId;
+  String? itemId;
+  String? name;
+  int? count;
+  double? price;
+  String? variant;
+  String? unit;
+  double? total;
+  double? offerPrice;
+  String? imageUrl;
+  int? v;
+
+  OrderItem({
+    this.id,
+    this.orderId,
+    this.itemId,
+    this.name,
+    this.count,
+    this.price,
+    this.variant,
+    this.unit,
+    this.total,
+    this.offerPrice,
+    this.imageUrl,
+    this.v,
+  });
+
+  OrderItem.fromJson(Map<String, dynamic> json) {
+    id = json['_id'];
+    orderId = json['orderId'];
+    itemId = json['itemId'];
+    name = json['name'];
+    count = json['count'];
+    price = (json['price'] as num?)?.toDouble();
+    variant = json['variant'];
+    unit = json['unit'];
+    total = (json['total'] as num?)?.toDouble();
+    offerPrice = (json['offerPrice'] as num?)?.toDouble();
+    imageUrl = json['image_url'];
+    v = json['__v'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['_id'] = id;
+    data['orderId'] = orderId;
+    data['itemId'] = itemId;
+    data['name'] = name;
+    data['count'] = count;
+    data['price'] = price;
+    data['variant'] = variant;
+    data['unit'] = unit;
+    data['total'] = total;
+    data['offerPrice'] = offerPrice;
+    data['image_url'] = imageUrl;
+    data['__v'] = v;
     return data;
   }
 }

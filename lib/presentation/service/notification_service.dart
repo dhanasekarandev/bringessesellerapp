@@ -58,18 +58,30 @@ class NotificationService {
   /// ------------------------------------------------------
   ///  REQUEST PERMISSION (iOS only, Android auto-granted)
   /// ------------------------------------------------------
-  Future<void> _requestPermissions() async {
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
+  Future<String?> _requestPermissions() async {
+  final settings = await _messaging.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 
-    );
-
-    if (kDebugMode) {
-      print("🔐 Permission Status → ${settings.authorizationStatus}");
-    }
+  if (kDebugMode) {
+    print("🔐 Permission Status → ${settings.authorizationStatus}");
   }
+
+  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+    print('User granted permission');
+    return await _messaging.getToken();
+  } 
+  else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
+    print('User granted provisional permission');
+    return await _messaging.getToken();
+  } 
+  else {
+    print('User declined or has not accepted permission');
+    return null;
+  }
+}
 
   /// ------------------------------------------------------
   ///  FETCH AND PRINT DEVICE FCM TOKEN

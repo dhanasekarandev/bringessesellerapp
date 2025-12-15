@@ -10,13 +10,24 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class WithdrawScreen extends StatefulWidget {
   final AccountDetailModel? accountDetailModel;
-  const WithdrawScreen({super.key, this.accountDetailModel});
+  final String totalBalance;
+  const WithdrawScreen(
+      {super.key, this.accountDetailModel, this.totalBalance = '0'});
 
   @override
   State<WithdrawScreen> createState() => _WithdrawScreenState();
 }
 
 class _WithdrawScreenState extends State<WithdrawScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.totalBalance != 0) {
+      availableBalance = double.tryParse(widget.totalBalance) ?? 0;
+    }
+  }
+
   String amount = "0";
 
   double availableBalance = 1215.00;

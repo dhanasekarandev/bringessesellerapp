@@ -37,6 +37,8 @@ class ProductResult {
   int? imageposition;
   int? status;
   String? sku;
+  String? isFood;
+  String? type;
   String? description;
   String? menuId;
   String? quantity;
@@ -53,6 +55,8 @@ class ProductResult {
     this.videoUrl,
     this.imageposition,
     this.status,
+    this.isFood,
+    this.type,
     this.quantity,
     this.sku,
     this.description,
@@ -77,6 +81,8 @@ class ProductResult {
     status = json['status'];
     quantity = json['quantity'];
     sku = json['SKU'];
+    isFood = json['isFood'];
+    type = json['type'];
     description = json['description'];
     menuId = json['menuId'];
     menuName = json['menuName'];
@@ -97,6 +103,8 @@ class ProductResult {
     data['imageposition'] = imageposition;
     data['status'] = status;
     data['SKU'] = sku;
+    data['isFood'] = isFood;
+    data['type'] = type;
     data['quantity'] = quantity;
     data['description'] = description;
     data['menuId'] = menuId;

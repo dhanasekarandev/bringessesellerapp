@@ -56,7 +56,7 @@ class OrderUpdateData {
     uniqueId = json['uniqueId'];
     currencyCode = json['currencyCode'];
     currencySymbol = json['currencySymbol'];
-    total = json['total'];
+    total = (json['total'] as num?)?.toInt();
     itemCount = json['itemCount'];
     status = json['status'];
     otp = json['otp'];

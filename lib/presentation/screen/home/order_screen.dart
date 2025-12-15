@@ -39,13 +39,11 @@ class _OrderScreenState extends State<OrderScreen>
       _tabController.index = 1;
       _loadOrder(status: "complete");
     } else {
-      
       _tabController.index = 0;
       _loadOrder(status: "pending");
     }
     _loadOrder(status: "pending");
 
-    
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) return;
       final status = _tabController.index == 0 ? "pending" : "complete";
@@ -58,7 +56,7 @@ class _OrderScreenState extends State<OrderScreen>
           OderListReqModel(
             storeId: sharedPreferenceHelper.getStoreId,
             status: status,
-            pageId: "0",
+            pageId: "",
             searchKey: "",
           ),
         );
@@ -80,6 +78,7 @@ class _OrderScreenState extends State<OrderScreen>
 
         if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
           final orders = state.orderlistresponse.result?.orders ?? [];
+
           pendingOrders = orders
               .where((e) =>
                   e.status?.toString() == "pending" ||
@@ -87,9 +86,16 @@ class _OrderScreenState extends State<OrderScreen>
                   e.status?.toString() == "processing" ||
                   e.status?.toString() == "ready" ||
                   e.status?.toString() == 'accept')
-              .toList();
+              .toList()
+            ..sort((a, b) => DateTime.parse(b.createdAt!).compareTo(
+                  DateTime.parse(a.createdAt!),
+                ));
+
           completedOrders =
-              orders.where((e) => e.status?.toString() == "complete").toList();
+              orders.where((e) => e.status?.toString() == "complete").toList()
+                ..sort((a, b) => DateTime.parse(b.createdAt!).compareTo(
+                      DateTime.parse(a.createdAt!),
+                    ));
         }
 
         return Scaffold(
@@ -106,6 +112,8 @@ class _OrderScreenState extends State<OrderScreen>
                   borderRadius: BorderRadius.circular(8.r),
                 ),
                 child: TabBar(
+                  isScrollable: false,
+                  physics: NeverScrollableScrollPhysics(),
                   controller: _tabController,
                   indicatorSize: TabBarIndicatorSize.tab,
                   indicator: const BoxDecoration(

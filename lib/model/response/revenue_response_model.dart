@@ -50,7 +50,7 @@ class Order {
   int? taxAmount;
   int? deliveryCharge;
   int? packingCharge;
-  int? total;
+  num? total;
   int? itemCount;
   String? walletUsed;
   int? walletAmount;
@@ -72,7 +72,7 @@ class Order {
   List<Item>? items;
   List<dynamic>? charges;
   dynamic appliedCoupon;
-  int? grandTotal;
+  num? grandTotal;
   String? acceptance;
   String? createdAt;
   String? updatedAt;
@@ -343,11 +343,11 @@ class Item {
   int? qty;
   int? price;
   int? subTotal;
-  int? totalAmount;
+  num? totalAmount;
   int? totalProcessingFee;
   int? totalSellerEarning;
   List<ItemCharge>? charges;
-  int? processingFee;
+  num? processingFee;
   int? sellerEarningAmount;
 
   Item({
@@ -427,7 +427,7 @@ class SelectedVariant {
   int? cGstInPercent;
   int? cGstInAmount;
   int? sGstInAmount;
-  int? totalAmount;
+  num? totalAmount;
   String? processingFee;
   String? sellerEarningAmount;
 

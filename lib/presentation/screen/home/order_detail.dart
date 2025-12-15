@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/config/constant/sharedpreference_helper.dart';
 import 'package:bringessesellerapp/model/request/update_order_req_model.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
@@ -11,6 +12,7 @@ import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_button.dart';
 import 'package:bringessesellerapp/utils/enums.dart';
 import 'package:bringessesellerapp/utils/toast.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -146,14 +148,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
             sharedPreferenceHelper.saveOrderOtp(orderId, otp);
 
-            // store in local variable
             localOTP = otp;
 
             print("Local OTP: $localOTP");
           }
 
           showAppToast(
-              message: "Status changed to ${state.reviewResponseModel.status}");
+              message:
+                  "Status changed to ${state.reviewResponseModel.message}");
           setState(() {
             currentStatus = tempStatus!;
           });
@@ -214,30 +216,89 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(12.w),
+                    padding: EdgeInsets.all(10.r),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Customer: ${order.userDetails?.name ?? ''}",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        /// CUSTOMER + IMAGE
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                "Customer: ${order.userDetails?.name ?? ''}",
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 5.h),
 
-                        Text("Price: ${order.currencySymbol}${order.total}"),
+                        SizedBox(height: 8.h),
 
+                        /// PRODUCT DETAILS
+                        ...order.orderItems!.map((item) {
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: 6.h),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                /// PRODUCT IMAGE
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(6.r),
+                                  child: CachedNetworkImage(
+                                    imageUrl:
+                                        "${ApiConstant.imageUrl}/public/media/items/${item.imageUrl}",
+                                    height: 40.h,
+                                    width: 40.w,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                SizedBox(width: 10.w),
+
+                                /// PRODUCT INFO
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.name ?? '',
+                                        style: TextStyle(
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2.h),
+                                      Text(
+                                        "Qty: ${item.count}",
+                                        style: TextStyle(fontSize: 12.sp),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+
+                        Divider(height: 15.h),
+
+                        /// ORDER INFO
+                        Text("Total: ${order.currencySymbol}${order.total}"),
                         Text(
-                          "Date: ${DateFormat('dd-MM-yyyy').format(DateTime.parse(order.createdAt.toString()))}",
+                          "Date: ${DateFormat('dd-MM-yyyy').format(
+                            DateTime.parse(order.createdAt.toString()),
+                          )}",
                         ),
-
                         Text(
-                            "Address: ${order.deliveryAddress?.address ?? ''}"),
+                            "Address: ${order.deliveryAddress?.location ?? ''}"),
+
                         SizedBox(height: 10.h),
 
-                        /// STATUS LABEL
+                        /// STATUS
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -247,7 +308,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                             ),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 10.w, vertical: 4.h),
+                                horizontal: 10.w,
+                                vertical: 4.h,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.blueAccent.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(6.r),
@@ -272,7 +335,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 /// ================================
                 /// Show Stepper only after pending
                 /// ================================
-                if (currentStatus != "pending") ...[
+                if (currentStatus != "pending" &&
+                    currentStatus != 'cancel') ...[
                   Text(
                     "Order Progress",
                     style: TextStyle(
@@ -283,6 +347,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   ),
                   SizedBox(height: 10.h),
                   Stepper(
+                    physics: NeverScrollableScrollPhysics(),
                     currentStep: currentStep,
                     type: StepperType.vertical,
                     controlsBuilder: (context, _) => const SizedBox.shrink(),
@@ -384,9 +449,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     width: double.infinity,
                     padding:
                         EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-                    decoration:const BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.white,
-                      boxShadow:  [
+                      boxShadow: [
                         BoxShadow(
                           color: Colors.black12,
                           blurRadius: 4,

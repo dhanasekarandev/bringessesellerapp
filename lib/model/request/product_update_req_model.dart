@@ -16,6 +16,8 @@ class ProductUpdateReqModel {
   double? processingFeeAmount;
   String? description;
   String? isRefund;
+  String? isFood;
+  String? type;
   String? noOfDaysToReturn;
   List<Variant>? variants;
 
@@ -32,7 +34,9 @@ class ProductUpdateReqModel {
     this.itemId,
     this.sellerId,
     this.storeId,
+    this.isFood,
     this.name,
+    this.type,
     this.quantity,
     this.processingFeeAmount,
     this.sku,
@@ -56,7 +60,9 @@ class ProductUpdateReqModel {
       'storeId': storeId,
       'quantity': quantity,
       'name': name,
+      'isFood': isFood,
       'SKU': sku,
+      'type': type,
       'menuId': menuId,
       'processingFeeAmount': processingFeeAmount,
       'outOfStock': outOfStock,
@@ -78,7 +84,9 @@ class ProductUpdateReqModel {
       'storeId': storeId,
       'quantity': quantity,
       'name': name,
+      'type': type,
       'SKU': sku,
+      'isFood': isFood,
       'processingFeeAmount': processingFeeAmount,
       'menuId': menuId,
       'outOfStock': outOfStock,

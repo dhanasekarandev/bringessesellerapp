@@ -69,7 +69,7 @@ class _ProductScreenState extends State<ProductScreen>
           ProductListReqModel(
             storeId: storeId,
             status: status,
-            pageId: "0",
+            pageId: "",
             searchKey: search,
           ),
         );
@@ -85,7 +85,7 @@ class _ProductScreenState extends State<ProductScreen>
           ProductListReqModel(
             storeId: storeId,
             status: currentStatus,
-            pageId: "0",
+            pageId: "",
             searchKey: _searchController.text.trim(),
           ),
         );

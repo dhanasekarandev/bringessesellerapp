@@ -102,7 +102,7 @@ class _CreateCouponState extends State<CreateCoupon> {
           ProductListReqModel(
             storeId: sharedPreferenceHelper.getStoreId,
             status: '1',
-            pageId: "0",
+            pageId: "",
             searchKey: "",
           ),
         );

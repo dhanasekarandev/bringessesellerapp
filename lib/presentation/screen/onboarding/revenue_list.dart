@@ -244,6 +244,7 @@ class _RevenueScreenState extends State<RevenueScreen> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => WithdrawScreen(
+                    totalBalance: totalEarning.toStringAsFixed(2),
                     accountDetailModel: context
                         .read<GetAccountDetailCubit>()
                         .state
