@@ -115,16 +115,16 @@ final GoRouter appRouter = GoRouter(
             path: '/account',
             builder: (context, state) => const PayoutPrefsScreen(),
           ),
-          GoRoute(
-            path: '/subs',
-            builder: (context, state) {
-              var args = state.extra as Map;
-              return SubcriptionScreen(
-                data: args['subs'],
-                razorkey: args['razorKey'],
-              );
-            },
-          ),
+          // GoRoute(
+          //   path: '/subs',
+          //   builder: (context, state) {
+          //     var args = state.extra as Map;
+          //     return SubcriptionScreen(
+          //       data: args['subs'],
+          //       razorkey: args['razorKey'],
+          //     );
+          //   },
+          // ),
           GoRoute(
             path: '/privacy',
             builder: (context, state) {

@@ -34,6 +34,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   late String currentStatus;
   late SharedPreferenceHelper sharedPreferenceHelper;
   TextEditingController otpController = TextEditingController();
+  // Scroll controller to programmatically scroll when keyboard opens
+  final ScrollController _scrollController = ScrollController();
+  // Focus node for OTP field so we can ensure it's visible
+  final FocusNode _otpFocusNode = FocusNode();
+  // Key to locate the OTP field in the widget tree
+  final GlobalKey _otpFieldKey = GlobalKey();
 
   /// Order Stages (API values)
   final List<String> orderStages = [
@@ -59,6 +65,29 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     currentStatus = widget.order.status == 'accept'
         ? 'ready'
         : widget.order.status ?? "pending";
+
+    // When OTP field gets focus, ensure it's visible inside the scrollable
+    _otpFocusNode.addListener(() {
+      if (_otpFocusNode.hasFocus) {
+        // Guard: context might be null if widget not laid out yet
+        if (_otpFieldKey.currentContext != null) {
+          Scrollable.ensureVisible(
+            _otpFieldKey.currentContext!,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeIn,
+            alignment: 0.3,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    _otpFocusNode.dispose();
+    otpController.dispose();
+    super.dispose();
   }
 
   String? tempStatus;
@@ -167,7 +196,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         }
       },
       builder: (context, state) {
+        final bottomInset = MediaQuery.of(context).viewInsets.bottom;
         return Scaffold(
+          resizeToAvoidBottomInset: true,
           appBar: CustomAppBar(
             title: "Order #${order.uniqueId}",
             actions: [
@@ -203,7 +234,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             ],
           ),
           body: SingleChildScrollView(
-            padding: EdgeInsets.all(16.w),
+            controller: _scrollController,
+            padding: EdgeInsets.fromLTRB(16.w, 16.w, 16.w, 16.h + bottomInset),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -366,15 +398,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                         content: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (index == currentStep)
-                              // Text(
-                              //   "Currently in ${stageLabels[stage]}.",
-                              //   style: Theme.of(context).textTheme.titleMedium,
-                              // ),
-
-                              SizedBox(height: 10.h),
-
-                            // ⭐ OTP UI when status = shipped
+                            if (index == currentStep) SizedBox(height: 10.h),
                             if (index == currentStep &&
                                 currentStatus == "ready") ...[
                               Text(
@@ -386,6 +410,8 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                               SizedBox(height: 8.h),
                               TextField(
+                                key: _otpFieldKey,
+                                focusNode: _otpFocusNode,
                                 controller: otpController,
                                 maxLength: 4,
                                 keyboardType: TextInputType.number,
@@ -442,51 +468,64 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          resizeToAvoidBottomInset: false,
+          // resizeToAvoidBottomInset: false,
           bottomSheet: currentStatus == "pending"
               ? SafeArea(
-                  child: Container(
-                    width: double.infinity,
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, -2),
-                        )
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CustomButton(
-                            backgroundColor: Colors.green,
-                            title: "Accept",
-                            onPressed: acceptOrder,
+                  child: AnimatedPadding(
+                    duration: const Duration(milliseconds: 200),
+                    padding: EdgeInsets.only(bottom: bottomInset + 12.h),
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 20.h),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 4,
+                            offset: Offset(0, -2),
+                          )
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: CustomButton(
+                                backgroundColor: Colors.green,
+                                title: "Accept",
+                                onPressed: () {
+                                  showCustomConfirmationDialog(
+                                    context: context,
+                                    content:
+                                        "Are you sure want to accept this order",
+                                    confirmText: "Yes",
+                                    title: "Accept Order",
+                                    cancelText: "Back",
+                                    onConfirm: acceptOrder,
+                                  );
+                                }),
                           ),
-                        ),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: CustomButton(
-                            title: "Decline",
-                            backgroundColor: Colors.red,
-                            onPressed: () {
-                              showCustomConfirmationDialog(
-                                context: context,
-                                content:
-                                    "Are you sure want to cancel this order",
-                                confirmText: "Yes",
-                                title: "Cancel Order",
-                                cancelText: "Cancel",
-                                onConfirm: declineOrder,
-                              );
-                            },
+                          SizedBox(width: 10.w),
+                          Expanded(
+                            child: CustomButton(
+                              title: "Decline",
+                              backgroundColor: Colors.red,
+                              onPressed: () {
+                                showCustomConfirmationDialog(
+                                  context: context,
+                                  content:
+                                      "Are you sure want to cancel this order",
+                                  confirmText: "Yes",
+                                  title: "Cancel Order",
+                                  cancelText: "Cancel",
+                                  onConfirm: declineOrder,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 )

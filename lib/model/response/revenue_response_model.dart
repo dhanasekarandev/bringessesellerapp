@@ -348,7 +348,7 @@ class Item {
   int? totalSellerEarning;
   List<ItemCharge>? charges;
   num? processingFee;
-  int? sellerEarningAmount;
+  num? sellerEarningAmount;
 
   Item({
     this.itemId,
@@ -423,10 +423,10 @@ class SelectedVariant {
   String? offerAvailable;
   int? offerPrice;
   String? unit;
-  int? gst;
-  int? cGstInPercent;
-  int? cGstInAmount;
-  int? sGstInAmount;
+  num? gst;
+  num? cGstInPercent;
+  num? cGstInAmount;
+  num? sGstInAmount;
   num? totalAmount;
   String? processingFee;
   String? sellerEarningAmount;
@@ -457,8 +457,8 @@ class SelectedVariant {
     cGstInAmount = json['cGstInAmount'];
     sGstInAmount = json['sGstInAmount'];
     totalAmount = json['totalAmount'];
-    processingFee = json['processingFee'];
-    sellerEarningAmount = json['sellerEarningAmount'];
+    processingFee = json['processingFee']?.toString();
+    sellerEarningAmount = json['sellerEarningAmount']?.toString();
   }
 
   Map<String, dynamic> toJson() {

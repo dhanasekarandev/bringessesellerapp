@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -53,18 +54,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           email: _emailController.text.trim(),
           password: _confirmPasswordController.text.trim(),
           contactNo: _mobileController.text.trim(),
+          referedBy: _refferController.text.trim()
         );
 
         if (res['status'] == true) {
           context.push('/approve');
+        } else {
+          Fluttertoast.showToast(
+            msg: ' ${res['message']}',
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            fontSize: 16.0,
+          );
         }
       } catch (e) {
         Navigator.of(context).pop();
-
-        // Show error message
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text('⚠️ ${e.toString()}')),
-        // );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

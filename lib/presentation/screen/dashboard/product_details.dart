@@ -56,6 +56,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             builder: (context, state) {
               final product = state.productListModel.result;
               final menu = state.productListModel.menu;
+
               return PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) async {
@@ -264,13 +265,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  Text(
-                    "Availability: ${product.outOfStock == 0 ? "In Stock" : "Out of Stock"}",
-                    style: TextStyle(
-                      color:
-                          product.outOfStock == 0 ? Colors.green : Colors.red,
-                    ),
-                  ),
+                  // Text(
+                  //   "Availability: ${product.outOfStock == 0 ? "In Stock" : "Out of Stock"}",
+                  //   style: TextStyle(
+                  //     color:
+                  //         product.outOfStock == 0 ? Colors.green : Colors.red,
+                  //   ),
+                  // ),
                   SizedBox(height: 8.h),
                   Text("SKU: ${product.sku ?? "N/A"}"),
                   SizedBox(height: 8.h),
@@ -291,31 +292,102 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         Text(
                           "Variants",
                           style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 16.sp),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp,
+                          ),
                         ),
-                        ...product.variants!.map((variant) => Card(
+                        SizedBox(height: 8.h),
+                        ...product.variants!.map(
+                          (variant) {
+                            final bool inStock =
+                                variant.itemoutOfStock == "1" ? false : true;
+
+                            return Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
                               margin: EdgeInsets.symmetric(vertical: 6.h),
                               child: Padding(
-                                padding: EdgeInsets.all(10.w),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                padding: EdgeInsets.all(12.w),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                        "${variant.name ?? ''} ${variant.unit ?? ""}"),
-                                    Text(
-                                      variant.offerAvailable == "true"
-                                          ? "₹${variant.offerPrice} (Offer)"
-                                          : "₹${variant.price}",
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    /// Variant name + stock badge
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${variant.name ?? ''} ${variant.unit ?? ''}",
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w,
+                                            vertical: 4.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: inStock
+                                                ? Colors.green.withOpacity(0.1)
+                                                : Colors.red.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(20.r),
+                                          ),
+                                          child: Text(
+                                            inStock
+                                                ? "In Stock"
+                                                : "Out of Stock",
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: inStock
+                                                  ? Colors.green
+                                                  : Colors.red,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    SizedBox(height: 8.h),
+
+                                    /// Price row
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          variant.offerAvailable == "true"
+                                              ? "₹${variant.offerPrice} (Offer)"
+                                              : "₹${variant.price}",
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+
+                                        /// Stock count (optional)
+                                        if (variant.itemoutOfStock != null ||
+                                            variant.itemQuantity != null)
+                                          Text(
+                                            "Qty: ${variant.itemQuantity ?? 0}",
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: Colors.grey[700],
+                                            ),
+                                          ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                            ))
+                            );
+                          },
+                        ),
                       ],
                     ),
                   SizedBox(

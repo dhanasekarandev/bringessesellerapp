@@ -78,7 +78,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   final TextEditingController _des = TextEditingController();
   final TextEditingController _cat = TextEditingController();
   final TextEditingController _sub = TextEditingController();
-  final TextEditingController _stock = TextEditingController();
 
   List<Map<String, dynamic>> variantList = [];
   final List<String> offerOptions = ['Yes', 'No'];
@@ -90,7 +89,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   int? processfeeAmount;
   @override
   void initState() {
-    print("sdlfs${widget.processingfee}");
     super.initState();
     addVariant();
     _cat.text = widget.catname ?? "";
@@ -104,7 +102,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       _cat.text = widget.catname ?? "";
       isFood = product.isFood == 'true' ? true : false;
       _foodtype.text = product.type ?? "";
-      _stock.text = widget.editProduct!.quantity ?? "";
+
       isCombo = product.comboOffer == 0 ? false : true;
       if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
         uploadvideoUrl =
@@ -146,11 +144,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
           for (var v in product.variants!) {
             final gstValue = v.gst ?? 0; // ✅ FIXED
             final splitValue = gstValue / 2;
-
+            print("sdkfn${v.itemoutOfStock}");
             variantList.add({
               'count': TextEditingController(text: v.name ?? ""),
               'weight': TextEditingController(text: v.weight.toString()),
               'price': TextEditingController(text: v.price?.toString() ?? ""),
+              'itemquantity':
+                  TextEditingController(text: v.itemQuantity?.toString() ?? ""),
+              'itemwarranty':
+                  TextEditingController(text: v.itemWarranty?.toString() ?? ""),
               'offerPrice':
                   TextEditingController(text: v.offerPrice?.toString() ?? ""),
               'gst': TextEditingController(text: gstValue.toString()),
@@ -160,6 +162,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   TextEditingController(text: splitValue.toStringAsFixed(2)),
               'selectedUnit': v.unit?.trim(),
               'selectedOffer': v.offerAvailable == "true" ? "Yes" : "No",
+              'itemoutOfStock': v.itemoutOfStock == "1" ? true : false,
             });
           }
         } else {
@@ -223,11 +226,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     variantList.add({
       'count': TextEditingController(),
       'price': TextEditingController(),
+      'itemquantity': TextEditingController(),
+      'itemwarranty': TextEditingController(),
       'weight': TextEditingController(),
       'offerPrice': TextEditingController(),
       'gst': TextEditingController(),
       'selectedUnit': null,
       'selectedOffer': null,
+      'itemoutOfStock': false,
     });
     setState(() {});
   }
@@ -246,7 +252,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
       double price = double.tryParse(variant['price'].text) ?? 0;
       double offerPrice = double.tryParse(variant['offerPrice'].text) ?? 0;
 
-      // ⬇️ now GST is taken from each variant
       double gstPercent = double.tryParse(variant['gst'].text) ?? 0;
 
       double processingFeePercent =
@@ -400,11 +405,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
     double? processfeeAmount;
     final variants = variantList.map((v) {
       double price = double.tryParse(v['price'].text) ?? 0;
+      num itemquantity = num.tryParse(v['itemquantity'].text) ?? 0;
+      String itemWarranty = v['itemwarranty'].text;
       double offerPrice = double.tryParse(v['offerPrice'].text) ?? 0;
       double gstPercent = double.tryParse(v['gst'].text) ?? 0;
       int weight = int.tryParse(v['weight'].text) ?? 0;
       bool isOffer = v['selectedOffer'] == "Yes";
-
+      String itemoutOfStock = v['itemoutOfStock'] == true ? "1" : "0";
+      print("itemoutOfStock$itemoutOfStock}");
       double sellingPrice = isOffer ? offerPrice : price;
       double processingFeePercent =
           double.tryParse(widget.processingfee.toString()) ?? 0;
@@ -424,13 +432,16 @@ class _AddProductScreenState extends State<AddProductScreen> {
       setState(() {
         processfeeAmount = processingFeeAmount;
       });
-      print("dsdfsdf$totalAmount");
+     
       return Variant(
           name: v['count'].text,
           price: price,
           offerAvailable: isOffer.toString(),
           offerPrice: offerPrice,
           unit: v['selectedUnit'] ?? "",
+          itemquantity: itemquantity,
+          itemWarranty: itemWarranty,
+          itemoutOfStock: itemoutOfStock,
           weight: weight,
           gst: gstPercent,
           cGstInPercent: cgstPercent,
@@ -462,7 +473,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             variants: variants,
             description: _des.text,
             comboOffer: isCombo,
-            quantity: _stock.text,
+            // quantity: _stock.text,
             productImages: newFiles,
             videoUrl: uploadvideoUrl,
             isRefund: isRefundEnabled ? 'true' : 'false',
@@ -483,8 +494,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
             comboOffer: isCombo,
             isFood: isFood ? 'true' : 'false',
             type: _foodtype.text,
-            quantity: _stock.text,
-            outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
+            // quantity: _stock.text,
+            // outOfStock: widget.editProduct!.outOfStock == 0 ? false : true,
             productImages: newFiles,
             existingImages: existingImages,
             isRefund: isRefundEnabled ? 'true' : 'false',
@@ -898,15 +909,15 @@ class _AddProductScreenState extends State<AddProductScreen> {
                           hintText: "",
                           controller: _sku,
                         ),
-                        vericalSpaceMedium,
-                        const SubTitleText(
-                          title: "Stock Quantity",
-                          isMandatory: true,
-                        ),
-                        CustomTextField(
-                            hintText: "",
-                            controller: _stock,
-                            keyboardType: TextInputType.number),
+                        // vericalSpaceMedium,
+                        // const SubTitleText(
+                        //   title: "Stock Quantity",
+                        //   isMandatory: true,
+                        // ),
+                        // CustomTextField(
+                        //     hintText: "",
+                        //     controller: _stock,
+                        //     keyboardType: TextInputType.number),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -1149,6 +1160,43 @@ class _AddProductScreenState extends State<AddProductScreen> {
 //                                   keyboardType: TextInputType.number,
 //                                   // enabled: false, // Auto-filled
 //                                 ),
+                                Row(
+                                  children: [
+                                    const SubTitleText(
+                                      title: "Out of Stock",
+                                    ),
+                                    Spacer(),
+                                    Switch(
+                                      value: variant['itemoutOfStock'] ?? false,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          variant['itemoutOfStock'] = value;
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "Stock Quantity",
+                                  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  controller: variant['itemquantity'],
+                                  hintText: "",
+                                  keyboardType: TextInputType.number,
+                                ),
+                                vericalSpaceMedium,
+                                const SubTitleText(
+                                  title: "warranty details ",
+                                  //  isMandatory: true,
+                                ),
+                                CustomTextField(
+                                  controller: variant['itemwarranty'],
+                                  hintText: "",
+                                  maxLines: 4,
+                                ),
                                 vericalSpaceMedium,
                                 const SubTitleText(
                                   title: "Regular Price",
@@ -1159,6 +1207,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
                                   hintText: "",
                                   keyboardType: TextInputType.number,
                                 ),
+
                                 vericalSpaceMedium,
                                 const SubTitleText(title: "Select Offer"),
                                 DropdownButtonFormField<String>(
@@ -1233,11 +1282,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
     // Product basic fields
     if (_name.text.trim().isEmpty) {
       Fluttertoast.showToast(msg: "Enter product name");
-      return false;
-    }
-
-    if (_stock.text.trim().isEmpty) {
-      Fluttertoast.showToast(msg: "Enter stock");
       return false;
     }
 

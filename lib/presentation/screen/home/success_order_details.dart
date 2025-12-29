@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:bringessesellerapp/config/constant/api_constant.dart';
 import 'package:bringessesellerapp/model/response/oder_list_response.dart';
 import 'package:bringessesellerapp/presentation/widget/custome_appbar.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,6 @@ class SuccessOrderDetailsScreen extends StatefulWidget {
 }
 
 class _SuccessOrderDetailsScreenState extends State<SuccessOrderDetailsScreen> {
-
-  
   Future<void> downloadInvoice(String orderId) async {
     try {
       final url =
@@ -63,10 +62,21 @@ class _SuccessOrderDetailsScreenState extends State<SuccessOrderDetailsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    "https://static.vecteezy.com/system/resources/previews/024/212/031/non_2x/cardboard-box-with-check-mark-confirmed-order-delivery-concept-return-parcel-to-courier-shipment-checklist-cartoon-free-png.png",
+                    (widget.order!.orderItems != null &&
+                            widget.order!.orderItems!.isNotEmpty)
+                        ? "${ApiConstant.imageUrl}/public/media/items/${widget.order!.orderItems!.first.imageUrl}"
+                        : "https://static.vecteezy.com/system/resources/previews/024/212/031/non_2x/cardboard-box-with-check-mark-confirmed-order-delivery-concept-return-parcel-to-courier-shipment-checklist-cartoon-free-png.png",
                     height: 60,
                     width: 60,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        height: 60,
+                        width: 60,
+                        color: Colors.grey.shade200,
+                        child: Icon(Icons.image_not_supported),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -76,11 +86,20 @@ class _SuccessOrderDetailsScreenState extends State<SuccessOrderDetailsScreen> {
                     children: [
                       Text(
                         "${widget.order!.uniqueId}",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      // SizedBox(height: 4),
-                      // Text("100 g", style: TextStyle(color: Colors.grey)),
+                      if (widget.order!.orderItems != null &&
+                          widget.order!.orderItems!.isNotEmpty)
+                        Text(
+                          widget.order!.orderItems!.first.name ?? "",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                     ],
                   ),
                 ),

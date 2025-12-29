@@ -239,7 +239,11 @@ class _CouponScreeenState extends State<CouponScreeen> {
               context,
               MaterialPageRoute(
                 builder: (context) => CreateCoupon(),
-              ));
+              )).then(
+            (value) {
+              context.read<GetCouponCubit>().login();
+            },
+          );
         },
       ),
     );

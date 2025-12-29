@@ -202,13 +202,16 @@ class _ProductScreenState extends State<ProductScreen>
                                   child: CustomImageListTile(
                                     imageUrl:
                                         "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
-                                    status: product.outOfStock == 0
-                                        ? "Stock available"
-                                        : "Out of stock",
+                                    // status: product.outOfStock == 0
+                                    //     ? "Stock available"
+                                    //     : "Out of stock",
                                     price: totalPrice,
                                     //  offerPrice: offerprice.toString(),
                                     //   offer: offer,
-                                    quantity: product.quantity ?? "",
+                                    quantity: product
+                                            .variants!.first.itemQuantity
+                                            .toString() ??
+                                        product.quantity.toString(),
                                     title: product.name ?? "",
                                   ),
                                 );
@@ -243,7 +246,7 @@ class _ProductScreenState extends State<ProductScreen>
                                   child: CustomImageListTile(
                                     imageUrl:
                                         "${ApiConstant.imageUrl}/public/media/items/${product.images?.first ?? ''}",
-                                    status: "Pending",
+                                    // status: "Pending",
                                     price: totalPrice,
                                     quantity: product.createdAt ?? "",
                                     title: product.name ?? "",

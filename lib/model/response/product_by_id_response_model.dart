@@ -120,7 +120,10 @@ class ProductResult {
 class ProductVariant {
   String? name;
   num? price;
+  num? itemQuantity;
   num? weight;
+  String? itemWarranty;
+  String? itemoutOfStock;
   num? gst;
   String? offerAvailable;
   num? offerPrice;
@@ -130,6 +133,8 @@ class ProductVariant {
     this.name,
     this.price,
     this.weight,
+    this.itemWarranty,
+    this.itemQuantity,
     this.gst,
     this.offerAvailable,
     this.offerPrice,
@@ -140,6 +145,12 @@ class ProductVariant {
     name = json['name'] ?? "";
     price = json['price'];
     gst = json['gst'];
+
+    itemWarranty =
+        json['itemWarranty']?.toString() ?? json['itemWarranty ']?.toString();
+    itemQuantity = json['itemquantity'];
+    itemoutOfStock = json['itemOutofStock']?.toString() ??
+        json['itemOutofStock ']?.toString();
     weight = json['weight'];
     offerAvailable = json['offer_available']?.toString();
     offerPrice = json['offer_price'];
@@ -152,6 +163,9 @@ class ProductVariant {
     data['price'] = price;
     data['gst'] = gst;
     data['weight'] = weight;
+    data['itemquantity'] = itemQuantity;
+    data['itemWarranty '] = itemWarranty;
+    data['itemOutofStock '] = itemoutOfStock;
     data['offer_available'] = offerAvailable;
     data['offer_price'] = offerPrice;
     data['unit'] = unit;

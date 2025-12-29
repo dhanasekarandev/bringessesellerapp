@@ -129,6 +129,7 @@ class _ShopScreenState extends State<ShopScreen> {
   }
 
   bool _isfood = false;
+  bool isCancel = false;
   TimeOfDay? _openTime;
   TimeOfDay? _closeTime;
   String? _storeImg;
@@ -329,11 +330,19 @@ class _ShopScreenState extends State<ShopScreen> {
   final Set<String> selectedDelivery = {};
   final hyperSDKInstance = HyperSDK();
   final List<String> options = [
-    "Own Delivery",
-    "Courier",
+    "Take Away",
+    //"Courier",
     "Store Pickup",
     "Bringesse Delivery"
   ];
+  final List<String> cancelStages = [
+    "Pending",
+    "Processing",
+    "Out for Delivery",
+    "Shipped",
+  ];
+
+  List<String> selectedCancelStages = [];
   bool isLoading = false;
   String? selectedplanId;
   int? selectedplanPrice;
@@ -628,7 +637,7 @@ class _ShopScreenState extends State<ShopScreen> {
                           data.storeType!.isNotEmpty) {
                         selectedSize = data.storeType!;
                       }
-                      
+
                       if (data.deliveryType != null &&
                           data.deliveryType!.isNotEmpty) {
                         deliveryType = data.deliveryType!;
@@ -814,48 +823,58 @@ class _ShopScreenState extends State<ShopScreen> {
             final isCompleted = index < _currentStep;
             final isActive = index == _currentStep;
 
-            return Column(
-              children: [
-                Container(
-                  width: 30.w,
-                  height: 30.w,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isCompleted || isActive
-                        ? AppTheme.primaryColor
-                        : Colors.grey.shade300,
-                  ),
-                  child: Center(
-                    child: isCompleted
-                        ? Icon(Icons.check, color: Colors.white, size: 20.sp)
-                        : Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              color: isActive
-                                  ? Colors.white
-                                  : Colors.grey.shade600,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                SizedBox(
-                  width: 60.w,
-                  child: Text(
-                    steps[index],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
-                      color: isActive
+            return InkWell(
+              onTap: () {
+                if (index < _currentStep || _validateStep(_currentStep)) {
+                  setState(() {
+                    _currentStep = index;
+                  });
+                }
+              },
+              child: Column(
+                children: [
+                  Container(
+                    width: 30.w,
+                    height: 30.w,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isCompleted || isActive
                           ? AppTheme.primaryColor
-                          : Colors.grey.shade600,
+                          : Colors.grey.shade300,
+                    ),
+                    child: Center(
+                      child: isCompleted
+                          ? Icon(Icons.check, color: Colors.white, size: 20.sp)
+                          : Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.grey.shade600,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14.sp,
+                              ),
+                            ),
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: 8.h),
+                  SizedBox(
+                    width: 60.w,
+                    child: Text(
+                      steps[index],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        fontWeight:
+                            isActive ? FontWeight.w600 : FontWeight.w400,
+                        color: isActive
+                            ? AppTheme.primaryColor
+                            : Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             );
           }),
         ),
@@ -1144,6 +1163,61 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
           SizedBox(height: 16.h),
+          Row(
+            children: [
+              const SubTitleText(title: "Cancellation "),
+              Spacer(),
+              Switch(
+                value: isCancel,
+                onChanged: (value) {
+                  setState(() {
+                    isCancel = value;
+                  });
+                },
+                activeColor: AppTheme.primaryColor,
+              )
+            ],
+          ),
+          if (isCancel) ...[
+            const SizedBox(height: 8),
+            Text(
+              "Allow cancellation in stages",
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: cancelStages.map((stage) {
+                final isSelected = selectedCancelStages.contains(stage);
+
+                return FilterChip(
+                  label: Text(stage),
+                  selected: isSelected,
+                  selectedColor: AppTheme.primaryColor,
+                  backgroundColor: Colors.grey.shade200,
+                  checkmarkColor: Colors.white,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black,
+                    fontSize: 12.sp,
+                  ),
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        selectedCancelStages.add(stage);
+                      } else {
+                        selectedCancelStages.remove(stage);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+          SizedBox(height: 16.h),
           const SubTitleText(title: "Description"),
           SizedBox(height: 8.h),
           CustomTextField(
@@ -1252,6 +1326,7 @@ class _ShopScreenState extends State<ShopScreen> {
             runSpacing: 8.h,
             children: paymentMethods.map((method) {
               final bool isSelected = selectedMethods.contains(method);
+
               return FilterChip(
                 showCheckmark: true,
                 checkmarkColor: Colors.white,
@@ -1267,10 +1342,23 @@ class _ShopScreenState extends State<ShopScreen> {
                 backgroundColor: Colors.grey.shade200,
                 onSelected: (bool selected) {
                   setState(() {
-                    if (selected) {
-                      selectedMethods.add(method);
-                    } else {
-                      selectedMethods.remove(method);
+                    if (method == "Cash on Delivery") {
+                      if (selected) {
+                        // COD select panna → Online um add aaganum
+                        selectedMethods.add("Cash on Delivery");
+                        selectedMethods.add("Online");
+                      } else {
+                        // COD remove panna → COD mattum remove
+                        selectedMethods.remove("Cash on Delivery");
+                      }
+                    } else if (method == "Online") {
+                      if (selected) {
+                        // Online select panna → COD remove
+                        selectedMethods.add("Online");
+                        selectedMethods.remove("Cash on Delivery");
+                      } else {
+                        selectedMethods.remove("Online");
+                      }
                     }
                   });
                 },

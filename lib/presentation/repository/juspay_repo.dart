@@ -94,7 +94,7 @@ class _PaymentPageState extends State<PaymentPageScreen> {
         final payload = args["payload"] ?? {};
         final String status = payload["status"] ?? "";
         final orderId = args["orderId"] ?? null;
-      //  final amount = args['']
+        //  final amount = args['']
         print("Payment Status => $args");
         print("Order ID => $payload");
 
@@ -111,6 +111,7 @@ class _PaymentPageState extends State<PaymentPageScreen> {
         Navigator.pop(context, {
           "success": success,
           "orderId": orderId,
+          'status': status.toUpperCase(),
         });
         break;
     }

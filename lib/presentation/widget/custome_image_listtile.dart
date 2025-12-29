@@ -7,14 +7,14 @@ class CustomImageListTile extends StatelessWidget {
   final String title;
   final String price;
   final String? quantity;
-  final String status;
+  // final String status;
 
   const CustomImageListTile({
     super.key,
     required this.imageUrl,
     required this.title,
     required this.price,
-    required this.status,
+    // required this.status,
     this.quantity,
     this.offerPrice,
     this.offer,
@@ -23,7 +23,7 @@ class CustomImageListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasOffer = offer?.toLowerCase() == "true";
-    print("sldhfbs${offer}");
+    
     return ListTile(
       leading: ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -103,17 +103,17 @@ class CustomImageListTile extends StatelessWidget {
           ],
         ),
       ),
-      trailing: status.isEmpty
-          ? const Icon(Icons.arrow_forward_ios_outlined, size: 18)
-          : Text(
-              status,
-              style: TextStyle(
-                color: status == "Stock available"
-                    ? Colors.green
-                    : Colors.redAccent,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      // trailing: status.isEmpty
+      //     ? const Icon(Icons.arrow_forward_ios_outlined, size: 18)
+      //     : Text(
+      //         status,
+      //         style: TextStyle(
+      //           color: status == "Stock available"
+      //               ? Colors.green
+      //               : Colors.redAccent,
+      //           fontWeight: FontWeight.bold,
+      //         ),
+      //       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }

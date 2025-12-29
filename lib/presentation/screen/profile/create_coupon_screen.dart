@@ -206,7 +206,6 @@ class _CreateCouponState extends State<CreateCoupon> {
       ),
       body: BlocListener<UpdateCouponCubit, UpdateCouponState>(
         listener: (context, state) {
-          print("sldhf${state}, ${state.networkStatusEnum},");
           if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
             showAppToast(message: "Coupon update successfully 🎉");
             Future.delayed(const Duration(seconds: 1), () {
@@ -216,11 +215,16 @@ class _CreateCouponState extends State<CreateCoupon> {
         },
         child: BlocConsumer<CouponCreateCubit, CouponCreateState>(
           listener: (context, state) {
-            if (state.networkStatusEnum == NetworkStatusEnum.loaded) {
+            print("sldhf${state.networkStatusEnum}");
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.createres.status == true) {
               showAppToast(message: "Coupon created successfully 🎉");
-              Future.delayed(const Duration(seconds: 1), () {
-                context.pop();
-              });
+
+              context.pop();
+            }
+            if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
+                state.createres.status == false) {
+              showAppToast(message: state.createres.message ?? "");
             }
           },
           builder: (context, state) {

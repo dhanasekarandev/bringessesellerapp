@@ -419,7 +419,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           .viewProfile
                                           .result,
                                     ),
-                                  ));
+                                  )).then(
+                                (value) {
+                                  context
+                                      .read<MySubscriptionPlanCubit>()
+                                      .login();
+                                  context.read<ViewProfileCubit>().login();
+                                },
+                              );
                               //context.push('/profile/changepassword');
                             },
                           ),

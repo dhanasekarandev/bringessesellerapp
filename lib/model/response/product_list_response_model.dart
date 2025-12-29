@@ -127,6 +127,9 @@ class ProductVariant {
   String? offerAvailable;
   int? offerPrice;
   String? unit;
+  String? itemWarranty;
+  String? itemoutOfStock;
+  num? itemQuantity;
   double? gst;
   double? cGstInPercent;
   double? cGstInAmount;
@@ -141,6 +144,9 @@ class ProductVariant {
       this.offerPrice,
       this.unit,
       this.gst,
+      this.itemQuantity,
+      this.itemWarranty,
+      this.itemoutOfStock,
       this.cGstInPercent,
       this.cGstInAmount,
       this.sGstInPercent,
@@ -159,6 +165,11 @@ class ProductVariant {
         ) ??
         0.0;
     cGstInAmount = (json['cGstInAmount'] ?? 0).toDouble();
+    itemWarranty =
+        json['itemWarranty']?.toString() ?? json['itemWarranty ']?.toString();
+    itemQuantity = json['itemquantity'];
+    itemoutOfStock = json['itemOutofStock']?.toString() ??
+        json['itemOutofStock ']?.toString();
     // sGstInPercent = (json['sGstInPercent'] ?? 0).toDouble();
     sGstInAmount = (json['sGstInAmount'] ?? 0).toDouble();
     totalAmount = (json['totalAmount'] ?? 0).toDouble();
@@ -177,6 +188,9 @@ class ProductVariant {
     data['sGstInPercent'] = sGstInPercent;
     data['sGstInAmount'] = sGstInAmount;
     data['totalAmount'] = totalAmount;
+    data['itemquantity'] = itemQuantity;
+    data['itemWarranty '] = itemWarranty;
+    data['itemOutofStock '] = itemoutOfStock;
     return data;
   }
 }

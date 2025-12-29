@@ -8,6 +8,7 @@ class ApiClass {
     required String email,
     required String password,
     required String contactNo,
+    String? referedBy,
   }) async {
     try {
       final response = await Dio().post(
@@ -16,14 +17,17 @@ class ApiClass {
           "name": name,
           "contactNo": contactNo,
           "email": email,
-          "password": password
+          "password": password,
+          'referedBy': referedBy
         },
       );
-      log("responseData:${response.data},${response.data['status_code']}");
-      if (response.statusCode == 200) {
+      log("singupres:${response.data},${response.data['status_code']}");
+      if (response.data['status_code'] == 200) {
         return {"status": true};
       } else {
-        throw Exception('Failed to register');
+        print("sdfbsd");
+        return {"status": false, "message": response.data['message']};
+        // throw Exception('Failed to register');
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? e.message);

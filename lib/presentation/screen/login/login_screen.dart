@@ -82,8 +82,6 @@ class _LoginScreenState extends State<LoginScreen> {
         appBar: const CustomAppBar(title: "Login"),
         body: BlocConsumer<LoginCubit, LoginState>(
           listener: (context, state) async {
-      
-
             if (state.networkStatusEnum == NetworkStatusEnum.loaded &&
                 state.login.status == 'true') {
               ///  log("sdkfnsj${state.login.result.}");
@@ -154,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                      const SubTitleText(title: "Email"),
+                        const SubTitleText(title: "Email"),
                         CustomTextField(
                           controller: _emailController,
                           hintText: "Enter your Email",
@@ -217,7 +215,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                   recognizer: TapGestureRecognizer()
                                     ..onTap = () {
-                                      context.push('/register');
+                                      context.push('/register', extra: {
+                                        'refcode': '',
+                                      });
                                     },
                                 )
                               ]),

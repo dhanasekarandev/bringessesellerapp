@@ -105,8 +105,8 @@ class _SubscriptionListScreenState extends State<SubscriptionListScreen> {
         ),
       ),
     );
-
-    if (result != null && result['status'] == "CHARGED") {
+    print("Juspay Payment Result: $result");
+    if (result != null && result['status']?.toUpperCase() == "CHARGED") {
       showAppToast(message: 'Payment Successful');
 
       _juspaymentSuccess(

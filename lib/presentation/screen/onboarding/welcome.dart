@@ -73,7 +73,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   title: "Signup",
                   icon: Icons.arrow_forward_ios_sharp,
                   onPressed: () {
-                    context.push('/register');
+                    context.push('/register',extra: {
+                                        'refcode': '',
+                                      });
                   },
                 ),
                 vericalSpaceMedium,

@@ -38,6 +38,7 @@ import 'package:bringessesellerapp/model/request/verify_otp_req_model.dart';
 import 'package:bringessesellerapp/model/response/account_detail_model.dart';
 import 'package:bringessesellerapp/model/response/change_password_model.dart';
 import 'package:bringessesellerapp/model/response/common_success_res_model.dart';
+import 'package:bringessesellerapp/model/response/coupon_success_rres_model.dart';
 import 'package:bringessesellerapp/model/response/coupon_update_response.dart';
 import 'package:bringessesellerapp/model/response/dashboard_model.dart';
 import 'package:bringessesellerapp/model/response/delete_product_res_model.dart';
@@ -489,22 +490,21 @@ class AuthRepository {
       var response = await apiService.post(
           ApiConstant.createcoupon, createreqmodel, false);
 
-      if (response.data['status'] == 'true') {
+      if (response.statusCode == 200) {
         var responseData = response.data;
-        return (true, CommonSuccessResModel.fromJson(responseData));
-      } else {
-        // Handle other status codes
-
+        return (true, CouponSuccessRresModel.fromJson(responseData));
+      } else if (response.statusCode == 400) {
+        print("sldks");
         return (
           false,
-          CommonSuccessResModel(
-              message: response.data['message'], status: 'false')
+          CouponSuccessRresModel(
+              message: 'Coupon code already exists', status: false)
         );
       }
     } catch (e, stacktrace) {
       print('Exception occurred: $e');
       print('Stacktrace${stacktrace}');
-      return (false, CommonSuccessResModel());
+      return (false, CouponSuccessRresModel());
     }
   }
 
@@ -1349,7 +1349,7 @@ class AuthRepository {
     try {
       var response =
           await apiService.post(ApiConstant.revenue, revenuereqmodel, false);
-      
+
       if (response.statusCode == 200) {
         var responseData = response.data;
         return (true, RevenueResponseModel.fromJson(responseData));

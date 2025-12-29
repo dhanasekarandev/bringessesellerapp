@@ -99,6 +99,7 @@ class Variant {
   double? price;
   String? offerAvailable;
   double? offerPrice;
+  num? itemquantity;
   String? unit;
   int? weight;
   num? gst;
@@ -109,6 +110,8 @@ class Variant {
   num? totalAmount;
   String? sellerEarningAmount;
   String? processingFee;
+  String? itemWarranty;
+  String? itemoutOfStock;
 
   Variant(
       {this.name,
@@ -117,13 +120,16 @@ class Variant {
       this.offerPrice,
       this.unit,
       this.weight,
+      this.itemquantity,
       this.gst,
       this.cGstInPercent,
       this.cGstInAmount,
       this.sGstInAmount,
       this.sGstInPercent,
       this.sellerEarningAmount,
+      this.itemoutOfStock,
       this.processingFee,
+      this.itemWarranty,
       this.totalAmount});
 
   Map<String, dynamic> toJson() {
@@ -134,13 +140,16 @@ class Variant {
       'offer_price': offerPrice,
       'unit': unit,
       'weight': weight,
+      'itemquantity': itemquantity,
       'gst': gst,
+      'itemOutofStock ': itemoutOfStock,
       'cGstInPercent': cGstInPercent,
       'cGstInAmount': cGstInAmount,
       'sGstInAmount': sGstInAmount,
       'sGstInPercent': sGstInPercent,
       'totalAmount': totalAmount,
       'processingFee': processingFee,
+      'itemWarranty ': itemWarranty,
       'sellerEarningAmount': sellerEarningAmount,
     };
   }

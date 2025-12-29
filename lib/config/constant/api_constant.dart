@@ -112,4 +112,5 @@ class ApiConstant {
   static const String privacyPolicy = 'helps/seller';
   static String revenuegraph(String storeId) => 'chart/$storeId';
   static const String revenue = 'seller/earnings';
+  static const String forgetPassword = 'accounts/forgotpassword';
 }
