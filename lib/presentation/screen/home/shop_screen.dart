@@ -451,7 +451,7 @@ class _ShopScreenState extends State<ShopScreen> {
           return false;
         }
         return true;
-      case 2: // Operating Hours
+      case 2:
         if (_openTime == null || _closeTime == null) {
           Fluttertoast.showToast(
             msg: "Please set opening and closing times",
@@ -469,7 +469,6 @@ class _ShopScreenState extends State<ShopScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print("sldfhs${selectedDelivery},${selectedOptions}");
     return Scaffold(
         appBar: const CustomAppBar(
           title: 'Shop Information',
