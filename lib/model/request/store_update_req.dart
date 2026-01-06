@@ -26,33 +26,36 @@ class StoreUpdateReq {
   String? packingcharge;
   List<String>? deliveryOptions;
   String? isfood;
+  String? isCancellation;
+  String? cancelStage;
 
-  StoreUpdateReq({
-    this.name,
-    this.deliveryType,
-    this.contactNo,
-    this.categoryId,
-    this.sellerId,
-    this.lon,
-    this.lat,
-    this.isfood,
-    this.storeId,
-    this.image,
-    this.storeImage,
-    this.documents,
-    this.storeDocuments,
-    this.description,
-    this.opentime,
-    this.closetime,
-    this.deliveryCharge,
-    this.packingtime,
-    this.storeType,
-    this.paymentOptions,
-    this.storePaymentOptions,
-    this.deliveryOptions,
-    // this.returnPolicy,
-    this.packingcharge,
-  });
+  StoreUpdateReq(
+      {this.name,
+      this.deliveryType,
+      this.contactNo,
+      this.categoryId,
+      this.sellerId,
+      this.lon,
+      this.lat,
+      this.isfood,
+      this.storeId,
+      this.image,
+      this.storeImage,
+      this.documents,
+      this.storeDocuments,
+      this.description,
+      this.opentime,
+      this.closetime,
+      this.deliveryCharge,
+      this.packingtime,
+      this.storeType,
+      this.paymentOptions,
+      this.storePaymentOptions,
+      this.deliveryOptions,
+      // this.returnPolicy,
+      this.packingcharge,
+      this.cancelStage,
+      this.isCancellation});
 
   Map<String, dynamic> toJson() {
     return {
@@ -77,7 +80,9 @@ class StoreUpdateReq {
       "storePaymentOptions": storePaymentOptions, // ✅ added
       // "returnPolicy": returnPolicy,
       'storeDocuments': storeDocuments,
-      'deliveryOptions': deliveryOptions
+      'deliveryOptions': deliveryOptions,
+      'isCancellation': isCancellation,
+      'cancelStage': cancelStage
     };
   }
 
@@ -100,6 +105,8 @@ class StoreUpdateReq {
     addField('storeId', storeId);
     addField('lon', lon);
     addField('lat', lat);
+    addField('cancelStage ', cancelStage);
+    addField('isCancellation ', isCancellation);
     addField('deliveryType', deliveryType);
     addField('description', description);
     addField('openingTime', opentime);

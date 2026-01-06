@@ -250,67 +250,72 @@ class _ShopScreenState extends State<ShopScreen> {
     }
 
     final storeReq = StoreReqModel(
-        sellerId: sharedPreferenceHelper.getSellerId,
-        storeId: _storeId,
-        deliveryCharge: _deliverycharge.text.trim(),
-        deliveryType: deliveryType,
-        name: _name.text.trim(),
-        contactNo: _phone.text.trim(),
-        categoryId: selectedOption ?? _catId,
-        description: _des.text.trim(),
-        packingcharge: _packingchrg.text.trim(),
-        packingtime: _packingtime.text.trim(),
-        opentime: _formatTime(_openTime),
-        closetime: _formatTime(_closeTime),
-        image: newImageFile,
-        documents: newDocuments,
-        isfood: _isfood,
-        lat: (selectedLat ??
-                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-                0.0)
-            .toString(),
-        lon: (selectedLng ??
-                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-                0.0)
-            .toString(),
-        storeType: selectedSize,
-        paymentOptions: selectedMethods.toList(),
-        deliveryOptions: selectedOptions
-        // returnPolicy: _return.text
-        );
+      sellerId: sharedPreferenceHelper.getSellerId,
+      storeId: _storeId,
+      deliveryCharge: _deliverycharge.text.trim(),
+      deliveryType: deliveryType,
+      name: _name.text.trim(),
+      contactNo: _phone.text.trim(),
+      categoryId: selectedOption ?? _catId,
+      description: _des.text.trim(),
+      packingcharge: _packingchrg.text.trim(),
+      packingtime: _packingtime.text.trim(),
+      opentime: _formatTime(_openTime),
+      closetime: _formatTime(_closeTime),
+      image: newImageFile,
+      documents: newDocuments,
+      isfood: _isfood,
+      lat: (selectedLat ??
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
+      storeType: selectedSize,
+      paymentOptions: selectedMethods.toList(),
+      deliveryOptions: selectedOptions,
+      // cancelStage: selectedCancelStage,
+
+      // isCancellation: isCancel == true ? "1" : "0",
+      // returnPolicy: _return.text
+    );
     final storeUpdate = StoreUpdateReq(
-        deliveryType: deliveryType,
-        deliveryCharge: _deliverycharge.text.trim(),
-        sellerId: sharedPreferenceHelper.getSellerId,
-        storeId: _storeId,
-        isfood: _isfood ? 'true' : 'false',
-        name: _name.text.trim(),
-        contactNo: _phone.text.trim(),
-        categoryId: selectedOption ?? _catId,
-        description: _des.text.trim(),
-        packingcharge: _packingchrg.text.trim(),
-        packingtime: _packingtime.text.trim(),
-        opentime: _formatTime(_openTime),
-        closetime: _formatTime(_closeTime),
-        image: newImageFile,
-        storeImage: existingImageName,
-        documents: newDocuments,
-        storeDocuments: existingDocs,
-        lat: (selectedLat ??
-                _existingLat ?? // ✅ fallback to old API lat
-                double.tryParse(sharedPreferenceHelper.getSearchLat) ??
-                0.0)
-            .toString(),
-        lon: (selectedLng ??
-                _existingLng ?? // ✅ fallback to old API lon
-                double.tryParse(sharedPreferenceHelper.getSearchLng) ??
-                0.0)
-            .toString(),
-        storeType: selectedSize,
-        paymentOptions: selectedMethods.toList(),
-        deliveryOptions: selectedOptions
-        // returnPolicy: _return.text
-        );
+      deliveryType: deliveryType,
+      deliveryCharge: _deliverycharge.text.trim(),
+      sellerId: sharedPreferenceHelper.getSellerId,
+      storeId: _storeId,
+      isfood: _isfood ? 'true' : 'false',
+      name: _name.text.trim(),
+      contactNo: _phone.text.trim(),
+      categoryId: selectedOption ?? _catId,
+      description: _des.text.trim(),
+      packingcharge: _packingchrg.text.trim(),
+      packingtime: _packingtime.text.trim(),
+      opentime: _formatTime(_openTime),
+      closetime: _formatTime(_closeTime),
+      image: newImageFile,
+      storeImage: existingImageName,
+      documents: newDocuments,
+      storeDocuments: existingDocs,
+      lat: (selectedLat ??
+              _existingLat ?? // ✅ fallback to old API lat
+              double.tryParse(sharedPreferenceHelper.getSearchLat) ??
+              0.0)
+          .toString(),
+      lon: (selectedLng ??
+              _existingLng ?? // ✅ fallback to old API lon
+              double.tryParse(sharedPreferenceHelper.getSearchLng) ??
+              0.0)
+          .toString(),
+      storeType: selectedSize,
+      paymentOptions: selectedMethods.toList(),
+      deliveryOptions: selectedOptions,
+      // cancelStage: selectedCancelStage,
+      // isCancellation: isCancel == true ? "1" : "0",
+      // returnPolicy: _return.text
+    );
     if (_isDataLoaded) {
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
@@ -319,6 +324,7 @@ class _ShopScreenState extends State<ShopScreen> {
     }
   }
 
+  bool _isExpanded = false;
   String selectedSubPlan = "";
   final List<String> paymentMethods = ["Cash on Delivery", "Online"];
   String selectedSize = 'Small';
@@ -336,13 +342,13 @@ class _ShopScreenState extends State<ShopScreen> {
     "Bringesse Delivery"
   ];
   final List<String> cancelStages = [
-    "Pending",
-    "Processing",
-    "Out for Delivery",
-    "Shipped",
+    "pending",
+    "processing",
+    "ready",
+    "accept",
   ];
 
-  List<String> selectedCancelStages = [];
+  String? selectedCancelStage;
   bool isLoading = false;
   String? selectedplanId;
   int? selectedplanPrice;
@@ -631,6 +637,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       _phone.text = data.contactNo?.toString() ?? '';
                       selectedOption = data.categoryId;
                       _des.text = data.description ?? "";
+
                       _deliverycharge.text = data.deliveryCharge.toString();
                       _return.text = data.returnPolicy ?? '';
                       if (data.storeType != null &&
@@ -965,7 +972,7 @@ class _ShopScreenState extends State<ShopScreen> {
           ),
           SizedBox(height: 8.h),
           CustomTextField(
-            hintText: "+91 98765 43210",
+            hintText: "9876543210",
             controller: _phone,
           ),
           SizedBox(height: 16.h),
@@ -1163,61 +1170,61 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          Row(
-            children: [
-              const SubTitleText(title: "Cancellation "),
-              Spacer(),
-              Switch(
-                value: isCancel,
-                onChanged: (value) {
-                  setState(() {
-                    isCancel = value;
-                  });
-                },
-                activeColor: AppTheme.primaryColor,
-              )
-            ],
-          ),
-          if (isCancel) ...[
-            const SizedBox(height: 8),
-            Text(
-              "Allow cancellation in stages",
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: cancelStages.map((stage) {
-                final isSelected = selectedCancelStages.contains(stage);
+          // Row(
+          //   children: [
+          //     const SubTitleText(title: "Cancellation "),
+          //     Spacer(),
+          //     Switch(
+          //       value: isCancel,
+          //       onChanged: (value) {
+          //         setState(() {
+          //           isCancel = value;
+          //         });
+          //       },
+          //       activeColor: AppTheme.primaryColor,
+          //     )
+          //   ],
+          // ),
+          // if (isCancel) ...[
+          //   const SizedBox(height: 8),
+          //   Text(
+          //     "Allow cancellation in stages",
+          //     style: TextStyle(
+          //       fontSize: 12.sp,
+          //       fontWeight: FontWeight.w500,
+          //     ),
+          //   ),
+          //   const SizedBox(height: 6),
+          //   Wrap(
+          //     spacing: 8.w,
+          //     runSpacing: 8.h,
+          //     children: cancelStages.map((stage) {
+          //       final isSelected = selectedCancelStage == stage;
 
-                return FilterChip(
-                  label: Text(stage),
-                  selected: isSelected,
-                  selectedColor: AppTheme.primaryColor,
-                  backgroundColor: Colors.grey.shade200,
-                  checkmarkColor: Colors.white,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                    fontSize: 12.sp,
-                  ),
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        selectedCancelStages.add(stage);
-                      } else {
-                        selectedCancelStages.remove(stage);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-          SizedBox(height: 16.h),
+          //       return FilterChip(
+          //         label: Text(stage),
+          //         selected: isSelected,
+          //         selectedColor: AppTheme.primaryColor,
+          //         backgroundColor: Colors.grey.shade200,
+          //         checkmarkColor: Colors.white,
+          //         labelStyle: TextStyle(
+          //           color: isSelected ? Colors.white : Colors.black,
+          //           fontSize: 12.sp,
+          //         ),
+          //         onSelected: (selected) {
+          //           setState(() {
+          //             if (selected) {
+          //               selectedCancelStage = stage; // replace
+          //             } else {
+          //               selectedCancelStage = null; // optional deselect
+          //             }
+          //           });
+          //         },
+          //       );
+          //     }).toList(),
+          //   ),
+          // ],
+          // SizedBox(height: 16.h),
           const SubTitleText(title: "Description"),
           SizedBox(height: 8.h),
           CustomTextField(
@@ -1504,16 +1511,48 @@ class _ShopScreenState extends State<ShopScreen> {
               SizedBox(height: 20.h),
               Divider(color: Colors.grey.shade300),
               SizedBox(height: 20.h),
-              Text(
-                'Subscription Plans',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade800,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Subscription Plans',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          _isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: _isExpanded
+                        ? Column(
+                            children: [
+                              SizedBox(height: 12.h),
+                              subscriptionPlanWidgets(),
+                            ],
+                          )
+                        : const SizedBox(),
+                  ),
+                ],
               ),
-              SizedBox(height: 12.h),
-              subscriptionPlanWidgets(),
             ],
           ),
         ),

@@ -24,30 +24,34 @@ class StoreReqModel {
   List<String>? paymentOptions;
   List<String>? deliveryOptions;
   String? packingcharge;
+  String? isCancellation;
+  String? cancelStage;
 
-  StoreReqModel({
-    this.name,
-    this.contactNo,
-    this.categoryId,
-    this.sellerId,
-    this.lon,
-    this.lat,
-    this.storeId,
-    this.image,
-    this.documents,
-    this.description,
-    this.opentime,
-    this.closetime,
-    this.packingtime,
-    this.storeType,
-    this.deliveryCharge,
-    this.isfood,
-    this.deliveryType,
-    this.retunPolicy,
-    this.paymentOptions,
-    this.deliveryOptions,
-    this.packingcharge,
-  });
+  StoreReqModel(
+      {this.name,
+      this.contactNo,
+      this.categoryId,
+      this.sellerId,
+      this.lon,
+      this.lat,
+      this.storeId,
+      this.image,
+      this.documents,
+      this.description,
+      this.opentime,
+      this.closetime,
+      this.packingtime,
+      this.storeType,
+      this.deliveryCharge,
+      this.isfood,
+      this.deliveryType,
+      this.retunPolicy,
+      this.paymentOptions,
+      this.deliveryOptions,
+      this.packingcharge,
+      this.cancelStage,
+      this.isCancellation
+      });
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
@@ -70,6 +74,8 @@ class StoreReqModel {
     data['packingCharge'] = packingcharge;
     data['paymentOptions'] = paymentOptions;
     data['deliveryOptions'] = deliveryOptions;
+    data['isCancellation '] = isCancellation;
+    data['cancelStage '] = cancelStage;
     return data;
   }
 
@@ -98,6 +104,8 @@ class StoreReqModel {
     addField('closingTime', closetime);
     addField('packingTime', packingtime);
     addField('storeType', storeType);
+    addField('cancelStage ', cancelStage);
+    addField('isCancellation ', isCancellation);
     addField('packingCharge', packingcharge);
     addField('retunPolicy', retunPolicy); // match Postman typo
 

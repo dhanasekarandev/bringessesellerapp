@@ -90,85 +90,93 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   void initState() {
     super.initState();
-    addVariant();
+
     _cat.text = widget.catname ?? "";
     _sub.text = widget.subcat ?? "";
+
     final product = widget.editProduct;
 
-    if (product != null) {
-      _name.text = product.name ?? "";
-      _sku.text = product.sku ?? "";
-      _des.text = product.description ?? "";
-      _cat.text = widget.catname ?? "";
-      isFood = product.isFood == 'true' ? true : false;
-      _foodtype.text = product.type ?? "";
+    // 👉 CREATE FLOW
+    if (product == null) {
+      addVariant();
+      return;
+    }
 
-      isCombo = product.comboOffer == 0 ? false : true;
-      if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
-        uploadvideoUrl =
-            "${ApiConstant.imageUrl}/public/media/items/${product.videoUrl}";
+    // 👉 EDIT FLOW
+    _name.text = product.name ?? "";
+    _sku.text = product.sku ?? "";
+    _des.text = product.description ?? "";
+    isFood = product.isFood == 'true';
+    _foodtype.text = product.type ?? "";
+
+    isCombo = product.comboOffer != 0;
+
+    // Video
+    if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
+      uploadvideoUrl =
+          "${ApiConstant.imageUrl}/public/media/items/${product.videoUrl}";
+    }
+
+    // Menu
+    selectedMenuId = product.menuId;
+    selectedMenu = widget.menuList
+        ?.firstWhere(
+          (e) => e.id == product.menuId,
+          orElse: () => Menu(),
+        )
+        .name;
+
+    // Images
+    _productMedia.clear();
+    if (product.images != null && product.images!.isNotEmpty) {
+      for (var img in product.images!) {
+        _productMedia.add("${ApiConstant.imageUrl}/public/media/items/$img");
       }
-      selectedMenuId = product.menuId;
-      selectedMenu = widget.menuList
-          ?.firstWhere((e) => e.id == product.menuId, orElse: () => Menu())
-          .name;
+    }
 
-      // ✅ Load existing images with full URL
-      if (product.images != null && product.images!.isNotEmpty) {
-        for (var img in product.images!) {
-          _productMedia.add("${ApiConstant.imageUrl}/public/media/items/$img");
-        }
-      }
+    // Variants
+    variantList.clear();
 
-      // ✅ Prefill variants
-      variantList.clear();
+    if (product.variants != null && product.variants!.isNotEmpty) {
       for (var v in product.variants!) {
-        final gstController =
-            TextEditingController(text: v.gst?.toString() ?? "0");
-        final weight = TextEditingController(text: v.weight.toString());
+        final gstValue = v.gst ?? 0;
+        final splitValue = gstValue / 2;
+
+        final gstController = TextEditingController(text: gstValue.toString());
         final cgstController =
-            TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
-
+            TextEditingController(text: splitValue.toStringAsFixed(2));
         final sgstController =
-            TextEditingController(text: ((v.gst ?? 0) / 2).toStringAsFixed(2));
+            TextEditingController(text: splitValue.toStringAsFixed(2));
 
+        // GST → auto CGST / SGST
         gstController.addListener(() {
-          double gstValue = double.tryParse(gstController.text) ?? 0;
-          double split = gstValue / 2;
+          final gst = double.tryParse(gstController.text) ?? 0;
+          final split = gst / 2;
           cgstController.text = split.toStringAsFixed(2);
           sgstController.text = split.toStringAsFixed(2);
           setState(() {});
         });
 
-        if (product.variants != null && product.variants!.isNotEmpty) {
-          for (var v in product.variants!) {
-            final gstValue = v.gst ?? 0; // ✅ FIXED
-            final splitValue = gstValue / 2;
-            print("sdkfn${v.itemoutOfStock}");
-            variantList.add({
-              'count': TextEditingController(text: v.name ?? ""),
-              'weight': TextEditingController(text: v.weight.toString()),
-              'price': TextEditingController(text: v.price?.toString() ?? ""),
-              'itemquantity':
-                  TextEditingController(text: v.itemQuantity?.toString() ?? ""),
-              'itemwarranty':
-                  TextEditingController(text: v.itemWarranty?.toString() ?? ""),
-              'offerPrice':
-                  TextEditingController(text: v.offerPrice?.toString() ?? ""),
-              'gst': TextEditingController(text: gstValue.toString()),
-              'cgst':
-                  TextEditingController(text: splitValue.toStringAsFixed(2)),
-              'sgst':
-                  TextEditingController(text: splitValue.toStringAsFixed(2)),
-              'selectedUnit': v.unit?.trim(),
-              'selectedOffer': v.offerAvailable == "true" ? "Yes" : "No",
-              'itemoutOfStock': v.itemoutOfStock == "1" ? true : false,
-            });
-          }
-        } else {
-          addVariant();
-        }
+        variantList.add({
+          'count': TextEditingController(text: v.name ?? ""),
+          'weight': TextEditingController(text: v.weight?.toString() ?? ""),
+          'price': TextEditingController(text: v.price?.toString() ?? ""),
+          'itemquantity':
+              TextEditingController(text: v.itemQuantity?.toString() ?? ""),
+          'itemwarranty':
+              TextEditingController(text: v.itemWarranty?.toString() ?? ""),
+          'offerPrice':
+              TextEditingController(text: v.offerPrice?.toString() ?? ""),
+          'gst': gstController,
+          'cgst': cgstController,
+          'sgst': sgstController,
+          'selectedUnit': v.unit?.trim(),
+          'selectedOffer': v.offerAvailable == "true" ? "Yes" : "No",
+          'itemoutOfStock': v.itemoutOfStock == "1",
+        });
       }
+    } else {
+      addVariant();
     }
   }
 
@@ -412,7 +420,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       int weight = int.tryParse(v['weight'].text) ?? 0;
       bool isOffer = v['selectedOffer'] == "Yes";
       String itemoutOfStock = v['itemoutOfStock'] == true ? "1" : "0";
-      print("itemoutOfStock$itemoutOfStock}");
+    
       double sellingPrice = isOffer ? offerPrice : price;
       double processingFeePercent =
           double.tryParse(widget.processingfee.toString()) ?? 0;
@@ -425,14 +433,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
       double processingFeeAmount = sellingPrice * (processingFeePercent / 100);
       double totalAmount =
           sellingPrice + cgstAmount + sgstAmount + processingFeeAmount;
-      print("sldjfns${totalAmount - processingFeeAmount}");
+      print("sldjfns${totalAmount.toStringAsFixed(2)}");
       String earningAmount =
           (totalAmount - processingFeeAmount).toStringAsFixed(2);
 
       setState(() {
         processfeeAmount = processingFeeAmount;
       });
-     
+
       return Variant(
           name: v['count'].text,
           price: price,
@@ -448,7 +456,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
           sGstInPercent: sgstPercent,
           cGstInAmount: cgstAmount,
           sGstInAmount: sgstAmount,
-          totalAmount: totalAmount,
+          totalAmount: num.parse(totalAmount.toStringAsFixed(2)),
           processingFee: processingFeeAmount.toStringAsFixed(2),
           sellerEarningAmount: earningAmount);
     }).toList();
