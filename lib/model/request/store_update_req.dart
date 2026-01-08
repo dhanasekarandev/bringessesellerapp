@@ -26,36 +26,39 @@ class StoreUpdateReq {
   String? packingcharge;
   List<String>? deliveryOptions;
   String? isfood;
-  String? isCancellation;
-  String? cancelStage;
+  String? minimumOrderAmount;
+  // String? isCancellation;
+  // String? cancelStage;
 
-  StoreUpdateReq(
-      {this.name,
-      this.deliveryType,
-      this.contactNo,
-      this.categoryId,
-      this.sellerId,
-      this.lon,
-      this.lat,
-      this.isfood,
-      this.storeId,
-      this.image,
-      this.storeImage,
-      this.documents,
-      this.storeDocuments,
-      this.description,
-      this.opentime,
-      this.closetime,
-      this.deliveryCharge,
-      this.packingtime,
-      this.storeType,
-      this.paymentOptions,
-      this.storePaymentOptions,
-      this.deliveryOptions,
-      // this.returnPolicy,
-      this.packingcharge,
-      this.cancelStage,
-      this.isCancellation});
+  StoreUpdateReq({
+    this.name,
+    this.deliveryType,
+    this.contactNo,
+    this.categoryId,
+    this.sellerId,
+    this.lon,
+    this.lat,
+    this.isfood,
+    this.storeId,
+    this.image,
+    this.storeImage,
+    this.documents,
+    this.storeDocuments,
+    this.description,
+    this.opentime,
+    this.closetime,
+    this.deliveryCharge,
+    this.packingtime,
+    this.storeType,
+    this.paymentOptions,
+    this.storePaymentOptions,
+    this.deliveryOptions,
+    // this.returnPolicy,
+    this.packingcharge,
+    this.minimumOrderAmount,
+    // this.cancelStage,
+    // this.isCancellation
+  });
 
   Map<String, dynamic> toJson() {
     return {
@@ -81,8 +84,9 @@ class StoreUpdateReq {
       // "returnPolicy": returnPolicy,
       'storeDocuments': storeDocuments,
       'deliveryOptions': deliveryOptions,
-      'isCancellation': isCancellation,
-      'cancelStage': cancelStage
+      'minimumOrderAmount': minimumOrderAmount
+      // 'isCancellation': isCancellation,
+      // 'cancelStage': cancelStage
     };
   }
 
@@ -95,7 +99,6 @@ class StoreUpdateReq {
       }
     }
 
-    // --- Normal text fields ---
     addField('name', name);
     addField('contactNo', contactNo);
     addField('categoryId', categoryId);
@@ -105,8 +108,8 @@ class StoreUpdateReq {
     addField('storeId', storeId);
     addField('lon', lon);
     addField('lat', lat);
-    addField('cancelStage ', cancelStage);
-    addField('isCancellation ', isCancellation);
+    // addField('cancelStage ', cancelStage);
+    // addField('isCancellation ', isCancellation);
     addField('deliveryType', deliveryType);
     addField('description', description);
     addField('openingTime', opentime);
@@ -115,6 +118,7 @@ class StoreUpdateReq {
     addField('storeType', storeType);
     // addField('returnPolicy', returnPolicy);
     addField('packingCharge', packingcharge);
+    addField('minimumOrderAmount', minimumOrderAmount);
 
     // --- Image ---
     // ---- IMAGE Upload ----

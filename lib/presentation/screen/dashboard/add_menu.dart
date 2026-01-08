@@ -180,7 +180,7 @@ class _AddMenuScreenState extends State<AddMenuScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// ---- Upload Image Section ----
+                
                   CustomCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

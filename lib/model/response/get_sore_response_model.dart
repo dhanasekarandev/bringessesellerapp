@@ -43,6 +43,7 @@ class Result {
   String? deliveryType;
   String? returnPolicy;
   String? isfood;
+  String? minimumOrderAmount;
   List<String>? paymentOptions;
   List<String>? deliveryOptions;
   Result({
@@ -70,6 +71,7 @@ class Result {
     this.returnPolicy,
     this.paymentOptions,
     this.deliveryOptions,
+    this.minimumOrderAmount,
   });
 
   Result.fromJson(Map<String, dynamic> json) {
@@ -91,6 +93,7 @@ class Result {
     closingTime = json['closingTime'];
     packingTime = json['packingTime'];
     packingCharge = json['packingCharge'];
+    minimumOrderAmount = json['minimumOrderAmount'];
     description = json['description'];
     lat = (json['lat'] != null) ? json['lat'].toDouble() : null;
     lon = (json['lon'] != null) ? json['lon'].toDouble() : null;
@@ -126,6 +129,7 @@ class Result {
     data['description'] = description;
     data['lat'] = lat;
     data['lon'] = lon;
+    data['minimumOrderAmount'] = minimumOrderAmount;
     data['storeType'] = storeType;
     data['returnPolicy'] = returnPolicy;
     data['paymentOptions'] = paymentOptions;

@@ -77,6 +77,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   TextEditingController _phone = TextEditingController();
   TextEditingController _des = TextEditingController();
+  TextEditingController _orderAmt = TextEditingController();
   TextEditingController _packingchrg = TextEditingController();
   TextEditingController _packingtime = TextEditingController();
   TextEditingController _return = TextEditingController();
@@ -216,6 +217,18 @@ class _ShopScreenState extends State<ShopScreen> {
       );
       return;
     }
+
+    // Check if image is empty (for new store creation)
+    // if (!_isDataLoaded && _selectedImage == null) {
+    //   Fluttertoast.showToast(
+    //     msg: "Please select a store image",
+    //     backgroundColor: Colors.red,
+    //     textColor: Colors.white,
+    //     toastLength: Toast.LENGTH_SHORT,
+    //   );
+    //   return;
+    // }
+
     String? _formatTime(TimeOfDay? time) {
       if (time == null) return '';
       final hour = time.hour.toString().padLeft(2, '0');
@@ -263,6 +276,7 @@ class _ShopScreenState extends State<ShopScreen> {
       opentime: _formatTime(_openTime),
       closetime: _formatTime(_closeTime),
       image: newImageFile,
+      minimumOrderAmount: _orderAmt.text.trim(),
       documents: newDocuments,
       isfood: _isfood,
       lat: (selectedLat ??
@@ -298,6 +312,7 @@ class _ShopScreenState extends State<ShopScreen> {
       image: newImageFile,
       storeImage: existingImageName,
       documents: newDocuments,
+      minimumOrderAmount: _orderAmt.text.trim(),
       storeDocuments: existingDocs,
       lat: (selectedLat ??
               _existingLat ?? // ✅ fallback to old API lat
@@ -319,7 +334,6 @@ class _ShopScreenState extends State<ShopScreen> {
     if (_isDataLoaded) {
       context.read<UpdateStoreCubit>().login(storeUpdate);
     } else {
-      print("saoudfgs");
       context.read<StoreUploadCubit>().login(storeReq);
     }
   }
@@ -636,7 +650,7 @@ class _ShopScreenState extends State<ShopScreen> {
                       _phone.text = data.contactNo?.toString() ?? '';
                       selectedOption = data.categoryId;
                       _des.text = data.description ?? "";
-
+                        _orderAmt.text = data.minimumOrderAmount.toString();
                       _deliverycharge.text = data.deliveryCharge.toString();
                       _return.text = data.returnPolicy ?? '';
                       if (data.storeType != null &&
@@ -1224,6 +1238,17 @@ class _ShopScreenState extends State<ShopScreen> {
           //   ),
           // ],
           // SizedBox(height: 16.h),
+          const SubTitleText(
+            title: "minimumOrderAmount",
+            isMandatory: true,
+          ),
+          SizedBox(height: 8.h),
+          CustomTextField(
+            controller: _orderAmt,
+            maxLines: 1,
+            hintText: "Enter minimum order amount",
+          ),
+          SizedBox(height: 8.h),
           const SubTitleText(title: "Description"),
           SizedBox(height: 8.h),
           CustomTextField(
@@ -1253,7 +1278,10 @@ class _ShopScreenState extends State<ShopScreen> {
             ),
           ),
           SizedBox(height: 16.h),
-          const SubTitleText(title: "Packing charge (₹)"),
+          const SubTitleText(
+            title: "Packing charge (₹)",
+            isMandatory: true,
+          ),
           SizedBox(height: 8.h),
           CustomTextField(
             controller: _packingchrg,
@@ -1261,7 +1289,10 @@ class _ShopScreenState extends State<ShopScreen> {
             keyboardType: TextInputType.number,
           ),
           SizedBox(height: 16.h),
-          const SubTitleText(title: "Packing time (minutes)"),
+          const SubTitleText(
+            title: "Packing time (minutes)",
+            isMandatory: true,
+          ),
           SizedBox(height: 8.h),
           CustomTextField(
             controller: _packingtime,
@@ -1269,7 +1300,10 @@ class _ShopScreenState extends State<ShopScreen> {
             keyboardType: TextInputType.number,
           ),
           SizedBox(height: 16.h),
-          const SubTitleText(title: "Store type"),
+          const SubTitleText(
+            title: "Store type",
+            isMandatory: true,
+          ),
           SizedBox(height: 12.h),
           Wrap(
             spacing: 12.w,

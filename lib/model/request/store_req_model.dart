@@ -26,6 +26,7 @@ class StoreReqModel {
   String? packingcharge;
   String? isCancellation;
   String? cancelStage;
+  String? minimumOrderAmount;
 
   StoreReqModel(
       {this.name,
@@ -50,8 +51,8 @@ class StoreReqModel {
       this.deliveryOptions,
       this.packingcharge,
       this.cancelStage,
-      this.isCancellation
-      });
+      this.minimumOrderAmount,
+      this.isCancellation});
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
@@ -76,6 +77,7 @@ class StoreReqModel {
     data['deliveryOptions'] = deliveryOptions;
     data['isCancellation '] = isCancellation;
     data['cancelStage '] = cancelStage;
+    data['minimumOrderAmount'] = minimumOrderAmount;
     return data;
   }
 
@@ -107,6 +109,7 @@ class StoreReqModel {
     addField('cancelStage ', cancelStage);
     addField('isCancellation ', isCancellation);
     addField('packingCharge', packingcharge);
+    addField('minimumOrderAmount', minimumOrderAmount);
     addField('retunPolicy', retunPolicy); // match Postman typo
 
     // Payment options (optional)
